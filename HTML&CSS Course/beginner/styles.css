@@ -1,0 +1,16 @@
+body {
+  background-color: salmon;
+}
+
+#first-div {
+  background-color: pink;
+}
+
+.para-header {
+  color: rgb(0, 90, 168);
+  font-size: 10 rem;
+}
+
+p {
+  color: white;
+}
