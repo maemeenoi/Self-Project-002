@@ -1,0 +1,64 @@
+{% extends 'main_app/base.html' %} {% block title %}Choose Your Region - Mana
+Prostate Support{% endblock %} {% block content %}{% load widget_tweaks %}
+<div class="container my-5">
+  <h1 class="h2 fw-bold text-center mb-4">Find Support Groups in Your Area</h1>
+
+  <p class="text-center mb-4">
+    Select your region to discover local support groups near your community.
+  </p>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8 col-sm-10">
+      <div class="card p-4 shadow">
+        <div class="text-center mb-4">
+          <i
+            class="bi bi-geo-alt-fill text-primary"
+            style="font-size: 3rem"
+          ></i>
+        </div>
+
+        <form method="POST">
+          {% csrf_token %}
+          <div class="mb-4">
+            <label
+              for="{{ form.region.id_for_label }}"
+              class="form-label fw-bold"
+              >Choose Your Region:</label
+            >
+            {% render_field form.region class="form-select form-select-lg" %}
+          </div>
+
+          <p class="text-muted small mb-4">
+            Choose your region, then click "Find Support Groups" below.
+          </p>
+
+          <button type="submit" class="btn btn-primary btn-lg w-100">
+            <i class="bi bi-search me-2"></i>Find Support Groups
+          </button>
+        </form>
+      </div>
+
+      <div class="mt-4 text-center">
+        <p class="mb-2">
+          Need help? <a href="{% url 'contact' %}">Contact us</a> for
+          assistance.
+        </p>
+        <p>Learn more about our <a href="{% url 'about' %}">purposes</a>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .form-select-lg {
+    font-size: 1.1rem;
+  }
+  .btn-lg {
+    font-size: 1.2rem;
+  }
+  .card {
+    border-radius: 15px;
+    border: none;
+  }
+</style>
+{% endblock content %}

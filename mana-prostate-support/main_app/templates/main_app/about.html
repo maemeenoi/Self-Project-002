@@ -1,0 +1,57 @@
+{% extends "main_app/base.html" %} {% block title %}About - Mana Prostate
+Support{% endblock %} {% block content %}
+<div class="container my-5">
+  <!-- Main Heading -->
+  <h1 class="h2 fw-bold mb-4">About Mana Prostate Support</h1>
+
+  <!-- Introduction Paragraph -->
+  <p class="mb-4">
+    Mana Prostate Support is dedicated to providing comprehensive information
+    and support for individuals and families affected by prostate cancer in New
+    Zealand. Our mission is to empower men with the knowledge they need to
+    navigate their prostate health journey and offer a community of support.
+  </p>
+
+  <!-- Mission Section -->
+  <h2 class="h4 fw-semibold mb-3">Our Mission</h2>
+  <p class="mb-4">
+    Our mission is to create a trusted resource where men can find up-to-date,
+    relevant information about prostate health and connect with others facing
+    similar challenges. We aim to raise awareness about prostate cancer
+    prevention, early detection, and treatment options.
+  </p>
+
+  <!-- Vision Section -->
+  <h2 class="h4 fw-semibold mb-3">Our Vision</h2>
+  <p class="mb-4">
+    Our vision is to foster a community where every man in New Zealand has
+    access to the knowledge and resources needed to take control of his prostate
+    health. We envision a future where early detection rates improve, treatment
+    is widely understood, and support is readily available for those who need
+    it.
+  </p>
+
+  <!-- Goals Section -->
+  <h2 class="h4 fw-semibold mb-3">Our Goals</h2>
+  <ul class="list-unstyled mb-4">
+    <li class="mb-2">
+      <i class="bi bi-check-circle-fill text-primary"></i>
+      Raise awareness of prostate health.
+    </li>
+    <li class="mb-2">
+      <i class="bi bi-check-circle-fill text-primary"></i>
+      Provide a comprehensive resource for men and their families about prostate
+      cancer.
+    </li>
+    <li class="mb-2">
+      <i class="bi bi-check-circle-fill text-primary"></i>
+      Build a support network for individuals living with prostate cancer.
+    </li>
+  </ul>
+
+  <!-- Call to Action -->
+  <div class="mt-5">
+    <a href="{% url 'contact' %}" class="btn btn-primary">Contact Us</a>
+  </div>
+</div>
+{% endblock %}

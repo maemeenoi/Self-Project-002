@@ -1,0 +1,70 @@
+/* Custom.css - Refined version */
+
+:root {
+  --bs-primary: #89cff0; /* Baby Blue */
+  --bs-secondary: #66b2b2; /* Verdigris */
+  --bs-info: #ffb6b9; /* Cherry Blossom Pink */
+  --font-base-size: 16px; /* Base font size */
+  --spacing-unit: 10px; /* Base spacing unit */
+}
+
+body,
+h1 {
+  font-family: "Montserrat", sans-serif; /* Specific font for headers */
+  font-size: calc(1.5rem + 1.5vw); /* Largest header, more responsive */
+}
+
+h2 {
+  font-family: "Montserrat", sans-serif; /* Specific font for headers */
+  font-size: calc(1.4rem + 1.2vw); /* Noticeably smaller than h1 */
+}
+
+h3 {
+  font-family: "Montserrat", sans-serif; /* Specific font for headers */
+  font-size: calc(1.2rem + 0.8vw); /* Significantly smaller than h2 */
+}
+
+h4,
+h5,
+h6 {
+  font-family: "Lora", serif; /* Specific font for sub-headers */
+  font-size: calc(
+    1.125rem + 0.75vw
+  ); /* Responsive font size, smaller than h3 */
+}
+
+/* Custom link styles */
+a {
+  color: var(--bs-info);
+  transition: color 0.3s; /* Smooth transition for color change */
+}
+
+a:hover,
+a:focus {
+  color: var(--bs-secondary); /* Adjusted for CSS compatibility */
+}
+
+/* Override Bootstrap button colors if needed */
+.btn-primary {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.btn-secondary {
+  background-color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+  h1,
+  h2,
+  h3 {
+    font-size: calc(1.375rem + 1vw); /* Smaller font size for smaller devices */
+  }
+}
+
+/* Accessibility Enhancements */
+body {
+  line-height: 1.6; /* Improved readability and accessibility */
+}

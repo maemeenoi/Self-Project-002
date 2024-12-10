@@ -1,0 +1,53 @@
+{% extends "main_app/base.html" %} {% block title %}Support Groups in {{ region
+}} - Mana Prostate Support{% endblock %} {% block content %}
+<div class="container my-5">
+  <h1 class="h2 fw-bold mb-4 text-center">Support Groups in {{ region }}</h1>
+
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for group in support_groups %}
+    <div class="col">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h2 class="h5 fw-bold mb-3">{{ group.name }}</h2>
+          <p class="mb-2">
+            <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+            {{ group.location }}
+          </p>
+          <p class="mb-2">
+            <i class="bi bi-clock-fill text-primary me-2"></i>
+            {{ group.meeting_time }}
+          </p>
+          <p class="mb-2">
+            <i class="bi bi-calendar-event-fill text-primary me-2"></i>
+            {{ group.meeting_date }}
+          </p>
+          <h6 class="mt-3 mb-2">Contacts:</h6>
+          {% for contact in group.formatted_contacts %}
+          <p class="mb-1">
+            <i class="bi bi-person-fill text-primary me-2"></i>
+            {{ contact|safe }}
+            <!-- Render contact safely as HTML -->
+          </p>
+          {% endfor %} {% if group.email %}
+          <p class="mb-2">
+            <i class="bi bi-envelope-fill text-primary me-2"></i>
+            <a href="mailto:{{ group.email }}">{{ group.email }}</a>
+          </p>
+          {% endif %} {% if group.notes %}
+          <h6 class="mt-3 mb-2">Notes:</h6>
+          <p class="mb-0 small">{{ group.notes }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info" role="alert">
+        No support groups found in {{ region }}. Please check other regions or
+        contact us for more information.
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

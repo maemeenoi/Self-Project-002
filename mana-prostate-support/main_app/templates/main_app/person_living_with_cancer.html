@@ -1,0 +1,469 @@
+{% extends "main_app/base.html" %} {% load static %} {% block content %}
+<!-- Hero Section -->
+<section id="hero" class="hero section light-background">
+  <img
+    src="{% static 'assets/img/homepage.gif' %}"
+    alt="Support for Person Living with Cancer"
+    data-aos="fade-in"
+  />
+
+  <div class="container position-relative">
+    <div
+      class="welcome position-relative"
+      data-aos="fade-down"
+      data-aos-delay="100"
+    >
+      <h2>Support for Person Living with Cancer</h2>
+      <p>Information and resources tailored to your journey</p>
+    </div>
+
+    <div class="content row gy-4">
+      <div class="col-lg-4 d-flex align-items-stretch">
+        <div class="support-box" data-aos="zoom-out" data-aos-delay="200">
+          <h3>Cancer Society NZ Support</h3>
+          <p class="phone-number">0800 CANCER (226 237)</p>
+          <p>Monday to Friday, 8:30 am – 5:00 pm</p>
+          <p class="mb-3">The Cancer Society NZ is here to help with information, support, and practical assistance.</p>
+          <div class="text-center mb-3">
+            <a href="tel:0800226237" class="call-btn">
+              <span>Call Now</span> <i class="bi bi-telephone-fill"></i>
+            </a>
+          </div>
+          <div class="text-center">
+            <a href="mailto:info@cancersoc.org.nz" class="email-btn">
+              <span>Email an Information nurse</span> <i class="bi bi-envelope-fill"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-8 d-flex align-items-stretch">
+        <div class="info-box" data-aos="zoom-out" data-aos-delay="300">
+          <h4>How Cancer Society NZ Can Help</h4>
+          <p>The Cancer Society NZ understands that going through cancer is tough and can raise many questions. They want people to know that they're here to help. Their support includes:</p>
+          <ul>
+            <li>Assistance with getting to medical appointments</li>
+            <li>Help in understanding treatment options</li>
+            <li>Offering practical support</li>
+            <li>Answering questions about treatment and its effects</li>
+            <li>Providing emotional support during difficult times</li>
+          </ul>
+          <p>For answers, support or just a chat, individuals are encouraged to reach out to the Cancer Society NZ.</p>
+          <p class="mt-4">
+            <a href="https://www.cancer.org.nz/cancer/types-of-cancer/prostate-cancer/" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+              Learn More About Prostate Cancer <i class="bi bi-box-arrow-up-right ms-2"></i>
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+</section>
+<!-- End Hero Section -->
+
+<!-- Main Content -->
+<div id="main-content" class="container my-5">
+  <!-- Understanding Prostate Cancer Section -->
+  <div id="understanding-prostate-cancer" class="card mb-4">
+    <div class="card-body">
+      <h2 class="card-title">Understanding Prostate Cancer</h2>
+      <div class="row">
+        {% for item in understanding_items %}
+        <div class="col-md-3 mb-3">
+          <a
+            href="{% url item.url %}"
+            class="card h-100 text-decoration-none text-dark"
+          >
+            <div
+              class="card-body d-flex align-items-center justify-content-center"
+            >
+              <h3 class="h5 mb-0">{{ item.title }}</h3>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Information by Cancer Stage Section -->
+  <div id="cancer-stage-info" class="card mb-4">
+    <div class="card-body">
+      <h2 class="card-title">Information by Cancer Stage</h2>
+      <div class="row">
+        {% for item in stage_items %}
+        <div class="col-md-3 mb-3">
+          <a
+            href="{% url item.url %}"
+            class="card h-100 text-decoration-none text-dark"
+          >
+            <div
+              class="card-body d-flex align-items-center justify-content-center"
+            >
+              <h3 class="h5 mb-0">{{ item.title }}</h3>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+    <!-- Find Support Section -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 class="card-title">Find Support</h2>
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <p class="mb-3">
+              Connect with others who understand what you're going through. Our
+              support groups offer a safe space to share experiences, get advice,
+              and find emotional support.
+            </p>
+            <ul class="mb-4">
+              <li>Meet others facing similar challenges</li>
+              <li>Share your experiences and learn from others</li>
+              <li>Get practical tips for coping with prostate cancer</li>
+              <li>Find groups in your local area</li>
+            </ul>
+          </div>
+          <div class="col-md-4 text-center">
+            <a
+              href="{% url 'support_group_finder_page' %}"
+              class="btn btn-primary btn-lg support-group-btn"
+            >
+              <i class="bi bi-people-fill me-2"></i>Find a Support Group
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Latest Research and News Section -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h2 class="card-title mb-4">Latest Research and News</h2>
+      {% if latest_articles %}
+      <div class="row gy-4">
+        {% for article in latest_articles %}
+        <div class="col-md-4 d-flex align-items-stretch">
+          <a
+            href="{% url 'article_detail' article.slug %}"
+            class="icon-box-link w-100"
+          >
+            <div
+              class="icon-box"
+              data-aos="zoom-out"
+              data-aos-delay="{{ forloop.counter|add:200 }}"
+            >
+              <i class="bi bi-newspaper"></i>
+              <h4>{{ article.title }}</h4>
+              <p class="text-muted mb-2">
+                {{ article.pub_date|date:"F d, Y" }}
+              </p>
+              <p>{{ article.content|striptags|truncatewords:30 }}</p>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p>No recent articles available.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <style>
+    .hero {
+      width: 100%;
+      position: relative;
+      min-height: 60vh;
+      padding: 160px 0 80px 0;
+      overflow: hidden;
+    }
+
+    .hero img {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    .hero .container {
+      z-index: 3;
+      position: relative;
+    }
+
+    .hero .welcome h2 {
+      font-size: 52px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--color-secondary);
+    }
+
+    .hero .welcome p {
+      font-size: 18px;
+      color: rgba(var(--color-secondary-rgb), 0.8);
+    }
+
+    .hero .icon-box {
+      padding: 50px 30px;
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 0 29px 0 rgba(var(--color-secondary-rgb), 0.1);
+      transition: all 0.3s ease-in-out;
+      border-radius: 8px;
+      z-index: 1;
+      height: 100%;
+      width: 100%;
+      text-align: center;
+    }
+
+    .hero .icon-box h4 {
+      font-weight: 700;
+      margin-bottom: 15px;
+      font-size: 24px;
+    }
+
+    .hero .icon-box i {
+      font-size: 48px;
+      line-height: 1;
+      color: var(--color-primary);
+      margin-bottom: 30px;
+      display: inline-block;
+    }
+
+    .hero .icon-box:hover {
+      transform: scale(1.08);
+    }
+
+    .emergency-box {
+      padding: 30px;
+      background: #ff4136;
+      color: #fff;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .emergency-box h3 {
+      font-weight: 700;
+      font-size: 34px;
+      margin-bottom: 15px;
+    }
+
+    .emergency-box .phone-number {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .emergency-box .call-btn {
+      display: inline-block;
+      background: #fff;
+      padding: 10px 30px;
+      color: #ff4136;
+      border-radius: 50px;
+      transition: all ease-in-out 0.4s;
+      font-weight: bold;
+    }
+
+    .emergency-box .call-btn i {
+      font-size: 14px;
+      margin-left: 5px;
+    }
+
+    .emergency-box .call-btn:hover {
+      background: #ffcccb;
+      color: #ff4136;
+    }
+
+    .icon-box-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      height: 100%;
+    }
+
+    .icon-box-link:hover {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .icon-box-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .icon-box {
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 0 29px 0 rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease-in-out;
+      border-radius: 8px;
+      z-index: 1;
+      height: 100%;
+      width: 100%;
+      text-align: center;
+    }
+
+    .icon-box i {
+      font-size: 48px;
+      line-height: 1;
+      margin-bottom: 15px;
+      color: #0ea2bd;
+    }
+
+    .icon-box h4 {
+      font-weight: 700;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .icon-box p {
+      font-size: 14px;
+    }
+
+    .icon-box:hover {
+      transform: scale(1.08);
+    }
+
+    .support-group-btn {
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .support-group-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .card {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0, 4, 255, 0.1);
+      transition: all 0.3s ease-in-out;
+    }
+
+    .card-title {
+      color: #0ea2bd;
+      font-weight: bold;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(255, 0, 0, 0.15);
+    }
+
+    .btn-primary {
+      background-color: #0ea2bd;
+      border-color: #0ea2bd;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #0c8fa8;
+      border-color: #0c8fa8;
+      transform: translateY(-2px);
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    ul li {
+      margin-bottom: 10px;
+    }
+
+    .support-box {
+      padding: 30px;
+      background: #0ea2bd;
+      color: #fff;
+      border-radius: 15px;
+      height: 100%;
+    }
+
+    .support-box h3 {
+      font-weight: 700;
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .support-box .phone-number {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .call-btn,
+    .email-btn {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 10px 20px;
+      color: #fff;
+      border-radius: 50px;
+      transition: all ease-in-out 0.4s;
+      text-decoration: none;
+      margin: 5px;
+    }
+
+    .call-btn:hover,
+    .email-btn:hover {
+      background: #fff;
+      color: #0ea2bd;
+    }
+
+    .info-box {
+      padding: 30px;
+      background: #f8f9fa;
+      border-radius: 15px;
+      height: 100%;
+    }
+
+    .info-box h4 {
+      color: #0ea2bd;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .info-box ul {
+      padding-left: 20px;
+    }
+
+    .info-box ul li {
+      margin-bottom: 10px;
+    }
+
+    .btn-primary {
+      background-color: #0ea2bd;
+      border-color: #0ea2bd;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #0c8fa8;
+      border-color: #0c8fa8;
+      transform: translateY(-2px);
+    }
+  </style>
+
+  <script>
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+      anchor.addEventListener("click", function (e) { 
+        e.preventDefault()
+
+        document.querySelector(this.getAttribute("href")).scrollIntoView({
+          behavior: "smooth",
+        })
+      })
+    })
+  </script>
+  {% endblock %}
+</div>

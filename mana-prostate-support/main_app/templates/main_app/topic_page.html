@@ -1,0 +1,233 @@
+{% extends "main_app/base.html" %} {% load static %} {% block content %}
+<div class="container my-5">
+  <h1 class="text-center mb-3">{{ topic_title }}</h1>
+  <p class="text-center text-muted mb-5">{{ topic_description }}</p>
+
+  <div class="row">
+    <!-- Main Content Column -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <!-- Reading Time and Progress -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <p id="reading-time" class="text-muted mb-0"></p>
+            <div class="progress" style="width: 60%">
+              <div
+                id="reading-progress"
+                class="progress-bar"
+                role="progressbar"
+                style="width: 0%"
+                aria-valuenow="0"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Display Image if Available -->
+          {% if topic_image %}
+          <div class="text-center mb-4">
+            <img
+              src="{{ topic_image.url }}"
+              class="img-fluid rounded"
+              alt="{{ topic_title }}"
+            />
+          </div>
+          {% endif %}
+
+          <!-- Article Content -->
+          <div id="article-content">{{ topic_content|safe }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Column -->
+    <div class="col-lg-4">
+      <!-- Controls -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Article Controls</h5>
+          <!-- Text-to-Speech Controls -->
+          <div class="mb-3">
+            <button id="speak-article" class="btn btn-primary me-2">
+              <i class="bi bi-play-fill"></i> Listen
+            </button>
+            <button id="pause-article" class="btn btn-warning me-2">
+              <i class="bi bi-pause-fill"></i> Pause
+            </button>
+            <button id="stop-article" class="btn btn-danger">
+              <i class="bi bi-stop-fill"></i> Stop
+            </button>
+          </div>
+
+          <!-- Font Size Adjustment -->
+          <div class="mb-3">
+            <button id="decrease-font" class="btn btn-outline-secondary me-2">
+              A-
+            </button>
+            <button id="reset-font" class="btn btn-outline-secondary me-2">
+              Reset
+            </button>
+            <button id="increase-font" class="btn btn-outline-secondary me-2">
+              A+
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Table of Contents -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Table of Contents</h5>
+          <nav id="toc" class="nav flex-column"></nav>
+        </div>
+      </div>
+
+      <!-- Related Articles -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Interesting Read</h5>
+          <ul class="list-unstyled">
+            {% for article in related_articles %}
+            <li class="mb-2">
+              <a
+                href="{% url 'article_detail' article.slug %}"
+                class="text-primary"
+                >{{ article.title }}</a
+              >
+              <p class="text-muted small">
+                {{ article.pub_date|date:"F d, Y" }} by {{ article.author }}
+              </p>
+            </li>
+            {% empty %}
+            <li class="text-muted">No related articles available.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Reading Time Estimation
+    const articleContent = document.getElementById("article-content").innerText
+    const words = articleContent.split(" ").length
+    const readingTime = Math.ceil(words / 200)
+    document.getElementById(
+      "reading-time"
+    ).innerText = `Estimated reading time: ${readingTime} minute${
+      readingTime > 1 ? "s" : ""
+    }`
+
+    // Reading Progress
+    window.addEventListener("scroll", function () {
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      const progress = (scrollTop / (documentHeight - windowHeight)) * 100
+      document.getElementById("reading-progress").style.width = `${progress}%`
+    })
+
+    // Text-to-Speech Functionality
+    const speechSynthesisUtterance = new SpeechSynthesisUtterance(
+      articleContent
+    )
+    let isPaused = false
+
+    document
+      .getElementById("speak-article")
+      .addEventListener("click", function () {
+        if (isPaused) {
+          window.speechSynthesis.resume()
+          isPaused = false
+        } else {
+          window.speechSynthesis.speak(speechSynthesisUtterance)
+        }
+      })
+
+    document
+      .getElementById("pause-article")
+      .addEventListener("click", function () {
+        window.speechSynthesis.pause()
+        isPaused = true
+      })
+
+    document
+      .getElementById("stop-article")
+      .addEventListener("click", function () {
+        window.speechSynthesis.cancel()
+        isPaused = false
+      })
+
+    // Font Size Adjustment
+    const articleElement = document.getElementById("article-content")
+    let currentFontSize = parseFloat(
+      window
+        .getComputedStyle(articleElement, null)
+        .getPropertyValue("font-size")
+    )
+    const originalFontSize = currentFontSize
+
+    document
+      .getElementById("increase-font")
+      .addEventListener("click", function () {
+        currentFontSize += 2
+        articleElement.style.fontSize = currentFontSize + "px"
+      })
+
+    document
+      .getElementById("decrease-font")
+      .addEventListener("click", function () {
+        if (currentFontSize > 12) {
+          currentFontSize -= 2
+          articleElement.style.fontSize = currentFontSize + "px"
+        }
+      })
+
+    document
+      .getElementById("reset-font")
+      .addEventListener("click", function () {
+        currentFontSize = originalFontSize
+        articleElement.style.fontSize = currentFontSize + "px"
+      })
+
+    // Table of Contents
+    const headings = document.querySelectorAll(
+      "#article-content h2, #article-content h3"
+    )
+    const toc = document.getElementById("toc")
+    headings.forEach((heading, index) => {
+      const link = document.createElement("a")
+      link.textContent = heading.textContent
+      link.href = `#heading-${index}`
+      link.classList.add("nav-link")
+      toc.appendChild(link)
+
+      heading.id = `heading-${index}`
+    })
+
+    // Dark Mode Toggle
+    const darkModeToggle = document.getElementById("darkModeToggle")
+    darkModeToggle.addEventListener("change", function () {
+      document.body.classList.toggle("dark-mode")
+    })
+  })
+</script>
+
+<style>
+  .dark-mode {
+    background-color: #333;
+    color: #fff;
+  }
+
+  .dark-mode .card {
+    background-color: #444;
+    color: #fff;
+  }
+
+  .dark-mode .text-muted {
+    color: #aaa !important;
+  }
+</style>
+{% endblock %}

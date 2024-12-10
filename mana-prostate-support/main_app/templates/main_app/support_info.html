@@ -1,0 +1,380 @@
+{% extends "main_app/base.html" %} {% load static %} {% block content %}
+<!-- Hero Section -->
+<section id="hero" class="hero section light-background">
+  <img src="{% static 'assets/img/homepage.gif' %}" alt="" data-aos="fade-in" />
+
+  <div class="container position-relative">
+    <div
+      class="welcome position-relative"
+      data-aos="fade-down"
+      data-aos-delay="100"
+    >
+      <h2>Support & Information</h2>
+      <p>
+        Resources for family, friends, and those interested in prostate health
+      </p>
+    </div>
+
+    <div class="content row gy-4">
+      <div class="col-lg-4 d-flex align-items-stretch">
+        <div class="support-info-box" data-aos="zoom-out" data-aos-delay="200">
+          <h3>Support & Information Hub</h3>
+          <ul class="support-info-list">
+            <li>
+              <i class="bi bi-info-circle"></i> Key Prostate Health Resources
+            </li>
+            <li><i class="bi bi-people"></i> Support for family and friends</li>
+            <li><i class="bi bi-book"></i> Educational materials</li>
+          </ul>
+          <p>
+            Empowering you to support your loved ones through their prostate
+            health journey.
+          </p>
+          <div class="text-center">
+            <a href="#main-content" class="more-btn">
+              <span>Explore Resources</span>
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8 d-flex align-items-stretch">
+        <div class="d-flex flex-column justify-content-center">
+          <div class="row gy-4">
+            <div class="col-xl-4 d-flex align-items-stretch">
+              <div
+                class="icon-box"
+                data-aos="zoom-out"
+                data-aos-delay="300"
+                onclick="scrollToSection('learn-about-prostate-cancer')"
+              >
+                <i class="bi bi-info-circle"></i>
+                <h4>Learn About Prostate Cancer</h4>
+                <p>
+                  Understand risks, symptoms, testing, and treatment options.
+                </p>
+              </div>
+            </div>
+
+            <div class="col-xl-4 d-flex align-items-stretch">
+              <div
+                class="icon-box"
+                data-aos="zoom-out"
+                data-aos-delay="400"
+                onclick="scrollToSection('how-you-can-support')"
+              >
+                <i class="bi bi-heart"></i>
+                <h4>How You Can Support</h4>
+                <p>Discover ways to provide emotional and practical help.</p>
+              </div>
+            </div>
+
+            <div class="col-xl-4 d-flex align-items-stretch">
+              <div
+                class="icon-box"
+                data-aos="zoom-out"
+                data-aos-delay="500"
+                onclick="scrollToSection('helpful-resources')"
+              >
+                <i class="bi bi-book"></i>
+                <h4>Helpful Resources</h4>
+                <p>
+                  Access nutrition support, recommended reading, and external
+                  resources.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End Hero Section -->
+
+<!-- Main Content -->
+<div id="main-content" class="container my-5">
+  <!-- Learn About Prostate Cancer Section -->
+  <div id="learn-about-prostate-cancer" class="card mb-4">
+    <div class="card-body">
+      <h2 class="card-title">Learn About Prostate Cancer</h2>
+      <div class="row">
+        {% for item in learn_items %}
+        <div class="col-md-3 mb-3">
+          <a
+            href="{% url item.url %}"
+            class="card h-100 text-decoration-none text-dark"
+          >
+            <div
+              class="card-body d-flex align-items-center justify-content-center"
+            >
+              <h3 class="h5 mb-0">{{ item.title }}</h3>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- How You Can Support Section -->
+  <div id="how-you-can-support" class="card mb-4">
+    <div class="card-body">
+      <h2 class="card-title">How You Can Support</h2>
+      <div class="row">
+        {% for item in support_items %}
+        <div class="col-md-4 mb-3">
+          <a
+            href="{% url item.url %}"
+            class="card h-100 text-decoration-none text-dark"
+          >
+            <div
+              class="card-body d-flex align-items-center justify-content-center"
+            >
+              <h3 class="h5 mb-0">{{ item.title }}</h3>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Helpful Resources Section -->
+  <div id="helpful-resources" class="card mb-4">
+    <div class="card-body">
+      <h2 class="card-title">Helpful Resources</h2>
+      <div class="row">
+        {% for item in resource_items %}
+        <div class="col-md-4 mb-3">
+          <a
+            href="{% url item.url %}"
+            class="card h-100 text-decoration-none text-dark"
+          >
+            <div
+              class="card-body d-flex align-items-center justify-content-center"
+            >
+              <h3 class="h5 mb-0">{{ item.title }}</h3>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .support-info-box {
+    padding: 30px;
+    background: #0ea2bd;
+    color: #fff;
+    border-radius: 15px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .support-info-box h3 {
+    font-weight: 700;
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .support-info-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 20px;
+  }
+
+  .support-info-list li {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+  }
+
+  .support-info-list i {
+    margin-right: 10px;
+    font-size: 1.2em;
+    color: #ffffff;
+  }
+
+  .support-info-box p {
+    font-style: italic;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    line-height: 1.4;
+  }
+
+  .more-btn {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 50px;
+    transition: all ease-in-out 0.4s;
+    text-decoration: none;
+  }
+
+  .more-btn:hover {
+    background: #fff;
+    color: #0ea2bd;
+  }
+
+  .icon-box {
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .icon-box:hover {
+    transform: translateY(-5px);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+  .hero {
+    width: 100%;
+    position: relative;
+    min-height: 60vh;
+    padding: 160px 0 80px 0;
+    overflow: hidden;
+  }
+
+  .hero img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  .hero .container {
+    z-index: 3;
+    position: relative;
+  }
+
+  .hero .welcome h2 {
+    font-size: 52px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--color-secondary);
+  }
+
+  .hero .welcome p {
+    font-size: 18px;
+    color: rgba(var(--color-secondary-rgb), 0.8);
+  }
+
+  .hero .icon-box {
+    padding: 50px 30px;
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 0 29px 0 rgba(var(--color-secondary-rgb), 0.1);
+    transition: all 0.3s ease-in-out;
+    border-radius: 8px;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+  }
+
+  .hero .icon-box h4 {
+    font-weight: 700;
+    margin-bottom: 15px;
+    font-size: 24px;
+  }
+
+  .hero .icon-box i {
+    font-size: 48px;
+    line-height: 1;
+    color: var(--color-primary);
+    margin-bottom: 30px;
+    display: inline-block;
+  }
+
+  .hero .icon-box:hover {
+    transform: scale(1.08);
+  }
+
+  .why-box {
+    padding: 30px;
+    background: #0ea2bd;
+    color: #fff;
+    border-radius: 15px;
+    height: 100%;
+  }
+
+  .why-box h3 {
+    font-weight: 700;
+    font-size: 24px;
+    margin-bottom: 15px;
+  }
+
+  .more-btn {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 50px;
+    transition: all ease-in-out 0.4s;
+    text-decoration: none;
+    margin-top: 15px;
+  }
+
+  .more-btn:hover {
+    background: #3755b47c;
+    color: #0ea2bd;
+  }
+
+  .card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 4, 255, 0.1);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(255, 0, 0, 0.15);
+  }
+
+  .card-title {
+    color: #0ea2bd;
+    font-weight: bold;
+  }
+
+  .card-body {
+    padding: 30px;
+  }
+
+  .btn-primary {
+    background-color: #0ea2bd;
+    border-color: #0ea2bd;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #0c8fa8;
+    border-color: #0c8fa8;
+    transform: translateY(-2px);
+  }
+</style>
+
+<script>
+  function scrollToSection(sectionId) {
+    const section = document.getElementById(sectionId)
+    if (section) {
+      const yOffset = -80 // Adjust this value to account for any fixed headers
+      const y =
+        section.getBoundingClientRect().top + window.pageYOffset + yOffset
+      window.scrollTo({ top: y, behavior: "smooth" })
+    }
+  }
+</script>
+{% endblock %}
