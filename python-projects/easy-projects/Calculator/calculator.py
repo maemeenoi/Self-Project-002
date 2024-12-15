@@ -37,7 +37,7 @@ def calculator():
                     print("You can't devided by Zero (0)")
             else:
                 print("Wrong choices try again")
-
+            #6. Ask the user if they want to perform another calculation or exit the program.
             caculate_again = input("Do you want to calculate again? Type Y/N : ")
             if caculate_again.lower() != 'y':
                 break
@@ -58,6 +58,4 @@ if __name__ == "__main__":
 
 
 
-#5. Display the result of the operation.
 
-#6. Ask the user if they want to perform another calculation or exit the program.
