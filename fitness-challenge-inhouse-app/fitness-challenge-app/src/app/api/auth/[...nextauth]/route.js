@@ -4,6 +4,9 @@ import { auth } from "@/firebaseConfig"
 import { signInWithEmailAndPassword } from "firebase/auth"
 
 export const authOptions = {
+  session: {
+    strategy: "jwt",
+  },
   pages: {
     signIn: "/auth/signin",
   },
@@ -49,22 +52,6 @@ export const authOptions = {
         session.user.id = token.id
       }
       return session
-    },
-    async redirect({ url, baseUrl }) {
-      // Always allow redirects to dashboard
-      if (url.includes("/dashboard")) {
-        return url
-      }
-      // Allow relative URLs
-      if (url.startsWith("/")) {
-        return `${baseUrl}${url}`
-      }
-      // Allow URLs from the same origin
-      if (url.startsWith(baseUrl)) {
-        return url
-      }
-      // Default to dashboard
-      return `${baseUrl}/dashboard`
     },
   },
 }
