@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
@@ -12,6 +12,14 @@ export default function SignIn() {
   const [success, setSuccess] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
+
+  // If user is already signed in, redirect to dashboard
+  useEffect(() => {
+    if (session) {
+      router.push("/dashboard")
+    }
+  }, [session, router])
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
@@ -34,11 +42,17 @@ export default function SignIn() {
       if (result?.error) {
         setError("Invalid email or password")
       } else {
+        // Successful sign in, redirect to dashboard
         router.push("/dashboard")
       }
     } catch (error) {
       setError("An error occurred. Please try again.")
     }
+  }
+
+  // If already signed in, show loading
+  if (session) {
+    return <div className="text-center mt-8">Redirecting to dashboard...</div>
   }
 
   return (

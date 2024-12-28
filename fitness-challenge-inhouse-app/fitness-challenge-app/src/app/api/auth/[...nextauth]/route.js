@@ -50,6 +50,13 @@ export const authOptions = {
       }
       return session
     },
+    async redirect({ url, baseUrl }) {
+      // Handle redirect after sign in
+      if (url.startsWith(baseUrl)) return url
+      // Allows relative callback URLs
+      else if (url.startsWith("/")) return new URL(url, baseUrl).toString()
+      return baseUrl
+    },
   },
 }
 
