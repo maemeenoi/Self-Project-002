@@ -1,8 +1,10 @@
-import { getServerSession } from "next-auth"
-import { signIn } from "next-auth/react"
+"use client"
 
-export default async function Home() {
-  const session = await getServerSession()
+import { useSession } from "next-auth/react"
+import Link from "next/link"
+
+export default function Home() {
+  const { data: session } = useSession()
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-6rem)] py-12 bg-gradient-to-b from-white to-gray-50">
@@ -13,37 +15,40 @@ export default async function Home() {
         {session ? (
           <div className="space-y-6">
             <p className="text-2xl text-gray-600">
-              Welcome back, {session.user.name}!
+              Welcome back, {session.user.email}!
             </p>
-            <a
+            <Link
               href="/dashboard"
               className="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               Go to Dashboard
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="space-y-8">
             <div className="space-y-4">
               <p className="text-2xl text-gray-600">
-                Sign in to start your fitness journey
+                Start your fitness journey today
               </p>
               <p className="text-lg text-gray-500 max-w-2xl mx-auto">
                 Join our fitness challenge, set your goals, and compete with
                 others to achieve your fitness targets.
               </p>
             </div>
-            <button
-              onClick={() => signIn("google")}
-              className="inline-flex items-center justify-center bg-white text-gray-800 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-gray-200"
-            >
-              <img
-                src="/google-icon.svg"
-                alt="Google"
-                className="w-6 h-6 mr-3"
-              />
-              Sign in with Google
-            </button>
+            <div className="space-x-4">
+              <Link
+                href="/auth/signin"
+                className="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/register"
+                className="inline-block bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Register
+              </Link>
+            </div>
           </div>
         )}
       </div>

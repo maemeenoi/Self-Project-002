@@ -1,41 +1,54 @@
 import NextAuth from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
+import CredentialsProvider from "next-auth/providers/credentials"
 import { auth } from "@/firebaseConfig"
-import { signInWithCredential, GoogleAuthProvider } from "firebase/auth"
+import { signInWithEmailAndPassword } from "firebase/auth"
 
 export const authOptions = {
+  pages: {
+    signIn: "/auth/signin",
+  },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null
+
+        try {
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            credentials.email,
+            credentials.password
+          )
+
+          const user = userCredential.user
+          return {
+            id: user.uid,
+            email: user.email,
+            name: user.email.split("@")[0],
+          }
+        } catch (error) {
+          console.error("Authentication error:", error)
+          return null
+        }
+      },
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "google") {
-        try {
-          const credential = GoogleAuthProvider.credential(account.id_token)
-          await signInWithCredential(auth, credential)
-          return true
-        } catch (error) {
-          console.error("Firebase sign-in error:", error)
-          return false
-        }
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
       }
-      return true
+      return token
     },
     async session({ session, token }) {
       if (session?.user) {
-        session.user.uid = token.sub
-        session.firebaseToken = token.id_token
+        session.user.id = token.id
       }
       return session
-    },
-    async jwt({ token, account }) {
-      if (account?.id_token) {
-        token.id_token = account.id_token
-      }
-      return token
     },
   },
 }

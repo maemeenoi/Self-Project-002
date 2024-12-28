@@ -1,43 +1,33 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { signIn } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { auth } from "@/firebaseConfig"
+import { createUserWithEmailAndPassword } from "firebase/auth"
 import Link from "next/link"
 
-export default function SignIn() {
+export default function Register() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
   const router = useRouter()
-  const searchParams = useSearchParams()
-
-  useEffect(() => {
-    if (searchParams.get("registered") === "true") {
-      setSuccess("Registration successful! Please sign in.")
-    }
-  }, [searchParams])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
-    setSuccess("")
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setError("Invalid email or password")
-      } else {
-        router.push("/dashboard")
-      }
+      await createUserWithEmailAndPassword(auth, email, password)
+      router.push("/auth/signin?registered=true")
     } catch (error) {
-      setError("An error occurred. Please try again.")
+      console.error("Registration error:", error)
+      setError(error.message)
     }
   }
 
@@ -46,7 +36,7 @@ export default function SignIn() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+            Create your account
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -75,10 +65,25 @@ export default function SignIn() {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="confirmPassword" className="sr-only">
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
           </div>
@@ -86,28 +91,25 @@ export default function SignIn() {
           {error && (
             <div className="text-red-500 text-sm text-center">{error}</div>
           )}
-          {success && (
-            <div className="text-green-500 text-sm text-center">{success}</div>
-          )}
 
           <div>
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Sign in
+              Register
             </button>
           </div>
         </form>
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <Link
-              href="/auth/register"
+              href="/auth/signin"
               className="text-blue-600 hover:text-blue-500"
             >
-              Register here
+              Sign in
             </Link>
           </p>
         </div>
