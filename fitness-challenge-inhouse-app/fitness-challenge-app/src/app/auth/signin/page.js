@@ -13,9 +13,20 @@ export default function SignIn() {
   const router = useRouter()
   const { data: session, status } = useSession()
 
+  // Debug logs for session state
+  useEffect(() => {
+    console.log("Session Status:", status)
+    console.log("Session Data:", session)
+  }, [status, session])
+
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/dashboard")
+      console.log("User authenticated, redirecting to dashboard...")
+      try {
+        router.push("/dashboard")
+      } catch (error) {
+        console.error("Redirect error:", error)
+      }
     }
   }, [status, router])
 
@@ -23,33 +34,47 @@ export default function SignIn() {
     e.preventDefault()
     setError("")
     setIsLoading(true)
+    console.log("Starting sign in process...")
 
     try {
+      console.log("Calling signIn...")
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       })
+      console.log("SignIn result:", result)
 
       if (result?.error) {
+        console.error("SignIn error:", result.error)
         setError("Invalid email or password")
       } else {
-        // Force reload the page to ensure session is updated
-        window.location.href = "/dashboard"
+        console.log("Sign in successful, redirecting...")
+        // Try both methods of redirection
+        try {
+          await router.push("/dashboard")
+        } catch (error) {
+          console.error("Router push failed:", error)
+          window.location.href = "/dashboard"
+        }
       }
     } catch (error) {
+      console.error("Sign in error:", error)
       setError("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
+  // Debug log for render state
+  console.log("Current render state:", { status, isLoading, error })
+
   if (status === "loading" || status === "authenticated") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">Loading... (Status: {status})</p>
         </div>
       </div>
     )
