@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(email) {
+      return isAuthenticated() && request.auth.token.email == email;
+    }
+
+    // User profiles
+    match /users/{userEmail} {
+      // Anyone can read user profiles (needed for leaderboard)
+      allow read: if isAuthenticated();
+      // Users can only write to their own profile
+      allow create: if isOwner(userEmail);
+      allow update: if isOwner(userEmail);
+    }
+    
+    // Measurements collection
+    match /measurements/{userEmail} {
+      // Anyone can read measurements (needed for leaderboard)
+      allow read: if isAuthenticated();
+      // Users can only write to their own measurements
+      allow create, update: if isOwner(userEmail);
+      // Allow users to initialize their measurements
+      allow write: if isAuthenticated() && 
+        request.auth.token.email == userEmail;
+    }
+    
+    // Allow initial registration
+    match /users/{userEmail} {
+      allow create: if isAuthenticated() && 
+        request.auth.token.email == userEmail;
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 
