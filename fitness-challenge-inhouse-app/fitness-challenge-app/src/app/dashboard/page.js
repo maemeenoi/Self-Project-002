@@ -10,7 +10,7 @@ export default function Dashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [userData, setUserData] = useState(null)
 
   // Debug logs
   useEffect(() => {
@@ -19,46 +19,36 @@ export default function Dashboard() {
   }, [status, session])
 
   useEffect(() => {
-    const checkAuth = async () => {
-      console.log("Dashboard - Checking authentication...")
+    if (status === "unauthenticated") {
+      router.push("/auth/signin")
+      return
+    }
 
-      if (status === "unauthenticated") {
-        console.log(
-          "Dashboard - User not authenticated, redirecting to signin..."
-        )
-        router.push("/auth/signin")
-        return
-      }
-
-      if (status === "authenticated" && session?.user?.email) {
-        console.log("Dashboard - Loading user data...")
-        setLoading(true)
+    if (status === "authenticated" && session?.user?.email) {
+      const loadUserData = async () => {
         try {
+          console.log("Attempting to load user data for:", session.user.email)
           const userDoc = await getDoc(doc(db, "users", session.user.email))
-          console.log("Dashboard - User doc exists:", userDoc.exists())
+          console.log("User doc exists:", userDoc.exists())
 
-          if (!userDoc.exists()) {
-            console.log(
-              "Dashboard - No user data, redirecting to registration..."
-            )
+          if (userDoc.exists()) {
+            setUserData(userDoc.data())
+          } else {
+            console.log("No user data found, redirecting to registration")
             router.push("/register")
-            return
           }
-
-          console.log("Dashboard - User data loaded successfully")
         } catch (error) {
-          console.error("Dashboard - Error loading user data:", error)
-          setError(error.message)
+          console.error("Error loading user data:", error)
         } finally {
           setLoading(false)
         }
       }
-    }
 
-    checkAuth()
+      loadUserData()
+    }
   }, [status, session, router])
 
-  if (loading) {
+  if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -71,16 +61,16 @@ export default function Dashboard() {
     )
   }
 
-  if (error) {
+  if (!userData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center text-red-600">
-          <p>Error loading dashboard: {error}</p>
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-4">No user data found</h2>
           <button
-            onClick={() => router.push("/auth/signin")}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+            onClick={() => router.push("/register")}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            Return to Sign In
+            Complete Registration
           </button>
         </div>
       </div>
@@ -89,10 +79,14 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        Welcome, {session?.user?.email}!
-      </h1>
-      <p className="text-gray-600">Your dashboard is ready.</p>
+      <div className="bg-white shadow rounded-lg p-6">
+        <h1 className="text-2xl font-bold mb-4">
+          Welcome, {userData.displayName || session.user.email}!
+        </h1>
+        <pre className="bg-gray-100 p-4 rounded mt-4">
+          {JSON.stringify({ userData, session }, null, 2)}
+        </pre>
+      </div>
     </div>
   )
 }
