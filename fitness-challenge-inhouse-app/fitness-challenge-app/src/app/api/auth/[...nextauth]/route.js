@@ -51,11 +51,20 @@ export const authOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
-      // Handle redirect after sign in
-      if (url.startsWith(baseUrl)) return url
-      // Allows relative callback URLs
-      else if (url.startsWith("/")) return new URL(url, baseUrl).toString()
-      return baseUrl
+      // Always allow redirects to dashboard
+      if (url.includes("/dashboard")) {
+        return url
+      }
+      // Allow relative URLs
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`
+      }
+      // Allow URLs from the same origin
+      if (url.startsWith(baseUrl)) {
+        return url
+      }
+      // Default to dashboard
+      return `${baseUrl}/dashboard`
     },
   },
 }
