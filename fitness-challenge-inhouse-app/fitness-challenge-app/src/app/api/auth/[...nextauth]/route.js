@@ -45,8 +45,9 @@ export const authOptions = {
         token.email = user.email
         token.name = user.name
         token.firebaseToken = user.firebaseToken
+        token.iat = Math.floor(Date.now() / 1000)
+        token.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60 // 30 days
       }
-      // Return previous token if the user hasn't signed in during this request
       return token
     },
     async session({ session, token }) {
@@ -55,6 +56,7 @@ export const authOptions = {
         session.user.email = token.email
         session.user.name = token.name
         session.user.firebaseToken = token.firebaseToken
+        session.expires = new Date(token.exp * 1000).toISOString()
       }
       return session
     },

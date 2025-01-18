@@ -1,27 +1,46 @@
-import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
+import { getToken } from "next-auth/jwt"
 
-export default withAuth(
-  function middleware(req) {
-    const path = req.nextUrl.pathname
-    console.log("Middleware - Path:", path)
+export async function middleware(req) {
+  const path = req.nextUrl.pathname
+  console.log("Middleware - Path:", path)
 
-    // Always allow registration page
-    if (path.startsWith("/register")) {
-      return NextResponse.next()
+  // Always allow registration and signin pages
+  if (path.startsWith("/register") || path.startsWith("/auth/signin")) {
+    return NextResponse.next()
+  }
+
+  try {
+    // Get the token and verify it
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+    })
+
+    console.log("Middleware - Token:", token)
+
+    // No token, redirect to signin
+    if (!token) {
+      console.log("Middleware - No token, redirecting to signin")
+      return NextResponse.redirect(new URL("/auth/signin", req.url))
     }
 
-    return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => {
-        // Token is automatically checked by NextAuth middleware
-        return !!token
+    // Add the token to the request headers
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set("x-user-id", token.id)
+    requestHeaders.set("x-user-email", token.email)
+
+    // Continue with the modified request
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
       },
-    },
+    })
+  } catch (error) {
+    console.error("Middleware - Auth error:", error)
+    return NextResponse.redirect(new URL("/auth/signin", req.url))
   }
-)
+}
 
 export const config = {
   matcher: [
