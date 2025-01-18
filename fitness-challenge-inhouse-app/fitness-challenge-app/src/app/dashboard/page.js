@@ -5,6 +5,16 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/firebaseConfig"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts"
 
 // Constants
 const MONTHS = [
@@ -38,6 +48,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState("measurements") // or "charts"
   const router = useRouter()
   const [isRedirecting, setIsRedirecting] = useState(false)
 
@@ -72,7 +83,6 @@ export default function Dashboard() {
               setLoading(false)
             }
           } else {
-            console.log("Dashboard - No user data found")
             if (isMounted) {
               setIsRedirecting(true)
               router.push("/register")
@@ -153,6 +163,21 @@ export default function Dashboard() {
     }
   }
 
+  const getChartData = () => {
+    if (!measurements || !userData?.selectedParts) return []
+
+    return MONTHS.map((month) => {
+      const dataPoint = { month }
+      userData.selectedParts.forEach((part) => {
+        const measurement = measurements[part]?.monthlyProgress?.[month]
+        if (measurement) {
+          dataPoint[BODY_PARTS[part]] = parseFloat(measurement)
+        }
+      })
+      return dataPoint
+    })
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -182,6 +207,7 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto p-4">
+      {/* Profile Section */}
       <div className="bg-white shadow rounded-lg p-6 mb-6">
         <h1 className="text-2xl font-bold mb-4">
           Welcome, {userData?.displayName}!
@@ -207,79 +233,129 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {measurements && (
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex">
+            <button
+              onClick={() => setActiveTab("measurements")}
+              className={`mr-4 py-2 px-4 font-medium ${
+                activeTab === "measurements"
+                  ? "border-b-2 border-indigo-500 text-indigo-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Measurements
+            </button>
+            <button
+              onClick={() => setActiveTab("charts")}
+              className={`py-2 px-4 font-medium ${
+                activeTab === "charts"
+                  ? "border-b-2 border-indigo-500 text-indigo-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Progress Charts
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {/* Content based on active tab */}
+      {activeTab === "measurements" && measurements && (
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Progress Tracking</h2>
-          <div className="space-y-6">
+          <h2 className="text-xl font-bold mb-6">Measurement Tracking</h2>
+          <div className="space-y-8">
             {userData?.selectedParts?.map((bodyPart) => {
               const progress = calculateProgress(bodyPart)
               if (!progress) return null
 
               return (
-                <div key={bodyPart} className="border rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-2">
-                    {BODY_PARTS[bodyPart]}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        Baseline: {progress.baseline} inches
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Target: {progress.target} inches
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Latest: {progress.latest} inches
-                      </p>
-                      <div className="mt-2 h-2 bg-gray-200 rounded-full">
-                        <div
-                          className="h-2 bg-indigo-600 rounded-full transition-all duration-500"
-                          style={{ width: `${progress.progress}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Progress: {progress.progress.toFixed(1)}%
-                      </p>
+                <div key={bodyPart} className="border rounded-lg p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold">
+                      {BODY_PARTS[bodyPart]}
+                    </h3>
+                    <div className="text-sm text-gray-500">
+                      Goal: {progress.target} inches
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">
-                        Monthly Measurements
-                      </h4>
-                      <div className="space-y-2">
-                        {MONTHS.map((month) => (
-                          <div
-                            key={month}
-                            className="flex items-center space-x-2"
-                          >
-                            <label className="text-sm text-gray-600 w-32">
-                              {month}
-                            </label>
-                            <input
-                              type="number"
-                              step="0.1"
-                              className="border rounded px-2 py-1 text-sm w-24"
-                              value={
-                                measurements[bodyPart]?.monthlyProgress?.[
-                                  month
-                                ] || ""
-                              }
-                              onChange={(e) =>
-                                handleMeasurementUpdate(
-                                  bodyPart,
-                                  month,
-                                  e.target.value
-                                )
-                              }
-                              placeholder="inches"
-                            />
-                          </div>
-                        ))}
-                      </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                      <span>Baseline: {progress.baseline} inches</span>
+                      <span>Current: {progress.latest} inches</span>
                     </div>
+                    <div className="h-2 bg-gray-200 rounded-full">
+                      <div
+                        className="h-2 bg-indigo-600 rounded-full transition-all duration-500"
+                        style={{ width: `${progress.progress}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-right text-sm text-gray-600 mt-1">
+                      Progress: {progress.progress.toFixed(1)}%
+                    </div>
+                  </div>
+
+                  {/* Monthly Inputs */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {MONTHS.map((month) => (
+                      <div key={month} className="relative">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          {month}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          value={
+                            measurements[bodyPart]?.monthlyProgress?.[month] ||
+                            ""
+                          }
+                          onChange={(e) =>
+                            handleMeasurementUpdate(
+                              bodyPart,
+                              month,
+                              e.target.value
+                            )
+                          }
+                          placeholder="inches"
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "charts" && measurements && (
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-bold mb-6">Progress Charts</h2>
+          <div className="h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={getChartData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                {userData?.selectedParts?.map((part, index) => (
+                  <Line
+                    key={part}
+                    type="monotone"
+                    dataKey={BODY_PARTS[part]}
+                    stroke={`hsl(${
+                      (index * 360) / userData.selectedParts.length
+                    }, 70%, 50%)`}
+                    strokeWidth={2}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}
