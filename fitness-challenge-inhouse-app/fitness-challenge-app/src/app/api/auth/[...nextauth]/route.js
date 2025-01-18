@@ -38,26 +38,29 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, trigger }) {
+      console.log("JWT Callback - Trigger:", trigger)
+      console.log("JWT Callback - User:", user ? "exists" : "null")
+
       if (user) {
-        // Initial sign in
         token.id = user.id
         token.email = user.email
         token.name = user.name
         token.firebaseToken = user.firebaseToken
-        token.iat = Math.floor(Date.now() / 1000)
-        token.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60 // 30 days
       }
+
       return token
     },
     async session({ session, token }) {
+      console.log("Session Callback - Creating session")
+
       if (token && session.user) {
         session.user.id = token.id
         session.user.email = token.email
         session.user.name = token.name
         session.user.firebaseToken = token.firebaseToken
-        session.expires = new Date(token.exp * 1000).toISOString()
       }
+
       return session
     },
   },
@@ -69,7 +72,18 @@ export const authOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: true, // Enable debug messages
+  cookies: {
+    sessionToken: {
+      name: `__Secure-next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
 }
 
 const handler = NextAuth(authOptions)

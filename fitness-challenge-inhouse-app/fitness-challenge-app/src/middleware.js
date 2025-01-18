@@ -1,52 +1,58 @@
 import { NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
 
-export async function middleware(req) {
-  const path = req.nextUrl.pathname
-  console.log("Middleware - Path:", path)
+export async function middleware(request) {
+  const path = request.nextUrl.pathname
+  console.log("Middleware - Processing path:", path)
 
-  // Always allow registration and signin pages
-  if (path.startsWith("/register") || path.startsWith("/auth/signin")) {
+  // Always allow these paths
+  if (
+    path.startsWith("/auth") ||
+    path.startsWith("/register") ||
+    path === "/api/auth/session"
+  ) {
+    console.log("Middleware - Allowing public path:", path)
     return NextResponse.next()
   }
 
   try {
-    // Get the token and verify it
     const token = await getToken({
-      req,
+      req: request,
       secret: process.env.NEXTAUTH_SECRET,
+      secureCookie: process.env.NODE_ENV === "production",
     })
 
-    console.log("Middleware - Token:", token)
+    console.log("Middleware - Token found:", !!token)
 
-    // No token, redirect to signin
-    if (!token) {
-      console.log("Middleware - No token, redirecting to signin")
-      return NextResponse.redirect(new URL("/auth/signin", req.url))
+    if (token) {
+      console.log("Middleware - User authenticated:", token.email)
+      const requestHeaders = new Headers(request.headers)
+      requestHeaders.set("x-user-id", token.id)
+      requestHeaders.set("x-user-email", token.email)
+
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      })
     }
 
-    // Add the token to the request headers
-    const requestHeaders = new Headers(req.headers)
-    requestHeaders.set("x-user-id", token.id)
-    requestHeaders.set("x-user-email", token.email)
-
-    // Continue with the modified request
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
+    console.log("Middleware - No valid token, redirecting to signin")
+    return NextResponse.redirect(new URL("/auth/signin", request.url))
   } catch (error) {
-    console.error("Middleware - Auth error:", error)
-    return NextResponse.redirect(new URL("/auth/signin", req.url))
+    console.error("Middleware - Error verifying token:", error)
+    return NextResponse.redirect(new URL("/auth/signin", request.url))
   }
 }
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/leaderboard/:path*",
-    "/rules/:path*",
-    "/register/:path*",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 }
