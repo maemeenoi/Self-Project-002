@@ -17,6 +17,7 @@ export default function Dashboard() {
   useEffect(() => {
     console.log("Dashboard - Session Status:", status)
     console.log("Dashboard - Session Data:", session)
+    console.log("Dashboard - Current User:", session?.user)
   }, [status, session])
 
   useEffect(() => {
@@ -30,12 +31,19 @@ export default function Dashboard() {
       const loadUserData = async () => {
         try {
           console.log("Attempting to load user data for:", session.user.email)
-          const userDoc = await getDoc(doc(db, "users", session.user.email))
+          console.log("Firebase Auth Token:", session.user)
+
+          const userDocRef = doc(db, "users", session.user.email)
+          console.log("User document reference:", userDocRef)
+
+          const userDoc = await getDoc(userDocRef)
+          console.log("Firestore response:", userDoc)
           console.log("User doc exists:", userDoc.exists())
 
           if (userDoc.exists()) {
-            console.log("User data found:", userDoc.data())
-            setUserData(userDoc.data())
+            const data = userDoc.data()
+            console.log("User data found:", data)
+            setUserData(data)
             setLoading(false)
           } else {
             console.log(
@@ -45,7 +53,17 @@ export default function Dashboard() {
           }
         } catch (error) {
           console.error("Error loading user data:", error)
-          setError(error.message)
+          console.error("Error details:", {
+            code: error.code,
+            message: error.message,
+            stack: error.stack,
+          })
+
+          if (error.code === "permission-denied") {
+            setError("Permission denied. Please sign out and sign in again.")
+          } else {
+            setError(`Failed to load user data: ${error.message}`)
+          }
           setLoading(false)
         }
       }
@@ -62,7 +80,17 @@ export default function Dashboard() {
           <p className="mt-4 text-gray-600">
             Loading dashboard... (Status: {status})
           </p>
-          {error && <p className="mt-2 text-red-500">{error}</p>}
+          {error && (
+            <div className="mt-4 text-red-500">
+              <p>{error}</p>
+              <button
+                onClick={() => router.push("/auth/signin")}
+                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Back to Sign In
+              </button>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -90,6 +118,18 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold mb-4">
           Welcome, {userData.displayName || session.user.email}!
         </h1>
+        <div className="mt-4">
+          <h2 className="text-xl font-semibold mb-2">
+            Your Selected Body Parts:
+          </h2>
+          <ul className="list-disc list-inside">
+            {userData.selectedParts?.map((part) => (
+              <li key={part} className="text-gray-700">
+                {part}
+              </li>
+            ))}
+          </ul>
+        </div>
         <pre className="bg-gray-100 p-4 rounded mt-4">
           {JSON.stringify({ userData, session }, null, 2)}
         </pre>
