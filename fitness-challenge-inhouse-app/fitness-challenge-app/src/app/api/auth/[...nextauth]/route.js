@@ -38,22 +38,32 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      console.log("JWT Callback - Trigger:", trigger)
+      console.log("JWT Callback - Token exists:", !!token)
+      console.log("JWT Callback - User exists:", !!user)
+
       if (user) {
+        // Initial sign in
         token.id = user.id
         token.email = user.email
         token.name = user.name
         token.firebaseToken = user.firebaseToken
       }
+
       return token
     },
     async session({ session, token }) {
+      console.log("Session Callback - Creating session")
+      console.log("Session Callback - Token exists:", !!token)
+
       if (token && session.user) {
         session.user.id = token.id
         session.user.email = token.email
         session.user.name = token.name
         session.user.firebaseToken = token.firebaseToken
       }
+
       return session
     },
   },
@@ -61,8 +71,10 @@ export const authOptions = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
+  secret: process.env.NEXTAUTH_SECRET || "your-default-secret",
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 }
 

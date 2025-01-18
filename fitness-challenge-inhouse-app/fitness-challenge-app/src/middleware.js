@@ -17,9 +17,20 @@ export async function middleware(request) {
   }
 
   try {
+    // Check for the session cookie
+    const sessionCookie = request.cookies.get("next-auth.session-token")?.value
+    console.log("Middleware - Session cookie present:", !!sessionCookie)
+
     const token = await getToken({
       req: request,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.NEXTAUTH_SECRET || "your-default-secret",
+      secureCookie: process.env.NODE_ENV === "production",
+    })
+
+    console.log("Middleware - Token details:", {
+      exists: !!token,
+      id: token?.id,
+      email: token?.email,
     })
 
     if (!token) {
@@ -27,8 +38,17 @@ export async function middleware(request) {
       return NextResponse.redirect(new URL("/auth/signin", request.url))
     }
 
-    // Token exists, allow request to continue
-    return NextResponse.next()
+    // Add user info to headers
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set("x-user-id", token.id)
+    requestHeaders.set("x-user-email", token.email)
+
+    // Token exists, allow request to continue with user info
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
   } catch (error) {
     console.error("Middleware - Error:", error)
     return NextResponse.redirect(new URL("/auth/signin", request.url))
