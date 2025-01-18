@@ -4,13 +4,6 @@ import { auth } from "@/firebaseConfig"
 import { signInWithEmailAndPassword } from "firebase/auth"
 
 export const authOptions = {
-  pages: {
-    signIn: "/auth/signin",
-  },
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -45,44 +38,36 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
-      console.log("JWT Callback - Token:", token)
-      console.log("JWT Callback - User:", user)
-
+    async jwt({ token, user }) {
       if (user) {
+        // Initial sign in
         token.id = user.id
         token.email = user.email
         token.name = user.name
         token.firebaseToken = user.firebaseToken
-        token.authenticated = true
       }
+      // Return previous token if the user hasn't signed in during this request
       return token
     },
     async session({ session, token }) {
-      console.log("Session Callback - Session:", session)
-      console.log("Session Callback - Token:", token)
-
       if (token && session.user) {
         session.user.id = token.id
         session.user.email = token.email
         session.user.name = token.name
         session.user.firebaseToken = token.firebaseToken
-        session.authenticated = token.authenticated
       }
       return session
     },
   },
-  events: {
-    async signIn(message) {
-      console.log("SignIn Event:", message)
-    },
-    async signOut(message) {
-      console.log("SignOut Event:", message)
-    },
-    async session(message) {
-      console.log("Session Event:", message)
-    },
+  pages: {
+    signIn: "/auth/signin",
   },
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  debug: process.env.NODE_ENV === "development",
 }
 
 const handler = NextAuth(authOptions)
