@@ -4,11 +4,9 @@ import { useState, useEffect } from "react"
 import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { signInWithEmailAndPassword, getAuth } from "firebase/auth"
-import { doc, getDoc, getFirestore } from "firebase/firestore"
-
-const auth = getAuth()
-const db = getFirestore()
+import { signInWithEmailAndPassword } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
+import { auth, db } from "@/firebaseConfig"
 
 export default function SignIn() {
   const [email, setEmail] = useState("")
@@ -50,6 +48,10 @@ export default function SignIn() {
       )
       console.log("Firebase sign in successful:", userCredential.user)
 
+      // Get the Firebase ID token
+      const idToken = await userCredential.user.getIdToken()
+      console.log("Got Firebase ID token")
+
       console.log("Signing in with NextAuth...")
       const result = await signIn("credentials", {
         email,
@@ -79,7 +81,11 @@ export default function SignIn() {
       }
     } catch (error) {
       console.error("Sign in error:", error)
-      setError("An error occurred. Please try again.")
+      if (error.code === "auth/invalid-credential") {
+        setError("Invalid email or password")
+      } else {
+        setError(`An error occurred: ${error.message}`)
+      }
     } finally {
       setIsLoading(false)
     }

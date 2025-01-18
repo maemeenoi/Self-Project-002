@@ -17,27 +17,39 @@ let firebaseApp
 let auth
 let db
 
-if (!getApps().length) {
-  firebaseApp = initializeApp(firebaseConfig)
-  auth = getAuth(firebaseApp)
-  // Set persistence to LOCAL
-  setPersistence(auth, browserLocalPersistence)
-    .then(() => {
-      console.log("Firebase persistence set to LOCAL")
-    })
-    .catch((error) => {
-      console.error("Error setting persistence:", error)
-    })
+try {
+  if (!getApps().length) {
+    console.log("Initializing Firebase...")
+    firebaseApp = initializeApp(firebaseConfig)
+    console.log("Firebase initialized successfully")
 
-  // Initialize Firestore with settings
-  db = initializeFirestore(firebaseApp, {
-    experimentalForceLongPolling: true,
-    useFetchStreams: false,
-  })
-} else {
-  firebaseApp = getApps()[0]
-  auth = getAuth(firebaseApp)
-  db = getFirestore(firebaseApp)
+    // Initialize Auth with persistence
+    auth = getAuth(firebaseApp)
+    console.log("Firebase Auth initialized")
+
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        console.log("Firebase Auth persistence set to LOCAL")
+      })
+      .catch((error) => {
+        console.error("Error setting persistence:", error)
+      })
+
+    // Initialize Firestore with settings
+    db = initializeFirestore(firebaseApp, {
+      experimentalForceLongPolling: true,
+      useFetchStreams: false,
+    })
+    console.log("Firestore initialized with custom settings")
+  } else {
+    console.log("Using existing Firebase instance")
+    firebaseApp = getApps()[0]
+    auth = getAuth(firebaseApp)
+    db = getFirestore(firebaseApp)
+  }
+} catch (error) {
+  console.error("Error initializing Firebase:", error)
+  throw new Error(`Firebase initialization error: ${error.message}`)
 }
 
 export { auth, db }
