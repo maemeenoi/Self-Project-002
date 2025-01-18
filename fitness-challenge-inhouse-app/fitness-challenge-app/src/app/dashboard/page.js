@@ -39,9 +39,7 @@ export default function Dashboard() {
               setLoading(false)
             }
           } else {
-            console.log(
-              "Dashboard - No user data found, redirecting to registration"
-            )
+            console.log("Dashboard - No user data found")
             if (isMounted) {
               setIsRedirecting(true)
               router.push("/register")
@@ -55,7 +53,6 @@ export default function Dashboard() {
           }
         }
       } else if (status === "unauthenticated") {
-        console.log("Dashboard - User not authenticated")
         if (isMounted) {
           router.push("/auth/signin")
         }
@@ -101,10 +98,37 @@ export default function Dashboard() {
       {userData && (
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Your Profile</h2>
-          <div className="space-y-2">
-            <p>Name: {userData.name}</p>
-            <p>Email: {userData.email}</p>
-            <p>Goal: {userData.goal}</p>
+          <div className="space-y-4">
+            <div>
+              <p className="text-gray-600">Name</p>
+              <p className="font-medium">{userData.displayName}</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Email</p>
+              <p className="font-medium">{userData.email}</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Selected Body Parts</p>
+              <ul className="list-disc list-inside">
+                {userData.selectedParts?.map((part) => (
+                  <li key={part} className="font-medium">
+                    {part.charAt(0).toUpperCase() + part.slice(1)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-gray-600">Account Created</p>
+              <p className="font-medium">
+                {new Date(userData.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">Last Updated</p>
+              <p className="font-medium">
+                {new Date(userData.updatedAt).toLocaleDateString()}
+              </p>
+            </div>
           </div>
         </div>
       )}
