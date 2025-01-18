@@ -4,6 +4,11 @@ import { useState, useEffect } from "react"
 import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { signInWithEmailAndPassword, getAuth } from "firebase/auth"
+import { doc, getDoc, getFirestore } from "firebase/firestore"
+
+const auth = getAuth()
+const db = getFirestore()
 
 export default function SignIn() {
   const [email, setEmail] = useState("")
@@ -37,25 +42,39 @@ export default function SignIn() {
     console.log("Starting sign in process...")
 
     try {
-      console.log("Calling signIn...")
+      console.log("Signing in with Firebase...")
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      )
+      console.log("Firebase sign in successful:", userCredential.user)
+
+      console.log("Signing in with NextAuth...")
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       })
-      console.log("SignIn result:", result)
+      console.log("NextAuth sign in result:", result)
 
       if (result?.error) {
         console.error("SignIn error:", result.error)
         setError("Invalid email or password")
       } else {
-        console.log("Sign in successful, redirecting...")
-        // Try both methods of redirection
+        console.log("Sign in successful, checking user profile...")
         try {
-          await router.push("/dashboard")
+          const userDoc = await getDoc(doc(db, "users", email))
+          if (userDoc.exists()) {
+            console.log("User profile exists, redirecting to dashboard...")
+            router.push("/dashboard")
+          } else {
+            console.log("No user profile found, redirecting to registration...")
+            router.push("/register")
+          }
         } catch (error) {
-          console.error("Router push failed:", error)
-          window.location.href = "/dashboard"
+          console.error("Error checking user profile:", error)
+          setError("Error checking user profile. Please try again.")
         }
       }
     } catch (error) {

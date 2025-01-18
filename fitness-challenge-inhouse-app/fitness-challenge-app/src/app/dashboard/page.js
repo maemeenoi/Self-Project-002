@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { db } from "@/firebaseConfig"
 import { doc, getDoc } from "firebase/firestore"
 import { auth } from "@/firebaseConfig"
+import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth"
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
@@ -13,13 +14,25 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState(null)
   const [error, setError] = useState(null)
+  const [firebaseInitialized, setFirebaseInitialized] = useState(false)
+
+  // Monitor Firebase Auth State
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("Firebase Auth State Changed:", user)
+      setFirebaseInitialized(true)
+    })
+
+    return () => unsubscribe()
+  }, [])
 
   // Debug logs
   useEffect(() => {
     console.log("Dashboard - Session Status:", status)
     console.log("Dashboard - Session Data:", session)
-    console.log("Dashboard - Current User:", session?.user)
-  }, [status, session])
+    console.log("Dashboard - Firebase Initialized:", firebaseInitialized)
+    console.log("Dashboard - Current Firebase User:", auth.currentUser)
+  }, [status, session, firebaseInitialized])
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -28,27 +41,32 @@ export default function Dashboard() {
       return
     }
 
-    if (status === "authenticated" && session?.user?.email) {
+    if (
+      status === "authenticated" &&
+      session?.user?.email &&
+      firebaseInitialized
+    ) {
       const loadUserData = async () => {
         try {
-          console.log("Attempting to load user data for:", session.user.email)
-          console.log("Firebase Auth Token:", session.user.firebaseToken)
+          console.log("Starting user data load process...")
+          console.log("Session user:", session.user)
+          console.log("Firebase current user:", auth.currentUser)
 
-          // Get current Firebase token
-          const currentUser = auth.currentUser
-          if (!currentUser) {
-            console.error("No Firebase current user")
-            setError("Authentication error. Please sign in again.")
-            setLoading(false)
+          // Ensure Firebase is authenticated
+          if (!auth.currentUser) {
+            console.log(
+              "No Firebase user, attempting to sign out and redirect..."
+            )
+            await signOut({ redirect: false })
+            router.push("/auth/signin")
             return
           }
 
           const userDocRef = doc(db, "users", session.user.email)
-          console.log("User document reference:", userDocRef)
+          console.log("Attempting to fetch user document:", session.user.email)
 
           const userDoc = await getDoc(userDocRef)
-          console.log("Firestore response:", userDoc)
-          console.log("User doc exists:", userDoc.exists())
+          console.log("Firestore response received")
 
           if (userDoc.exists()) {
             const data = userDoc.data()
@@ -56,13 +74,11 @@ export default function Dashboard() {
             setUserData(data)
             setLoading(false)
           } else {
-            console.log(
-              "No user data found, redirecting to registration form..."
-            )
+            console.log("No user data found, redirecting to registration...")
             router.push("/register")
           }
         } catch (error) {
-          console.error("Error loading user data:", error)
+          console.error("Error in loadUserData:", error)
           console.error("Error details:", {
             code: error.code,
             message: error.message,
@@ -70,36 +86,46 @@ export default function Dashboard() {
           })
 
           if (error.code === "permission-denied") {
-            setError("Permission denied. Please sign out and sign in again.")
-          } else if (error.code === "failed-precondition") {
-            setError("Authentication error. Please sign in again.")
+            console.log("Permission denied, signing out...")
+            await signOut({ redirect: false })
+            router.push("/auth/signin")
           } else {
             setError(`Failed to load user data: ${error.message}`)
+            setLoading(false)
           }
-          setLoading(false)
         }
       }
 
       loadUserData()
     }
-  }, [status, session, router])
+  }, [status, session, router, firebaseInitialized])
 
-  if (status === "loading" || loading) {
+  const handleSignOut = async () => {
+    try {
+      await signOut({ redirect: false })
+      router.push("/auth/signin")
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
+  }
+
+  if (status === "loading" || !firebaseInitialized || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">
-            Loading dashboard... (Status: {status})
+            Loading dashboard... (Status: {status}, Firebase:{" "}
+            {firebaseInitialized ? "Ready" : "Initializing"})
           </p>
           {error && (
             <div className="mt-4 text-red-500">
               <p>{error}</p>
               <button
-                onClick={() => router.push("/auth/signin")}
+                onClick={handleSignOut}
                 className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
-                Back to Sign In
+                Sign Out and Try Again
               </button>
             </div>
           )}
@@ -113,12 +139,20 @@ export default function Dashboard() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-4">No user data found</h2>
-          <button
-            onClick={() => router.push("/register")}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Complete Registration
-          </button>
+          <div className="space-y-4">
+            <button
+              onClick={() => router.push("/register")}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 block w-full"
+            >
+              Complete Registration
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 block w-full"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -127,9 +161,17 @@ export default function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="bg-white shadow rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-4">
-          Welcome, {userData.displayName || session.user.email}!
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">
+            Welcome, {userData.displayName || session.user.email}!
+          </h1>
+          <button
+            onClick={handleSignOut}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Sign Out
+          </button>
+        </div>
         <div className="mt-4">
           <h2 className="text-xl font-semibold mb-2">
             Your Selected Body Parts:
