@@ -52,7 +52,9 @@ export const authOptions = {
       if (user) {
         token.id = user.id
         token.email = user.email
+        token.name = user.name
         token.firebaseToken = user.firebaseToken
+        token.authenticated = true
       }
       return token
     },
@@ -60,10 +62,12 @@ export const authOptions = {
       console.log("Session Callback - Session:", session)
       console.log("Session Callback - Token:", token)
 
-      if (session?.user) {
+      if (token && session.user) {
         session.user.id = token.id
         session.user.email = token.email
+        session.user.name = token.name
         session.user.firebaseToken = token.firebaseToken
+        session.authenticated = token.authenticated
       }
       return session
     },
