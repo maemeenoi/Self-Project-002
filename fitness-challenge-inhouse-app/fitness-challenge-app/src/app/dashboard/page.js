@@ -12,36 +12,61 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const router = useRouter()
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   useEffect(() => {
-    console.log("Dashboard - Session status:", status)
-    console.log("Dashboard - Session data:", session)
+    let isMounted = true
 
     const loadUserData = async () => {
-      if (status === "authenticated" && session?.user?.id) {
+      if (
+        status === "authenticated" &&
+        session?.user?.email &&
+        !isRedirecting
+      ) {
         try {
-          const userDoc = await getDoc(doc(db, "users", session.user.id))
+          // First try with email
+          let userDoc = await getDoc(doc(db, "users", session.user.email))
+
+          // If not found, try with ID
+          if (!userDoc.exists() && session.user.id) {
+            userDoc = await getDoc(doc(db, "users", session.user.id))
+          }
+
           if (userDoc.exists()) {
             console.log("Dashboard - User data found:", userDoc.data())
-            setUserData(userDoc.data())
+            if (isMounted) {
+              setUserData(userDoc.data())
+              setLoading(false)
+            }
           } else {
-            console.log("Dashboard - No user data found")
-            router.push("/register")
+            console.log(
+              "Dashboard - No user data found, redirecting to registration"
+            )
+            if (isMounted) {
+              setIsRedirecting(true)
+              router.push("/register")
+            }
           }
         } catch (error) {
           console.error("Dashboard - Error loading user data:", error)
-          setError("Failed to load user data")
-        } finally {
-          setLoading(false)
+          if (isMounted) {
+            setError("Failed to load user data")
+            setLoading(false)
+          }
         }
       } else if (status === "unauthenticated") {
         console.log("Dashboard - User not authenticated")
-        router.push("/auth/signin")
+        if (isMounted) {
+          router.push("/auth/signin")
+        }
       }
     }
 
     loadUserData()
-  }, [status, session, router])
+    return () => {
+      isMounted = false
+    }
+  }, [status, session, router, isRedirecting])
 
   if (loading) {
     return (
