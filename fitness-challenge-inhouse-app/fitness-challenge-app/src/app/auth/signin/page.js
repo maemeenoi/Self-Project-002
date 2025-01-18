@@ -1,12 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { signIn, useSession } from "next-auth/react"
+import { useState } from "react"
+import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { signInWithEmailAndPassword } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
-import { auth, db } from "@/firebaseConfig"
 
 export default function SignIn() {
   const [email, setEmail] = useState("")
@@ -14,95 +10,31 @@ export default function SignIn() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { data: session, status } = useSession()
-
-  // Debug logs for session state
-  useEffect(() => {
-    console.log("Session Status:", status)
-    console.log("Session Data:", session)
-  }, [status, session])
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      console.log("User authenticated, redirecting to dashboard...")
-      try {
-        router.push("/dashboard")
-      } catch (error) {
-        console.error("Redirect error:", error)
-      }
-    }
-  }, [status, router])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError("")
     setIsLoading(true)
-    console.log("Starting sign in process...")
+    setError("")
 
     try {
-      console.log("Signing in with Firebase...")
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      )
-      console.log("Firebase sign in successful:", userCredential.user)
-
-      // Get the Firebase ID token
-      const idToken = await userCredential.user.getIdToken()
-      console.log("Got Firebase ID token")
-
-      console.log("Signing in with NextAuth...")
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       })
-      console.log("NextAuth sign in result:", result)
 
       if (result?.error) {
-        console.error("SignIn error:", result.error)
-        setError("Invalid email or password")
+        setError("Invalid credentials")
       } else {
-        console.log("Sign in successful, checking user profile...")
-        try {
-          const userDoc = await getDoc(doc(db, "users", email))
-          if (userDoc.exists()) {
-            console.log("User profile exists, redirecting to dashboard...")
-            router.push("/dashboard")
-          } else {
-            console.log("No user profile found, redirecting to registration...")
-            router.push("/register")
-          }
-        } catch (error) {
-          console.error("Error checking user profile:", error)
-          setError("Error checking user profile. Please try again.")
-        }
+        console.log("Sign in successful, redirecting to dashboard...")
+        router.push("/dashboard")
       }
     } catch (error) {
       console.error("Sign in error:", error)
-      if (error.code === "auth/invalid-credential") {
-        setError("Invalid email or password")
-      } else {
-        setError(`An error occurred: ${error.message}`)
-      }
+      setError("An error occurred during sign in")
     } finally {
       setIsLoading(false)
     }
-  }
-
-  // Debug log for render state
-  console.log("Current render state:", { status, isLoading, error })
-
-  if (status === "loading" || status === "authenticated") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading... (Status: {status})</p>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -124,7 +56,7 @@ export default function SignIn() {
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -139,7 +71,7 @@ export default function SignIn() {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -155,26 +87,12 @@ export default function SignIn() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               {isLoading ? "Signing in..." : "Sign in"}
             </button>
           </div>
         </form>
-
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
-            <Link
-              href="/auth/register"
-              className="text-blue-600 hover:text-blue-500"
-            >
-              Register here
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   )
