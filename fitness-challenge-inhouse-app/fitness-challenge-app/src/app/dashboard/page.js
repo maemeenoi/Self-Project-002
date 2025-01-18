@@ -11,6 +11,7 @@ export default function Dashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState(null)
+  const [error, setError] = useState(null)
 
   // Debug logs
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
+      console.log("User is not authenticated, redirecting to signin...")
       router.push("/auth/signin")
       return
     }
@@ -32,14 +34,18 @@ export default function Dashboard() {
           console.log("User doc exists:", userDoc.exists())
 
           if (userDoc.exists()) {
+            console.log("User data found:", userDoc.data())
             setUserData(userDoc.data())
+            setLoading(false)
           } else {
-            console.log("No user data found, redirecting to registration")
+            console.log(
+              "No user data found, redirecting to registration form..."
+            )
             router.push("/register")
           }
         } catch (error) {
           console.error("Error loading user data:", error)
-        } finally {
+          setError(error.message)
           setLoading(false)
         }
       }
@@ -56,6 +62,7 @@ export default function Dashboard() {
           <p className="mt-4 text-gray-600">
             Loading dashboard... (Status: {status})
           </p>
+          {error && <p className="mt-2 text-red-500">{error}</p>}
         </div>
       </div>
     )

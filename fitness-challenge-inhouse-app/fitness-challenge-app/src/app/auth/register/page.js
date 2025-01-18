@@ -3,7 +3,11 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/firebaseConfig"
-import { createUserWithEmailAndPassword } from "firebase/auth"
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth"
+import { signIn } from "next-auth/react"
 import Link from "next/link"
 
 export default function Register() {
@@ -11,23 +15,55 @@ export default function Register() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
+    setLoading(true)
+
+    console.log("Starting registration process...")
 
     if (password !== confirmPassword) {
       setError("Passwords do not match")
+      setLoading(false)
       return
     }
 
     try {
+      console.log("Creating user in Firebase...")
+      // Create user in Firebase
       await createUserWithEmailAndPassword(auth, email, password)
-      router.push("/auth/signin?registered=true")
+      console.log("User created in Firebase successfully")
+
+      // Sign in with Firebase
+      console.log("Signing in with Firebase...")
+      await signInWithEmailAndPassword(auth, email, password)
+
+      // Sign in with NextAuth
+      console.log("Signing in with NextAuth...")
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        console.error("NextAuth sign in error:", result.error)
+        setError("Error signing in after registration")
+        return
+      }
+
+      console.log(
+        "Registration successful, redirecting to registration form..."
+      )
+      router.push("/register")
     } catch (error) {
       console.error("Registration error:", error)
       setError(error.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -95,9 +131,10 @@ export default function Register() {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              Register
+              {loading ? "Registering..." : "Register"}
             </button>
           </div>
         </form>

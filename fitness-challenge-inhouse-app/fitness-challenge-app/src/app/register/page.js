@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { db } from "@/firebaseConfig"
-import { doc, setDoc } from "firebase/firestore"
+import { doc, setDoc, getDoc } from "firebase/firestore"
 
 // Constants
 const BODY_PARTS = [
@@ -63,10 +63,46 @@ export default function Register() {
 
   // Effects
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin")
+    const initializeRegistration = async () => {
+      console.log("Registration form - Session status:", status)
+      console.log("Registration form - Session data:", session)
+
+      if (status === "unauthenticated") {
+        console.log("User not authenticated, redirecting to signin...")
+        router.push("/auth/signin")
+        return
+      }
+
+      if (status === "authenticated" && session?.user?.email) {
+        console.log("User authenticated, checking profile...")
+        try {
+          const userDoc = await getDoc(doc(db, "users", session.user.email))
+          console.log("User document exists:", userDoc.exists())
+
+          if (userDoc.exists()) {
+            console.log("User profile exists, redirecting to dashboard...")
+            router.push("/dashboard")
+          } else {
+            console.log(
+              "No user profile found, staying on registration form..."
+            )
+            // Initialize form with email from session
+            setFormData((prev) => ({
+              ...prev,
+              displayName: session.user.email.split("@")[0],
+            }))
+          }
+        } catch (error) {
+          console.error("Error checking user profile:", error)
+          setError("Error checking user profile. Please try again.")
+        }
+      }
     }
-  }, [status, router])
+
+    if (status !== "loading") {
+      initializeRegistration()
+    }
+  }, [status, session, router])
 
   // Event Handlers
   const handleBodyPartSelection = (partId) => {
@@ -121,10 +157,17 @@ export default function Register() {
 
     setLoading(true)
     setError("")
+    console.log("Starting profile submission...")
 
     try {
       const userRef = doc(db, "users", session.user.email)
       const measurementRef = doc(db, "measurements", session.user.email)
+
+      console.log("Saving user data...", {
+        email: session.user.email,
+        displayName: formData.displayName,
+        selectedParts: formData.selectedParts,
+      })
 
       // Save user data
       await setDoc(userRef, {
@@ -135,12 +178,15 @@ export default function Register() {
         updatedAt: new Date().toISOString(),
       })
 
+      console.log("Saving measurements...", formData.measurements)
+
       // Save measurements
       await setDoc(measurementRef, {
         ...formData.measurements,
         lastUpdated: new Date().toISOString(),
       })
 
+      console.log("Profile saved successfully, redirecting to dashboard...")
       router.push("/dashboard")
     } catch (error) {
       console.error("Registration error:", error)
@@ -152,11 +198,28 @@ export default function Register() {
 
   // Loading and Auth States
   if (status === "loading") {
-    return <div className="text-center mt-8">Loading...</div>
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading registration form...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!session) {
-    return <div className="text-center mt-8">Please sign in to continue</div>
+    return (
+      <div className="text-center mt-8">
+        <p className="text-red-500">Please sign in to continue</p>
+        <button
+          onClick={() => router.push("/auth/signin")}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Go to Sign In
+        </button>
+      </div>
+    )
   }
 
   // Render Components
