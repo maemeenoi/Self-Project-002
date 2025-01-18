@@ -41,6 +41,57 @@ const BODY_PARTS = {
   rightForearm: "Right Forearm",
 }
 
+// Helper functions
+const calculateProgress = (bodyPart, measurements) => {
+  if (!measurements?.[bodyPart]) return null
+
+  const baseline = parseFloat(measurements[bodyPart].baseline) || 0
+  const goalPercentage = parseFloat(measurements[bodyPart].goalPercentage) || 0
+  const target = baseline + (baseline * goalPercentage) / 100
+
+  // Get all monthly values and sort them by date
+  const monthlyEntries = Object.entries(
+    measurements[bodyPart].monthlyProgress || {}
+  )
+    .map(([month, value]) => ({
+      month,
+      value: parseFloat(value) || 0,
+      date: new Date(month.split(" ")[0] + " 1, " + month.split(" ")[1]),
+    }))
+    .sort((a, b) => b.date - a.date)
+
+  // Get the latest measurement
+  const latestMeasurement =
+    monthlyEntries.length > 0 ? monthlyEntries[0].value : baseline
+
+  const progressPercentage =
+    ((latestMeasurement - baseline) / (target - baseline)) * 100
+  return {
+    baseline,
+    target,
+    latest: latestMeasurement,
+    progress: Math.min(Math.max(progressPercentage, 0), 100),
+  }
+}
+
+const calculateTotalProgress = (measurements) => {
+  if (!measurements) return 0
+  let totalProgress = 0
+  let count = 0
+
+  Object.keys(measurements).forEach((bodyPart) => {
+    if (bodyPart !== "lastUpdated") {
+      const progress = calculateProgress(bodyPart, measurements)
+      if (progress) {
+        totalProgress += progress.progress
+        count++
+      }
+    }
+  })
+
+  return count > 0 ? totalProgress / count : 0
+}
+
 export default function Dashboard() {
   const { data: session, status } = useSession()
   const [userData, setUserData] = useState(null)
@@ -87,15 +138,19 @@ export default function Dashboard() {
               )
               const leaderboardEntries = []
               for (const doc of leaderboardSnapshot.docs) {
-                const userData = await getDoc(doc(db, "users", doc.id))
-                if (userData.exists()) {
-                  const measurements = doc.data()
-                  const totalProgress = calculateTotalProgress(measurements)
-                  leaderboardEntries.push({
-                    userId: doc.id,
-                    displayName: userData.data().displayName,
-                    progress: totalProgress,
-                  })
+                try {
+                  const userData = await getDoc(doc(db, "users", doc.id))
+                  if (userData.exists()) {
+                    const measurements = doc.data()
+                    const totalProgress = calculateTotalProgress(measurements)
+                    leaderboardEntries.push({
+                      userId: doc.id,
+                      displayName: userData.data().displayName,
+                      progress: totalProgress,
+                    })
+                  }
+                } catch (err) {
+                  console.error("Error processing leaderboard entry:", err)
                 }
               }
               leaderboardEntries.sort((a, b) => b.progress - a.progress)
@@ -111,7 +166,9 @@ export default function Dashboard() {
         } catch (error) {
           console.error("Dashboard - Error loading data:", error)
           if (isMounted) {
-            setError("Failed to load user data")
+            setError(
+              "Failed to load user data. Please try refreshing the page."
+            )
             setLoading(false)
           }
         }
@@ -127,24 +184,6 @@ export default function Dashboard() {
       isMounted = false
     }
   }, [status, session, router, isRedirecting])
-
-  const calculateTotalProgress = (measurements) => {
-    if (!measurements) return 0
-    let totalProgress = 0
-    let count = 0
-
-    Object.keys(measurements).forEach((bodyPart) => {
-      if (bodyPart !== "lastUpdated") {
-        const progress = calculateProgress(bodyPart, measurements)
-        if (progress) {
-          totalProgress += progress.progress
-          count++
-        }
-      }
-    })
-
-    return count > 0 ? totalProgress / count : 0
-  }
 
   const handleMeasurementUpdate = async (bodyPart, month, value) => {
     if (!measurements || !session?.user?.email) return
@@ -182,42 +221,9 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Error updating measurement:", error)
-      setError("Failed to update measurement")
+      setError("Failed to update measurement. Please try again.")
     } finally {
       setSaving(false)
-    }
-  }
-
-  const calculateProgress = (bodyPart, measurementsData = measurements) => {
-    if (!measurementsData?.[bodyPart]) return null
-
-    const baseline = parseFloat(measurementsData[bodyPart].baseline) || 0
-    const goalPercentage =
-      parseFloat(measurementsData[bodyPart].goalPercentage) || 0
-    const target = baseline + (baseline * goalPercentage) / 100
-
-    // Get all monthly values and sort them by date
-    const monthlyEntries = Object.entries(
-      measurementsData[bodyPart].monthlyProgress || {}
-    )
-      .map(([month, value]) => ({
-        month,
-        value: parseFloat(value) || 0,
-        date: new Date(month.split(" ")[0] + " 1, " + month.split(" ")[1]),
-      }))
-      .sort((a, b) => b.date - a.date)
-
-    // Get the latest measurement
-    const latestMeasurement =
-      monthlyEntries.length > 0 ? monthlyEntries[0].value : baseline
-
-    const progressPercentage =
-      ((latestMeasurement - baseline) / (target - baseline)) * 100
-    return {
-      baseline,
-      target,
-      latest: latestMeasurement,
-      progress: Math.min(Math.max(progressPercentage, 0), 100),
     }
   }
 
@@ -255,8 +261,16 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="text-center p-4">
-        <p className="text-red-500">{error}</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Refresh Page
+          </button>
+        </div>
       </div>
     )
   }
