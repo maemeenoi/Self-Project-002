@@ -4,11 +4,12 @@ import { auth } from "@/firebaseConfig"
 import { signInWithEmailAndPassword } from "firebase/auth"
 
 export const authOptions = {
-  session: {
-    strategy: "jwt",
-  },
   pages: {
     signIn: "/auth/signin",
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   providers: [
     CredentialsProvider({
@@ -44,19 +45,38 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
+      console.log("JWT Callback - Token:", token)
+      console.log("JWT Callback - User:", user)
+
       if (user) {
         token.id = user.id
+        token.email = user.email
         token.firebaseToken = user.firebaseToken
       }
       return token
     },
     async session({ session, token }) {
+      console.log("Session Callback - Session:", session)
+      console.log("Session Callback - Token:", token)
+
       if (session?.user) {
         session.user.id = token.id
+        session.user.email = token.email
         session.user.firebaseToken = token.firebaseToken
       }
       return session
+    },
+  },
+  events: {
+    async signIn(message) {
+      console.log("SignIn Event:", message)
+    },
+    async signOut(message) {
+      console.log("SignOut Event:", message)
+    },
+    async session(message) {
+      console.log("Session Event:", message)
     },
   },
 }
