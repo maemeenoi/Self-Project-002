@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { db } from "@/firebaseConfig"
 import { doc, getDoc } from "firebase/firestore"
+import { auth } from "@/firebaseConfig"
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
@@ -31,7 +32,16 @@ export default function Dashboard() {
       const loadUserData = async () => {
         try {
           console.log("Attempting to load user data for:", session.user.email)
-          console.log("Firebase Auth Token:", session.user)
+          console.log("Firebase Auth Token:", session.user.firebaseToken)
+
+          // Get current Firebase token
+          const currentUser = auth.currentUser
+          if (!currentUser) {
+            console.error("No Firebase current user")
+            setError("Authentication error. Please sign in again.")
+            setLoading(false)
+            return
+          }
 
           const userDocRef = doc(db, "users", session.user.email)
           console.log("User document reference:", userDocRef)
@@ -61,6 +71,8 @@ export default function Dashboard() {
 
           if (error.code === "permission-denied") {
             setError("Permission denied. Please sign out and sign in again.")
+          } else if (error.code === "failed-precondition") {
+            setError("Authentication error. Please sign in again.")
           } else {
             setError(`Failed to load user data: ${error.message}`)
           }

@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app"
-import { getAuth } from "firebase/auth"
-import { getFirestore } from "firebase/firestore"
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth"
+import { getFirestore, initializeFirestore } from "firebase/firestore"
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -14,13 +14,30 @@ const firebaseConfig = {
 
 // Initialize Firebase
 let firebaseApp
+let auth
+let db
+
 if (!getApps().length) {
   firebaseApp = initializeApp(firebaseConfig)
+  auth = getAuth(firebaseApp)
+  // Set persistence to LOCAL
+  setPersistence(auth, browserLocalPersistence)
+    .then(() => {
+      console.log("Firebase persistence set to LOCAL")
+    })
+    .catch((error) => {
+      console.error("Error setting persistence:", error)
+    })
+
+  // Initialize Firestore with settings
+  db = initializeFirestore(firebaseApp, {
+    experimentalForceLongPolling: true,
+    useFetchStreams: false,
+  })
 } else {
   firebaseApp = getApps()[0]
+  auth = getAuth(firebaseApp)
+  db = getFirestore(firebaseApp)
 }
-
-const auth = getAuth(firebaseApp)
-const db = getFirestore(firebaseApp)
 
 export { auth, db }

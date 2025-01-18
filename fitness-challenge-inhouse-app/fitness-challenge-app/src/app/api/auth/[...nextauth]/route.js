@@ -28,10 +28,13 @@ export const authOptions = {
           )
 
           const user = userCredential.user
+          const idToken = await user.getIdToken()
+
           return {
             id: user.uid,
             email: user.email,
             name: user.email.split("@")[0],
+            firebaseToken: idToken,
           }
         } catch (error) {
           console.error("Authentication error:", error)
@@ -44,12 +47,14 @@ export const authOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.firebaseToken = user.firebaseToken
       }
       return token
     },
     async session({ session, token }) {
       if (session?.user) {
         session.user.id = token.id
+        session.user.firebaseToken = token.firebaseToken
       }
       return session
     },
