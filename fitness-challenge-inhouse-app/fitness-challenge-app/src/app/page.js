@@ -214,7 +214,7 @@ export default function Home() {
             </a>
 
             <a
-              href="/register"
+              href="/auth/register"
               className="group bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
             >
               <div className="flex items-center justify-between">
