@@ -192,6 +192,25 @@ export default function Home() {
                   </div>
                 </div>
               </a>
+
+              <a
+                href="/rules"
+                className="group bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors">
+                      Rules
+                    </h3>
+                    <p className="text-gray-500">
+                      See the rules and how to participate
+                    </p>
+                  </div>
+                  <div className="text-3xl group-hover:translate-x-2 transition-transform">
+                    📖
+                  </div>
+                </div>
+              </a>
             </div>
           </div>
         ) : (
@@ -262,50 +281,6 @@ export default function Home() {
                   </p>
                 </div>
               ))}
-          </div>
-
-          {/* Challenge Rules */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-blue-600">
-              Challenge Rules
-            </h3>
-            <ul className="space-y-3 text-gray-600">
-              <li className="flex items-start">
-                <span className="text-blue-500 mr-2">•</span>
-                <span>
-                  Track your measurements monthly from October 2024 to April
-                  2025.
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-blue-500 mr-2">•</span>
-                <span>
-                  Progress is calculated based on your improvement from baseline
-                  towards your target.
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-blue-500 mr-2">•</span>
-                <span>
-                  Your overall progress is the average of all your tracked body
-                  parts.
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-blue-500 mr-2">•</span>
-                <span>
-                  Achievement levels are awarded based on your total progress
-                  percentage.
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-blue-500 mr-2">•</span>
-                <span>
-                  Compete with others on the leaderboard to reach higher
-                  achievement levels!
-                </span>
-              </li>
-            </ul>
           </div>
         </div>
       </div>

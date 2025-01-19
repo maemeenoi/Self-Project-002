@@ -79,6 +79,19 @@ const calculateProgress = (measurements, bodyPart) => {
   const goalPercentage = parseFloat(measurements[bodyPart].goalPercentage) || 0
   const target = baseline + (baseline * goalPercentage) / 100
 
+  // Initialize progress with baseline if no monthly values exist
+  if (
+    !measurements[bodyPart].monthlyProgress ||
+    Object.keys(measurements[bodyPart].monthlyProgress).length === 0
+  ) {
+    return {
+      baseline,
+      target,
+      latest: baseline,
+      progress: 0,
+    }
+  }
+
   // Get all monthly values and sort them by date
   const monthlyValues = Object.entries(
     measurements[bodyPart].monthlyProgress || {}
@@ -89,9 +102,17 @@ const calculateProgress = (measurements, bodyPart) => {
       date: new Date(month.split(" ")[0] + " 1, " + month.split(" ")[1]),
     }))
     .filter((entry) => entry.value > 0)
-    .sort((a, b) => b.date - a.date) // Sort by date in descending order
+    .sort((a, b) => b.date - a.date)
 
-  if (monthlyValues.length === 0) return null
+  // If no valid monthly values, return baseline
+  if (monthlyValues.length === 0) {
+    return {
+      baseline,
+      target,
+      latest: baseline,
+      progress: 0,
+    }
+  }
 
   const latest = monthlyValues[0].value
   const progressPercentage = ((latest - baseline) / (target - baseline)) * 100
@@ -152,7 +173,7 @@ export default function Dashboard() {
               ...userData,
               email: session.user.email,
               name: session.user.name || userData.name || "User",
-              selectedParts: userData.selectedParts || Object.keys(BODY_PARTS), // Use keys of BODY_PARTS
+              selectedParts: userData.selectedParts || Object.keys(BODY_PARTS),
               createdAt: userData.createdAt || new Date().toISOString(),
             }
 
@@ -167,12 +188,20 @@ export default function Dashboard() {
             if (measurementDoc.exists()) {
               measurementData = measurementDoc.data()
             } else {
-              // Create initial measurements structure
-              measurementData = BODY_PARTS.reduce((acc, part) => {
-                acc[part] = {}
-                return acc
-              }, {})
+              // Create initial measurements structure for new users
+              const initialMeasurements = {}
+              updatedUserData.selectedParts.forEach((part) => {
+                initialMeasurements[part] = {
+                  baseline: "0",
+                  goalPercentage: "0",
+                  monthlyProgress: MONTHS.reduce((acc, month) => {
+                    acc[month] = ""
+                    return acc
+                  }, {}),
+                }
+              })
 
+              measurementData = initialMeasurements
               // Create measurements document
               await setDoc(doc(db, "measurements", userEmail), measurementData)
             }
