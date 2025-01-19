@@ -63,9 +63,10 @@ const calculateProgress = (measurements, bodyPart) => {
     .map(([month, value]) => ({
       month,
       value: parseFloat(value) || 0,
+      date: new Date(month.split(" ")[0] + " 1, " + month.split(" ")[1]),
     }))
     .filter((entry) => entry.value > 0)
-    .sort((a, b) => MONTHS.indexOf(b.month) - MONTHS.indexOf(a.month))
+    .sort((a, b) => b.date - a.date) // Sort by date in descending order
 
   if (monthlyValues.length === 0) return null
 
@@ -82,12 +83,18 @@ const calculateProgress = (measurements, bodyPart) => {
 function calculateTotalProgress(measurements) {
   if (!measurements) return 0
 
-  const progressValues = Object.keys(BODY_PARTS).map((part) => {
+  let totalProgress = 0
+  let validParts = 0
+
+  Object.keys(BODY_PARTS).forEach((part) => {
     const progress = calculateProgress(measurements, part)
-    return progress ? progress.progress : 0
+    if (progress) {
+      totalProgress += progress.progress
+      validParts++
+    }
   })
-  const totalProgress = progressValues.reduce((sum, value) => sum + value, 0)
-  return totalProgress / Object.keys(BODY_PARTS).length
+
+  return validParts > 0 ? totalProgress / validParts : 0
 }
 
 export default function Dashboard() {
@@ -201,7 +208,10 @@ export default function Dashboard() {
       const userEmail = session.user.email
       await updateDoc(doc(db, "measurements", userEmail), updatedMeasurements)
       setMeasurements(updatedMeasurements)
-      console.log("Measurements updated successfully")
+      console.log(
+        "Measurements updated successfully:",
+        updatedMeasurements[bodyPart]
+      )
     } catch (error) {
       console.error("Error updating measurement:", error)
       setError("Failed to update measurement. Please try again.")
@@ -215,18 +225,18 @@ export default function Dashboard() {
 
     return MONTHS.map((month) => {
       const dataPoint = { month }
-      BODY_PARTS.forEach((part) => {
+      Object.keys(BODY_PARTS).forEach((part) => {
         if (measurements[part]) {
           const baseline = parseFloat(measurements[part].baseline) || 0
           const goalPercentage =
             parseFloat(measurements[part].goalPercentage) || 10
           const target = baseline + (baseline * goalPercentage) / 100
           const value =
-            parseFloat(measurements[part].monthlyProgress?.[month]) || baseline
+            parseFloat(measurements[part].monthlyProgress?.[month]) || 0
 
           if (baseline && value) {
             const progress = ((value - baseline) / (target - baseline)) * 100
-            dataPoint[part] = Math.min(Math.max(progress, 0), 100)
+            dataPoint[BODY_PARTS[part]] = Math.min(Math.max(progress, 0), 100)
           }
         }
       })
