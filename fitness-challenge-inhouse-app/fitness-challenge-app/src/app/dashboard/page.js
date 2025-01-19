@@ -48,6 +48,29 @@ const BODY_PARTS = {
   rightForearm: "Right Forearm",
 }
 
+// Add achievement titles
+const ACHIEVEMENT_TITLES = {
+  100: {
+    title: "Ultimate Goal Crusher 👑",
+    color: "from-purple-500 to-pink-500",
+  },
+  90: { title: "Elite Achiever 🌟", color: "from-yellow-400 to-orange-500" },
+  75: { title: "Progress Champion ⭐", color: "from-blue-500 to-indigo-500" },
+  50: { title: "Determined Warrior 💪", color: "from-green-500 to-teal-500" },
+  25: { title: "Rising Challenger 🌱", color: "from-cyan-500 to-blue-500" },
+  0: { title: "Journey Beginner 🎯", color: "from-gray-400 to-gray-500" },
+}
+
+const getAchievementTitle = (progress) => {
+  const thresholds = Object.keys(ACHIEVEMENT_TITLES).sort((a, b) => b - a)
+  for (const threshold of thresholds) {
+    if (progress >= threshold) {
+      return ACHIEVEMENT_TITLES[threshold]
+    }
+  }
+  return ACHIEVEMENT_TITLES[0]
+}
+
 // Helper functions
 const calculateProgress = (measurements, bodyPart) => {
   if (!measurements?.[bodyPart]) return null
@@ -280,169 +303,186 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h1 className="text-2xl font-bold mb-4">
-          Welcome, {userData?.displayName}!
-        </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Profile Information</h2>
-            <p className="text-gray-600">Email: {userData?.email}</p>
-            <p className="text-gray-600">
-              Member since: {new Date(userData?.createdAt).toLocaleDateString()}
-            </p>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Selected Body Parts</h2>
-            <ul className="list-disc list-inside">
-              {Array.isArray(userData?.selectedParts)
-                ? userData.selectedParts.map((part) => (
-                    <li key={part} className="text-gray-600">
-                      {BODY_PARTS[part]}
-                    </li>
-                  ))
-                : Object.keys(BODY_PARTS).map((part) => (
-                    <li key={part} className="text-gray-600">
-                      {BODY_PARTS[part]}
-                    </li>
-                  ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Overall Progress Bar */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-bold mb-4">Overall Progress</h2>
-        <div className="relative pt-1">
-          <div className="flex mb-2 items-center justify-between">
-            <div>
-              <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
-                Progress
-              </span>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-3 sm:p-6">
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+        {/* Header Section */}
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 animate-fade-in">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4">
+            <div className="text-center md:text-left w-full md:w-auto">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
+                Welcome, {userData?.displayName}!
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600">
+                Member since:{" "}
+                {new Date(userData?.createdAt).toLocaleDateString()}
+              </p>
             </div>
-            <div className="text-right">
-              <span className="text-xs font-semibold inline-block text-indigo-600">
+            <div className="text-center md:text-right w-full md:w-auto">
+              <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
                 {calculateTotalProgress(measurements).toFixed(1)}%
-              </span>
+              </div>
+              <div className="text-xs sm:text-sm text-gray-500">
+                Overall Progress
+              </div>
             </div>
           </div>
-          <div className="overflow-hidden h-3 mb-4 text-xs flex rounded-full bg-indigo-200">
-            <div
-              style={{ width: `${calculateTotalProgress(measurements)}%` }}
-              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500"
-            ></div>
+        </div>
+
+        {/* Overall Progress Bar */}
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">
+            Overall Progress
+          </h2>
+          <div className="relative pt-1">
+            <div className="overflow-hidden h-2 sm:h-3 mb-3 sm:mb-4 text-xs flex rounded-full bg-gray-200">
+              <div
+                style={{ width: `${calculateTotalProgress(measurements)}%` }}
+                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 animate-progress"
+              ></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {measurements && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-6">Progress Tracking</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {(Array.isArray(userData?.selectedParts)
-              ? userData.selectedParts
-              : Object.keys(BODY_PARTS)
-            ).map((bodyPart) => {
-              const progress = calculateProgress(measurements, bodyPart)
-              if (!progress) return null
-              return (
-                <div
-                  key={bodyPart}
-                  className="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-indigo-600">
+        {/* Body Parts Progress */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {(Array.isArray(userData?.selectedParts)
+            ? userData.selectedParts
+            : Object.keys(BODY_PARTS)
+          ).map((bodyPart) => {
+            const progress = calculateProgress(measurements, bodyPart)
+            if (!progress) return null
+            const achievement = getAchievementTitle(progress.progress)
+
+            return (
+              <div
+                key={bodyPart}
+                className="bg-white rounded-lg shadow-lg p-4 sm:p-6 transform hover:scale-[1.01] transition-all duration-300"
+              >
+                <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-2 sm:gap-4 mb-4">
+                  <div className="text-center sm:text-left">
+                    <h3 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
                       {BODY_PARTS[bodyPart]}
                     </h3>
-                    <span className="text-sm font-medium text-gray-500">
-                      {progress.progress.toFixed(1)}% Complete
-                    </span>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {achievement.title}
+                    </p>
                   </div>
-
-                  {/* Progress Stats */}
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="bg-white p-3 rounded-lg shadow-sm">
-                      <div className="text-xs text-gray-500 uppercase">
-                        Baseline
-                      </div>
-                      <div className="text-lg font-semibold">
-                        {progress.baseline}"
-                      </div>
-                    </div>
-                    <div className="bg-white p-3 rounded-lg shadow-sm">
-                      <div className="text-xs text-gray-500 uppercase">
-                        Current
-                      </div>
-                      <div className="text-lg font-semibold">
-                        {progress.latest}"
-                      </div>
-                    </div>
-                    <div className="bg-white p-3 rounded-lg shadow-sm">
-                      <div className="text-xs text-gray-500 uppercase">
-                        Target
-                      </div>
-                      <div className="text-lg font-semibold">
-                        {progress.target.toFixed(1)}"
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
-                        style={{ width: `${progress.progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Monthly Measurements */}
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">
-                      Monthly Measurements
-                    </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {MONTHS.map((month) => (
-                        <div key={month} className="relative">
-                          <label className="block text-xs font-medium text-gray-500 mb-1">
-                            {month}
-                          </label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            className="block w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500"
-                            value={
-                              measurements[bodyPart]?.monthlyProgress?.[
-                                month
-                              ] || ""
-                            }
-                            onChange={(e) =>
-                              handleMeasurementUpdate(
-                                bodyPart,
-                                month,
-                                e.target.value
-                              )
-                            }
-                            placeholder="inches"
-                          />
-                        </div>
-                      ))}
+                  <div className="text-center sm:text-right">
+                    <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
+                      {progress.progress.toFixed(1)}%
                     </div>
                   </div>
                 </div>
-              )
-            })}
+
+                {/* Progress Stats */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
+                  <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                    <div className="text-[10px] sm:text-xs text-gray-500 uppercase">
+                      Baseline
+                    </div>
+                    <div className="text-sm sm:text-lg font-semibold">
+                      {progress.baseline}"
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                    <div className="text-[10px] sm:text-xs text-gray-500 uppercase">
+                      Current
+                    </div>
+                    <div className="text-sm sm:text-lg font-semibold">
+                      {progress.latest}"
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                    <div className="text-[10px] sm:text-xs text-gray-500 uppercase">
+                      Target
+                    </div>
+                    <div className="text-sm sm:text-lg font-semibold">
+                      {progress.target.toFixed(1)}"
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mb-4">
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-1000 bg-gradient-to-r ${achievement.color}`}
+                      style={{ width: `${progress.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Monthly Measurements */}
+                <div className="mt-4">
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-3">
+                    Monthly Measurements
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+                    {MONTHS.map((month) => (
+                      <div key={month} className="relative">
+                        <label className="block text-[10px] sm:text-xs font-medium text-gray-500 mb-1">
+                          {month}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          className="block w-full px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                          value={
+                            measurements[bodyPart]?.monthlyProgress?.[month] ||
+                            ""
+                          }
+                          onChange={(e) =>
+                            handleMeasurementUpdate(
+                              bodyPart,
+                              month,
+                              e.target.value
+                            )
+                          }
+                          placeholder="inches"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {saving && (
+          <div className="fixed bottom-4 right-4 bg-green-500 text-white px-3 py-2 text-sm sm:px-4 sm:py-2 rounded-lg shadow-lg animate-pulse">
+            Saving changes...
           </div>
-        </div>
-      )}
-      {saving && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
-          Saving changes...
-        </div>
-      )}
+        )}
+
+        <style jsx global>{`
+          @keyframes progressAnimation {
+            from {
+              width: 0;
+            }
+            to {
+              width: 100%;
+            }
+          }
+
+          .animate-progress {
+            animation: progressAnimation 1.5s ease-out;
+          }
+
+          .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+          }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+        `}</style>
+      </div>
     </div>
   )
 }
