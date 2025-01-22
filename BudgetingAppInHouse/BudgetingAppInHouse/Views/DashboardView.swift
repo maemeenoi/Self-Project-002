@@ -135,64 +135,34 @@ struct CreditCardSummaryView: View {
         return .blue
     }
     
-    var remainingCredit: Double {
-        max(card.creditLimit - card.currentBalance, 0)
-    }
-    
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading) {
             HStack {
-                Text("💳 \(card.name ?? "Credit Card")")
-                    .font(.title3)
-                    .bold()
+                Text(card.name ?? "Credit Card")
+                    .font(.headline)
                 Spacer()
                 Button(action: onEdit) {
-                    Label("Edit", systemImage: "pencil.circle.fill")
-                        .font(.subheadline)
+                    Image(systemName: "pencil.circle.fill")
                         .foregroundColor(.blue)
-                        .padding(8)
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(8)
                 }
             }
             
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
+            RoundedRectangle(cornerRadius: 15)
+                .fill(color.opacity(0.1))
+                .frame(height: 100)
+                .overlay(
                     VStack(alignment: .leading) {
-                        Text("Available Credit:")
+                        Text("Balance")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Text("$\(remainingCredit, specifier: "%.2f")")
+                        Text("$\(card.currentBalance, specifier: "%.2f") / $\(card.creditLimit, specifier: "%.2f")")
                             .font(.title2)
                             .bold()
-                            .foregroundColor(color)
+                        ProgressView(value: progress)
+                            .tint(color)
                     }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Text("Limit: $\(card.creditLimit, specifier: "%.2f")")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        if let billDate = card.billDate {
-                            Text("Due: \(billDate, style: .date)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                
-                ProgressView(value: 1 - progress)
-                    .tint(color)
-                    .background(Color.gray.opacity(0.2))
-                    .scaleEffect(x: 1, y: 1.5, anchor: .center)
-            }
-            .padding()
-            .background(Color(UIColor.secondarySystemBackground))
-            .cornerRadius(12)
+                    .padding()
+                )
         }
-        .padding()
-        .background(Color(UIColor.systemBackground))
-        .cornerRadius(15)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
 }
 
@@ -423,44 +393,21 @@ struct SavingsGoalsView: View {
     @State private var showingAddGoal = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading) {
             HStack {
-                Text("🎯 Savings Goals")
-                    .font(.title3)
-                    .bold()
+                Text("Savings Goals")
+                    .font(.headline)
                 Spacer()
                 Button(action: { showingAddGoal = true }) {
-                    Label("Add Goal", systemImage: "plus.circle.fill")
-                        .font(.subheadline)
+                    Image(systemName: "plus.circle.fill")
                         .foregroundColor(.blue)
-                        .padding(8)
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(8)
                 }
             }
             
             if savingsGoals.isEmpty {
-                VStack(alignment: .center, spacing: 15) {
-                    Image(systemName: "star.circle.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.blue)
-                    Text("No savings goals yet")
-                        .font(.headline)
-                        .foregroundColor(.gray)
-                    Button(action: { showingAddGoal = true }) {
-                        Text("Create your first goal")
-                            .font(.subheadline)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 30)
-                .background(Color.blue.opacity(0.05))
-                .cornerRadius(15)
+                Text("No savings goals yet")
+                    .foregroundColor(.gray)
+                    .padding()
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 15) {
@@ -471,10 +418,6 @@ struct SavingsGoalsView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(UIColor.systemBackground))
-        .cornerRadius(15)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         .sheet(isPresented: $showingAddGoal) {
             AddSavingsGoalView()
         }
@@ -490,67 +433,31 @@ struct SavingsGoalCard: View {
         return min(goal.currentAmount / goal.targetAmount, 1.0)
     }
     
-    var remainingAmount: Double {
-        max(goal.targetAmount - goal.currentAmount, 0)
-    }
-    
-    var color: Color {
-        if progress >= 0.9 { return .green }
-        if progress >= 0.5 { return .blue }
-        return .orange
-    }
-    
-    var icon: String {
-        switch goal.name?.lowercased() {
-        case let name where name?.contains("emergency") ?? false: return "🚨"
-        case let name where name?.contains("house") ?? false: return "🏠"
-        case let name where name?.contains("car") ?? false: return "🚗"
-        case let name where name?.contains("holiday") ?? false: return "✈️"
-        case let name where name?.contains("education") ?? false: return "📚"
-        default: return "🎯"
-        }
-    }
-    
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading) {
             HStack {
-                Text("\(icon) \(goal.name ?? "")")
-                    .font(.headline)
+                Text(goal.name ?? "")
+                    .font(.subheadline)
                 Spacer()
                 Button(action: { showingAddProgress = true }) {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(color)
+                        .foregroundColor(.blue)
                 }
             }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Remaining:")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Text("$\(remainingAmount, specifier: "%.2f")")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(color)
-                
-                if let deadline = goal.deadline {
-                    Text("Target: \(deadline, style: .date)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
+            Text("$\(goal.currentAmount, specifier: "%.2f")/$\(goal.targetAmount, specifier: "%.2f")")
+                .font(.caption)
             ProgressView(value: progress)
-                .tint(color)
-                .background(Color.gray.opacity(0.2))
-                .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                .tint(.blue)
+            if let deadline = goal.deadline {
+                Text("Due: \(deadline, style: .date)")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
         }
-        .frame(width: 250)
+        .frame(width: 200)
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(color.opacity(0.3), lineWidth: 1)
-        )
+        .background(Color.blue.opacity(0.1))
+        .cornerRadius(10)
         .sheet(isPresented: $showingAddProgress) {
             AddProgressView(goal: goal)
         }

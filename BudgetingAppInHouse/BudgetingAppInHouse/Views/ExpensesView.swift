@@ -28,37 +28,101 @@ struct ExpensesView: View {
         }
     }
     
+    var totalExpenses: Double {
+        filteredExpenses.reduce(0) { $0 + $1.amount }
+    }
+    
     var body: some View {
-        NavigationView {
-            VStack {
-                // Filter Picker
-                Picker("Filter", selection: $selectedFilter) {
-                    ForEach(ExpenseFilter.allCases, id: \.self) { filter in
-                        Text(filter.rawValue).tag(filter)
+        ScrollView {
+            VStack(spacing: 20) {
+                // Total Expenses Summary
+                VStack(spacing: 15) {
+                    HStack {
+                        Text("💸 Total Expenses")
+                            .font(.title2)
+                            .bold()
+                        Spacer()
+                        Button(action: { showingAddExpense = true }) {
+                            Label("Add Expense", systemImage: "plus.circle.fill")
+                                .font(.subheadline)
+                                .foregroundColor(.blue)
+                                .padding(8)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(8)
+                        }
                     }
+                    
+                    Text("$\(totalExpenses, specifier: "%.2f")")
+                        .font(.system(size: 40, weight: .bold))
+                        .foregroundColor(.red)
                 }
-                .pickerStyle(SegmentedPickerStyle())
                 .padding()
+                .background(Color(UIColor.systemBackground))
+                .cornerRadius(15)
+                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+                
+                // Filter
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Filter")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    Picker("Filter", selection: $selectedFilter) {
+                        ForEach(ExpenseFilter.allCases, id: \.self) { filter in
+                            Text(filter.rawValue).tag(filter)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                }
+                .padding()
+                .background(Color(UIColor.secondarySystemBackground))
+                .cornerRadius(15)
                 
                 // Expenses List
-                List {
-                    ForEach(filteredExpenses) { expense in
-                        ExpenseRow(expense: expense)
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("📝 Transactions")
+                        .font(.title2)
+                        .bold()
+                    
+                    if filteredExpenses.isEmpty {
+                        VStack(spacing: 15) {
+                            Image(systemName: "doc.text.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.blue)
+                            Text("No expenses yet")
+                                .font(.headline)
+                                .foregroundColor(.gray)
+                            Button(action: { showingAddExpense = true }) {
+                                Text("Add your first expense")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 10)
+                                    .background(Color.blue)
+                                    .cornerRadius(10)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 30)
+                        .background(Color.blue.opacity(0.05))
+                        .cornerRadius(15)
+                    } else {
+                        ForEach(filteredExpenses) { expense in
+                            ExpenseRow(expense: expense)
+                        }
+                        .onDelete(perform: deleteExpenses)
                     }
-                    .onDelete(perform: deleteExpenses)
                 }
+                .padding()
+                .background(Color(UIColor.systemBackground))
+                .cornerRadius(15)
+                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
             }
-            .navigationTitle("Expenses")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddExpense = true }) {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
-            .sheet(isPresented: $showingAddExpense) {
-                AddExpenseView()
-            }
+            .padding()
+        }
+        .navigationTitle("Expenses")
+        .sheet(isPresented: $showingAddExpense) {
+            AddExpenseView()
         }
     }
     
@@ -79,32 +143,70 @@ struct ExpensesView: View {
 struct ExpenseRow: View {
     let expense: Expense
     
+    var icon: String {
+        switch expense.category?.lowercased() {
+        case "food": return "🍽️"
+        case "transport": return "🚗"
+        case "entertainment": return "🎮"
+        case "shopping": return "🛍️"
+        case "bills": return "📱"
+        case "rent": return "🏠"
+        default: return "💰"
+        }
+    }
+    
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(expense.category ?? "")
-                    .font(.headline)
-                Text(expense.date ?? Date(), style: .date)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                if let notes = expense.notes, !notes.isEmpty {
-                    Text(notes)
+        VStack(spacing: 12) {
+            HStack {
+                Text(icon)
+                    .font(.title2)
+                VStack(alignment: .leading) {
+                    Text(expense.category ?? "")
+                        .font(.headline)
+                    Text(expense.date ?? Date(), style: .date)
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                VStack(alignment: .trailing) {
+                    Text("-$\(expense.amount, specifier: "%.2f")")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.red)
+                    Text(expense.paymentMethod ?? "")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
             
-            Spacer()
+            if let notes = expense.notes, !notes.isEmpty {
+                HStack {
+                    Text("📝")
+                        .font(.caption)
+                    Text(notes)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+            }
             
-            VStack(alignment: .trailing) {
-                Text("$\(expense.amount, specifier: "%.2f")")
-                    .font(.headline)
-                Text(expense.paymentMethod ?? "")
-                    .font(.caption)
-                    .foregroundColor(.gray)
+            if expense.isFixed {
+                HStack {
+                    Text("🔄")
+                        .font(.caption)
+                    Text("Fixed Expense")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    Spacer()
+                }
             }
         }
-        .padding(.vertical, 5)
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color.gray.opacity(0.3), lineWidth: 1)
+        )
     }
 }
 
@@ -125,34 +227,45 @@ struct AddExpenseView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Amount")) {
+                Section {
                     TextField("Amount", text: $amount)
                         .keyboardType(.decimalPad)
+                        .font(.system(size: 34, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .padding(.vertical)
                 }
+                .listRowBackground(Color.clear)
                 
-                Section(header: Text("Details")) {
+                Section(header: Text("Details").textCase(.uppercase)) {
                     Picker("Category", selection: $category) {
                         ForEach(categories, id: \.self) { category in
-                            Text(category).tag(category)
+                            HStack {
+                                Text(categoryIcon(category))
+                                Text(category)
+                            }.tag(category)
                         }
                     }
-                    
-                    Toggle("Fixed Expense", isOn: $isFixed)
+                    .pickerStyle(MenuPickerStyle())
                     
                     Picker("Payment Method", selection: $paymentMethod) {
                         ForEach(paymentMethods, id: \.self) { method in
                             Text(method).tag(method)
                         }
                     }
+                    .pickerStyle(MenuPickerStyle())
                     
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                 }
                 
-                Section(header: Text("Notes")) {
-                    TextField("Notes", text: $notes)
+                Section(header: Text("Type").textCase(.uppercase)) {
+                    Toggle("Fixed Expense", isOn: $isFixed)
+                }
+                
+                Section(header: Text("Notes").textCase(.uppercase)) {
+                    TextField("Add notes", text: $notes)
                 }
             }
-            .navigationTitle("Add Expense")
+            .navigationTitle("New Expense")
             .navigationBarItems(
                 leading: Button("Cancel") {
                     dismiss()
@@ -160,7 +273,20 @@ struct AddExpenseView: View {
                 trailing: Button("Save") {
                     saveExpense()
                 }
+                .disabled(amount.isEmpty || category.isEmpty)
             )
+        }
+    }
+    
+    private func categoryIcon(_ category: String) -> String {
+        switch category {
+        case "Food": return "🍽️"
+        case "Transport": return "🚗"
+        case "Entertainment": return "🎮"
+        case "Shopping": return "🛍️"
+        case "Bills": return "📱"
+        case "Rent": return "🏠"
+        default: return "💰"
         }
     }
     

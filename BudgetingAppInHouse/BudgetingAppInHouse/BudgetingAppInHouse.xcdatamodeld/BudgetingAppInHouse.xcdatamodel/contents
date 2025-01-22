@@ -5,17 +5,7 @@
         <attribute name="category" optional="NO" attributeType="String"/>
         <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="period" optional="NO" attributeType="String"/>
-        <attribute name="rollover" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="startDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="budgetPeriods" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="BudgetPeriod" inverseName="budget" inverseEntity="BudgetPeriod"/>
-    </entity>
-    <entity name="BudgetPeriod" representedClassName="BudgetPeriod" syncable="YES" codeGenerationType="class">
-        <attribute name="endDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="rolloverAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="startDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="budget" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="Budget" inverseName="budgetPeriods" inverseEntity="Budget"/>
-        <relationship name="expenses" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Expense" inverseName="budgetPeriod" inverseEntity="Expense"/>
     </entity>
     <entity name="CreditCard" representedClassName="CreditCard" syncable="YES" codeGenerationType="class">
         <attribute name="billDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -32,29 +22,6 @@
         <attribute name="isFixed" optional="NO" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
         <attribute name="paymentMethod" optional="NO" attributeType="String"/>
-        <relationship name="budgetPeriod" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="BudgetPeriod" inverseName="expenses" inverseEntity="BudgetPeriod"/>
-        <relationship name="recurringExpense" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="RecurringExpense" inverseName="expenses" inverseEntity="RecurringExpense"/>
-    </entity>
-    <entity name="Income" representedClassName="Income" syncable="YES" codeGenerationType="class">
-        <attribute name="amount" optional="NO" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="date" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="isRecurring" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="name" optional="NO" attributeType="String"/>
-        <attribute name="notes" optional="YES" attributeType="String"/>
-        <attribute name="recurringFrequency" optional="YES" attributeType="String"/>
-        <attribute name="source" optional="NO" attributeType="String"/>
-    </entity>
-    <entity name="RecurringExpense" representedClassName="RecurringExpense" syncable="YES" codeGenerationType="class">
-        <attribute name="amount" optional="NO" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="category" optional="NO" attributeType="String"/>
-        <attribute name="frequency" optional="NO" attributeType="String"/>
-        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="lastProcessedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="name" optional="NO" attributeType="String"/>
-        <attribute name="nextDueDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="paymentMethod" optional="NO" attributeType="String"/>
-        <relationship name="expenses" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Expense" inverseName="recurringExpense" inverseEntity="Expense"/>
     </entity>
     <entity name="SavingsGoal" representedClassName="SavingsGoal" syncable="YES" codeGenerationType="class">
         <attribute name="currentAmount" optional="NO" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
