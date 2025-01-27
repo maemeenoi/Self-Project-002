@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  households    HouseholdMember[]
+  transactions  Transaction[]
+  savingsGoals  SavingsGoal[]
+}
+
+model Household {
+  id          String    @id @default(cuid())
+  name        String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  members     HouseholdMember[]
+  categories  Category[]
+  transactions Transaction[]
+  savingsGoals SavingsGoal[]
+  currency    String    @default("NZD")
+}
+
+model HouseholdMember {
+  id          String    @id @default(cuid())
+  role        String    @default("member") // "owner" or "member"
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([householdId, userId])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  icon        String
+  color       String
+  budget      Float
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId String
+  transactions Transaction[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Transaction {
+  id          String    @id @default(cuid())
+  date        DateTime
+  description String
+  amount      Float
+  category    Category  @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId String
+  tags        String[]
+  split       Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model SavingsGoal {
+  id                  String    @id @default(cuid())
+  name                String
+  icon                String
+  target              Float
+  current             Float     @default(0)
+  monthlyContribution Float
+  color               String
+  priority            String    // "High", "Medium", "Low"
+  user                User      @relation(fields: [userId], references: [id])
+  userId              String
+  household           Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId         String
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+} 
