@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Say My Name for Schools & Universities</title>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Reset and Basic Styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Roboto", sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: #fff;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      /* Header */
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 40px;
+        border-bottom: 1px solid #eee;
+      }
+      header .logo {
+        font-size: 1.5em;
+        font-weight: bold;
+      }
+      nav ul {
+        list-style: none;
+        display: flex;
+      }
+      nav ul li {
+        margin-left: 20px;
+      }
+      nav ul li a {
+        font-weight: 500;
+        color: #333;
+      }
+      /* Hero Section */
+      .hero {
+        text-align: center;
+        padding: 80px 20px;
+        background: #f8f9fa; /* light background similar to main site */
+      }
+      .hero h1 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+      }
+      .hero p {
+        font-size: 1.2em;
+        margin-bottom: 30px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .btn {
+        display: inline-block;
+        background: #007bff;
+        color: #fff;
+        padding: 15px 30px;
+        border-radius: 5px;
+        font-weight: 600;
+        transition: background 0.3s ease;
+      }
+      .btn:hover {
+        background: #0056b3;
+      }
+      /* Features Section */
+      .features {
+        padding: 60px 20px;
+        background: #fff;
+      }
+      .features h2 {
+        text-align: center;
+        margin-bottom: 40px;
+        font-size: 2em;
+      }
+      .features-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+      }
+      .feature {
+        flex: 1 1 300px;
+        max-width: 300px;
+        margin: 20px;
+        text-align: center;
+      }
+      .feature img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 20px;
+      }
+      .feature h3 {
+        margin-bottom: 10px;
+        font-size: 1.3em;
+      }
+      .feature p {
+        font-size: 0.95em;
+      }
+      /* Testimonials Section */
+      .testimonials {
+        background: #f8f9fa;
+        padding: 60px 20px;
+      }
+      .testimonials h2 {
+        text-align: center;
+        margin-bottom: 40px;
+        font-size: 2em;
+      }
+      .testimonial-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .testimonial {
+        background: #fff;
+        padding: 20px;
+        margin: 10px;
+        border-left: 4px solid #007bff;
+        max-width: 400px;
+        font-style: italic;
+      }
+      .testimonial strong {
+        display: block;
+        margin-top: 10px;
+        font-style: normal;
+        color: #555;
+      }
+      /* Footer */
+      footer {
+        background: #333;
+        color: #fff;
+        text-align: center;
+        padding: 20px;
+      }
+      footer a {
+        color: #fff;
+        margin: 0 10px;
+        font-size: 0.9em;
+      }
+      /* Responsive */
+      @media (max-width: 768px) {
+        .features-container,
+        .testimonial-container {
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="logo">Say My Name</div>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/for-schools">For Schools</a></li>
+          <li><a href="/for-universities">For Universities</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>Empower Your Campus with Correct Name Pronunciation</h1>
+      <p>
+        Make every student feel welcomed and valued with our AI-powered name
+        pronunciation tool – specially designed for schools and universities.
+      </p>
+      <a href="mailto:info@saymyname.io" class="btn">Request a Demo</a>
+    </section>
+
+    <!-- Features Section: Campus Engagement -->
+    <section class="features">
+      <h2>Enhance Campus Engagement</h2>
+      <div class="features-container">
+        <div class="feature">
+          <img src="https://via.placeholder.com/80" alt="Enrollment" />
+          <h3>Seamless Enrollment</h3>
+          <p>
+            Integrate our tool into your enrollment process to ensure a
+            welcoming first impression.
+          </p>
+        </div>
+        <div class="feature">
+          <img
+            src="https://via.placeholder.com/80"
+            alt="Inclusive Experience"
+          />
+          <h3>Inclusive Experience</h3>
+          <p>
+            Foster a culture of respect and inclusion among students, faculty,
+            and staff.
+          </p>
+        </div>
+        <div class="feature">
+          <img src="https://via.placeholder.com/80" alt="Alumni Engagement" />
+          <h3>Alumni &amp; Fundraising</h3>
+          <p>
+            Maintain lasting relationships with your alumni, and boost
+            fundraising with personalized engagement.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section: Easy Integration -->
+    <section class="features" style="background: #f8f9fa">
+      <h2>Easy Integration with Campus Systems</h2>
+      <div class="features-container">
+        <div class="feature">
+          <img src="https://via.placeholder.com/80" alt="LMS Integration" />
+          <h3>LMS Integration</h3>
+          <p>
+            Seamlessly connect with your Learning Management Systems for a
+            unified experience.
+          </p>
+        </div>
+        <div class="feature">
+          <img src="https://via.placeholder.com/80" alt="SIS Integration" />
+          <h3>SIS Integration</h3>
+          <p>
+            Access student name pronunciation profiles directly from your
+            Student Information Systems.
+          </p>
+        </div>
+        <div class="feature">
+          <img
+            src="https://via.placeholder.com/80"
+            alt="Salesforce Integration"
+          />
+          <h3>Salesforce Integration</h3>
+          <p>
+            Enhance alumni and donor outreach with our direct Salesforce
+            integration.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+      <h2>What Educators Are Saying</h2>
+      <div class="testimonial-container">
+        <div class="testimonial">
+          <p>
+            "Say My Name has transformed our enrollment process. Every student
+            now feels acknowledged from day one."
+          </p>
+          <strong>- University Administrator</strong>
+        </div>
+        <div class="testimonial">
+          <p>
+            "Integrating this tool into our LMS was seamless. It’s helped us
+            build a more inclusive and respectful campus culture."
+          </p>
+          <strong>- School Principal</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2025 Say My Name. All Rights Reserved.</p>
+      <p>
+        <a href="/privacy">Privacy Policy</a> |
+        <a href="/terms">Terms of Service</a>
+      </p>
+    </footer>
+  </body>
+</html>
