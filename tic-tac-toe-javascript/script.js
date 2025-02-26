@@ -20,14 +20,18 @@ const winningConditions = [
   [2, 4, 6],
 ]
 statusDisplay.innerHTML = currentPlayerTurn()
+
 function handleCellPlayed(clickedCell, clickedCellIndex) {
   gameState[clickedCellIndex] = currentPlayer
-  clickedCell.innerHTML = currentPlayer
+  clickedCell.querySelector(".cell-back").innerHTML = currentPlayer
+  clickedCell.classList.add("flipped")
 }
+
 function handlePlayerChange() {
   currentPlayer = currentPlayer === "X" ? "O" : "X"
   statusDisplay.innerHTML = currentPlayerTurn()
 }
+
 function handleResultValidation() {
   let roundWon = false
   for (let i = 0; i <= 7; i++) {
@@ -40,6 +44,11 @@ function handleResultValidation() {
     }
     if (a === b && b === c) {
       roundWon = true
+      winCondition.forEach((index) => {
+        document
+          .querySelector(`[data-cell-index="${index}"]`)
+          .classList.add("winning-cell")
+      })
       break
     }
   }
@@ -56,8 +65,9 @@ function handleResultValidation() {
   }
   handlePlayerChange()
 }
+
 function handleCellClick(clickedCellEvent) {
-  const clickedCell = clickedCellEvent.target
+  const clickedCell = clickedCellEvent.target.closest(".cell")
   const clickedCellIndex = parseInt(clickedCell.getAttribute("data-cell-index"))
   if (gameState[clickedCellIndex] !== "" || !gameActive) {
     return
@@ -65,13 +75,18 @@ function handleCellClick(clickedCellEvent) {
   handleCellPlayed(clickedCell, clickedCellIndex)
   handleResultValidation()
 }
+
 function handleRestartGame() {
   gameActive = true
   currentPlayer = "X"
   gameState = ["", "", "", "", "", "", "", "", ""]
   statusDisplay.innerHTML = currentPlayerTurn()
-  document.querySelectorAll(".cell").forEach((cell) => (cell.innerHTML = ""))
+  document.querySelectorAll(".cell").forEach((cell) => {
+    cell.querySelector(".cell-back").innerHTML = ""
+    cell.classList.remove("flipped", "winning-cell")
+  })
 }
+
 document
   .querySelectorAll(".cell")
   .forEach((cell) => cell.addEventListener("click", handleCellClick))
