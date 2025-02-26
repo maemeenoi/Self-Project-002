@@ -10,43 +10,50 @@ export default function Home() {
   const [flipped, setFlipped] = useState(false)
 
   const handleBark = async () => {
-    // TODO: Fetch a random dog fact from the API
-    // and set the factFront and factBack states
-    // to display the fact on the card
     try {
-      // Reuest a new dog fact
-      const response = await fetch('http://localhost:3001/api/dogfact')
+      const response = await fetch("/api/dogfact")
+      if (!response.ok) {
+        throw new Error("Network response was not ok")
+      }
       const data = await response.json()
       const newFact = data.fact
       console.log(newFact)
-      // Set the factFront and factBack states
+      if (!flipped) {
+        setFactBack(newFact)
+        setFlipped(true)
+      } else {
+        setFactFront(newFact)
+        setFlipped(false)
+      }
+    } catch (error) {
+      console.error("Failed to fetch fact!: ", error)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-600">
       {/* Card container */}
-      <div className="relative w-80 h-48 [perspective:1000px]">
+      <div className="relative w-96 h-56 [perspective:1200px]">
         {/* Card inner wrapper that will be rotated */}
         <div
-          className={`absolute inset-0 transition-transform duration-500 [transform-style:preserve-3d] ${
+          className={`absolute inset-0 transition-transform duration-700 [transform-style:preserve-3d] ${
             flipped ? "[transform:rotateY(180deg)]" : ""
           }`}
         >
           {/* Front face of card */}
-          <div className="absolute inset-0 flex items-center justify-center bg-white text-center p-4 rounded-xl shadow-xl [backface-visibility:hidden]">
-            {factFront}
+          <div className="absolute inset-0 flex items-center justify-center bg-white text-center p-6 rounded-xl shadow-lg border border-gray-300 [backface-visibility:hidden]">
+            <p className="text-lg font-semibold text-gray-800">{factFront}</p>
           </div>
           {/* Back face of card */}
-          <div className="absolute inset-0 flex items-center justify-center bg-white text-center p-4 rounded-xl shadow-xl [backface-visibility:hidden] [transform:rotateY(180deg)]">
-            {factBack}
+          <div className="absolute inset-0 flex items-center justify-center bg-white text-center p-6 rounded-xl shadow-lg border border-gray-300 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+            <p className="text-lg font-semibold text-gray-800">{factBack}</p>
           </div>
         </div>
       </div>
       {/* Button */}
       <button
         onClick={handleBark}
-        className="ml-8 px-4 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700"
+        className="mt-8 px-6 py-3 bg-blue-500 text-white font-semibold text-lg rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg active:scale-95"
       >
         Bark!
       </button>
