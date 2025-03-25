@@ -3,7 +3,7 @@ import "./globals.css"
 
 const Countdown = ({ hr, min, sec }) => {
   const [over, setOver] = useState(false)
-  const [paused, setPaused] = useState(false)
+  const [paused, setPaused] = useState(true)
   const [[h, m, s], setTime] = useState([hr, min, sec])
 
   const tick = () => {

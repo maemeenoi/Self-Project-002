@@ -1,0 +1,77 @@
+/* Make the background cover the entire viewport */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Center the entire page */
+.app-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #1d3b72; /* Dark blue background */
+}
+
+/* Floating card */
+.card {
+  background: white;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px; /* Default width */
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Adjust for larger screens */
+@media (min-width: 1024px) {
+  .card {
+    max-width: 500px; /* Wider card on large screens */
+    padding: 32px;
+  }
+}
+
+/* Search box stays at the top */
+.search-box {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+/* Make the list scrollable */
+.animal-list {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid #ddd;
+  margin-top: 10px;
+}
+
+/* Style each animal item */
+.animal-item {
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 5px;
+}
+
+/* No results message */
+.no-results {
+  font-size: 16px;
+  color: #666;
+}
