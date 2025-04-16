@@ -1,0 +1,225 @@
+{
+  "reportMetadata": {
+    "organizationName": "Cloudy Ltd.",
+    "reportPeriod": "Q1 2025",
+    "reportDate": "March 31, 2025",
+    "generatedBy": "MakeStuffGo Cloud Cost Analyzer"
+  },
+
+  "executiveSummary": {
+    "cloudMaturityScore": 3.8,
+    "cloudSpend": {
+      "total": 547890,
+      "reductionPotential": 0.235,
+      "annualSavingsOpportunity": 309450,
+      "byService": [
+        { "name": "Compute", "value": 230114 },
+        { "name": "Storage", "value": 126015 },
+        { "name": "Databases", "value": 98620 },
+        { "name": "Networking", "value": 65747 },
+        { "name": "AI/ML Services", "value": 27395 }
+      ]
+    },
+    "monthlyTrend": [
+      { "month": "Jan 2024", "spend": 100000 },
+      { "month": "Feb 2024", "spend": 120000 },
+      { "month": "Mar 2024", "spend": 130000 },
+      { "month": "Apr 2024", "spend": 140000 },
+      { "month": "May 2024", "spend": 150000 },
+      { "month": "Jun 2024", "spend": 160000 },
+      { "month": "Jul 2024", "spend": 170000 },
+      { "month": "Aug 2024", "spend": 180000 },
+      { "month": "Sep 2024", "spend": 190000 },
+      { "month": "Oct 2024", "spend": 100000 },
+      { "month": "Nov 2024", "spend": 180870 },
+      { "month": "Dec 2024", "spend": 194570 },
+      { "month": "Jan 2025", "spend": 177390 },
+      { "month": "Feb 2025", "spend": 182450 },
+      { "month": "Mar 2025", "spend": 187980 }
+    ],
+    "challenges": [
+      "Increasing cloud infrastructure costs (16% YoY)",
+      "Low resource utilization (avg. 37% VM utilization)",
+      "Insufficient cost allocation tracking",
+      "Manual deployment processes causing delays"
+    ],
+    "recommendations": [
+      "Implement rightsizing for 28 identified VMs",
+      "Convert eligible workloads to reserved instances",
+      "Deploy automated scheduling for non-production resources",
+      "Enhance Infrastructure as Code implementation"
+    ]
+  },
+
+  "cloudMaturityAssessment": {
+    "overview": "Cloudy Ltd. achieved an overall cloud maturity score of 3.8 out of 5, placing the organization at an 'Intermediate' level. This suggests a strategic and growing adoption of cloud practices with optimization efforts underway. Compared to an industry average of 3.1, Cloudy Ltd. is ahead of the curve but still has room to improve, especially in Operational Excellence and Organizational Adaptability.",
+    "overallScore": 3.8,
+    "dimensionalScores": [
+      { "dimension": "Strategic Vision", "score": 4.2 },
+      { "dimension": "Technological Capabilities", "score": 3.9 },
+      { "dimension": "Operational Excellence", "score": 3.2 },
+      { "dimension": "Financial Optimization", "score": 4.1 },
+      { "dimension": "Security and Compliance", "score": 4.3 },
+      { "dimension": "Organizational Adaptability", "score": 3.4 }
+    ],
+    "industryComparison": {
+      "organizationScore": 3.8,
+      "industryAverage": 3.1,
+      "industryLeaders": 4.5
+    },
+    "maturityLevels": [
+      {
+        "level": "Beginner",
+        "description": "Limited cloud usage with basic implementations"
+      },
+      {
+        "level": "Foundational",
+        "description": "Established cloud presence with growing adoption"
+      },
+      {
+        "level": "Intermediate",
+        "description": "Strategic cloud usage with some optimization"
+      },
+      {
+        "level": "Advanced",
+        "description": "Cloud-first approach with extensive optimization"
+      },
+      {
+        "level": "Optimized",
+        "description": "Fully cloud-native with continuous improvement"
+      }
+    ],
+    "currentLevel": "Intermediate",
+    "shortTermFocus": [
+      "Enhance DevOps and automation capabilities",
+      "Develop more comprehensive organizational cloud training",
+      "Refine cross-functional collaboration models"
+    ],
+    "longTermObjectives": [
+      "Achieve fully optimized cloud maturity",
+      "Build a more adaptive, technology-driven organizational culture",
+      "Continually innovate cloud implementation strategies"
+    ]
+  },
+
+  "cloudExpenditureAnalysis": {
+    "currentMonthTotal": 187980,
+    "previousMonthTotal": 182450,
+    "monthOverMonthChange": 0.0303,
+    "yearOverYearChange": 0.161,
+    "serviceBreakdown": [
+      { "service": "Virtual Machines", "cost": 82711, "percentage": 0.44 },
+      { "service": "Storage Services", "cost": 43235, "percentage": 0.23 },
+      { "service": "Database Services", "cost": 33836, "percentage": 0.18 },
+      { "service": "Container Services", "cost": 15038, "percentage": 0.08 },
+      { "service": "Networking", "cost": 9399, "percentage": 0.05 },
+      { "service": "AI/ML Services", "cost": 3760, "percentage": 0.02 }
+    ],
+    "costPerformanceRatio": [
+      { "resource": "VM-001", "ratio": 0.032, "status": "Optimized" },
+      { "resource": "VM-002", "ratio": 0.047, "status": "Needs Optimization" },
+      { "resource": "VM-003", "ratio": 0.029, "status": "Optimized" },
+      { "resource": "Storage-001", "ratio": 0.018, "status": "Optimized" },
+      {
+        "resource": "Storage-002",
+        "ratio": 0.035,
+        "status": "Needs Optimization"
+      }
+    ],
+    "historicalTrend": [
+      { "period": "Q1 2024", "spend": 162000 },
+      { "period": "Q2 2024", "spend": 173500 },
+      { "period": "Q3 2024", "spend": 485000 },
+      { "period": "Q4 2024", "spend": 547890 },
+      { "period": "Q1 2025", "spend": 547890 }
+    ]
+  },
+
+  "costOptimizationRecommendations": {
+    "totalSavingsPotential": 309450,
+    "categorizedSavings": [
+      { "category": "Right-sizing", "amount": 112340, "percentage": 0.363 },
+      {
+        "category": "Reserved Instances",
+        "amount": 76890,
+        "percentage": 0.248
+      },
+      {
+        "category": "Resource Scheduling",
+        "amount": 52605,
+        "percentage": 0.17
+      },
+      { "category": "Storage Tiering", "amount": 43560, "percentage": 0.141 },
+      {
+        "category": "Unutilized Resources",
+        "amount": 24055,
+        "percentage": 0.078
+      }
+    ],
+    "specificRecommendations": [
+      {
+        "title": "Right-size over-provisioned VMs",
+        "description": "Reduce resources allocated to 12 identified VMs running consistently under 30% utilization",
+        "annualSavings": 78450,
+        "implementation": "Medium",
+        "risk": "Low",
+        "resources": ["VM-002", "VM-007", "VM-012", "VM-015", "VM-023"]
+      },
+      {
+        "title": "Convert to reserved instances",
+        "description": "Purchase 3-year reserved instances for 18 VMs with stable workloads",
+        "annualSavings": 64320,
+        "implementation": "Low",
+        "risk": "Low",
+        "resources": ["VM-001", "VM-003", "VM-005", "VM-008", "VM-011"]
+      },
+      {
+        "title": "Implement automatic shutdown",
+        "description": "Schedule automatic shutdown for development environments during non-business hours",
+        "annualSavings": 47890,
+        "implementation": "Low",
+        "risk": "Low",
+        "resources": ["Dev-VM-001", "Dev-VM-002", "Dev-VM-003", "Test-VM-001"]
+      },
+      {
+        "title": "Archive cold storage data",
+        "description": "Move 34TB of infrequently accessed data to archive storage tier",
+        "annualSavings": 38740,
+        "implementation": "Medium",
+        "risk": "Low",
+        "resources": ["Storage-002", "Storage-003"]
+      },
+      {
+        "title": "Remove unused load balancers",
+        "description": "Decommission 8 unused load balancers identified in the environment",
+        "annualSavings": 18250,
+        "implementation": "Low",
+        "risk": "Low",
+        "resources": ["LB-003", "LB-007", "LB-008", "LB-012", "LB-015"]
+      }
+    ]
+  },
+
+  "iacOptimization": {
+    "currentImplementation": {
+      "templates": { "coverage": 0.73, "status": "Partial" },
+      "pipeline": { "coverage": 0.82, "status": "Good" },
+      "testing": { "coverage": 0.65, "status": "Needs Improvement" },
+      "versionControl": { "coverage": 0.91, "status": "Excellent" },
+      "deployment": { "coverage": 0.78, "status": "Good" },
+      "monitoring": { "coverage": 0.69, "status": "Needs Improvement" }
+    },
+    "expectedBenefits": {
+      "costReduction": 0.185,
+      "deploymentSpeed": 1.24,
+      "resourceEfficiency": 0.27,
+      "errorReduction": 0.87
+    },
+    "recommendations": [
+      "Standardize template structure across all development teams",
+      "Implement drift detection and automatic remediation",
+      "Enhance parameter validation in templates",
+      "Add policy-as-code validation in CI/CD pipeline"
+    ]
+  }
+}
