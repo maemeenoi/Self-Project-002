@@ -148,34 +148,6 @@ const MVPRecommendationsActionPlan = ({ clientData }) => {
                 ))}
             </div>
           </div>
-
-          {/* Expected Impact */}
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-blue-500 mb-2">
-              Expected Impact
-            </h2>
-            <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-              <div className="flex items-center mb-2">
-                <div className="flex-1">
-                  <p className="text-xs text-gray-600">Annual Savings</p>
-                  <p className="text-lg font-bold text-green-600">
-                    {formatCurrency(
-                      recommendations.expectedImpact.annualSavings
-                    )}
-                  </p>
-                </div>
-                <div className="flex-1 border-l border-green-200 pl-3">
-                  <p className="text-xs text-gray-600">ROI</p>
-                  <p className="text-lg font-bold text-green-600">
-                    {recommendations.expectedImpact.roiPercentage}%
-                  </p>
-                </div>
-              </div>
-              <p className="text-xs text-gray-700">
-                {recommendations.expectedImpact.additionalBenefits}
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Right Column */}
@@ -262,11 +234,6 @@ const MVPRecommendationsActionPlan = ({ clientData }) => {
                   </li>
                 ))}
               </ul>
-              <div className="mt-3 text-center">
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-sm">
-                  Schedule Implementation Call
-                </button>
-              </div>
             </div>
           </div>
         </div>

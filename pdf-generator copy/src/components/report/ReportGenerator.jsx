@@ -4,6 +4,7 @@ import MVPExecutiveSummary from "./MVPExecutiveSummary"
 import MVPCloudMaturityAssessment from "./MVPCloudMaturityAssessment"
 import MVPRecommendationsActionPlan from "./MVPRecommendationsActionPlan"
 import MVPMaturityTable from "./MVPMaturityTable"
+import MVPEndCoverPage from "./MVPEndCoverPage"
 
 const ReportGenerator = ({
   clientData,
@@ -162,7 +163,9 @@ const ReportGenerator = ({
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
           <div className="p-6">
-            <MVPMaturityTable maturityData={clientData.cloudMaturityAssessment} />
+            <MVPMaturityTable
+              maturityData={clientData.cloudMaturityAssessment}
+            />
           </div>
         </div>
 
@@ -172,6 +175,12 @@ const ReportGenerator = ({
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
           <MVPRecommendationsActionPlan clientData={clientData} />
+        </div>
+        <div
+          className="page"
+          style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
+        >
+          <MVPEndCoverPage clientData={clientData} />
         </div>
       </div>
     </>

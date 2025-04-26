@@ -10,129 +10,102 @@ const MVPMaturityTable = ({ maturityData }) => {
     }
   })
 
-  // Function to render a table cell with appropriate highlighting
-  const renderCell = (level, columnId) => {
+  // Function to determine cell styling and content
+  const getCellContent = (level, columnId) => {
     // Get current and target levels for this practice
     const currentLevel = practiceMap[columnId]?.current
     const targetLevel = practiceMap[columnId]?.target
 
-    // Determine if this cell should be highlighted
-    const isCurrentState = level.level === currentLevel
-    const isTargetState =
-      level.level === targetLevel && level.level !== currentLevel
-
-    // Cell content based on level and column - shortened for better fit
-    let cellContent = ""
+    // Cell content based on level and column - using same text as the PDF
+    let cellContent = {
+      text: "",
+      isCurrentState: level.level === currentLevel,
+      isTargetState:
+        level.level === targetLevel && level.level !== currentLevel,
+    }
 
     if (columnId === "buildManagement") {
       if (level.level === 3)
-        cellContent =
+        cellContent.text =
           "Teams regularly meet to discuss integration problems and resolve them with automation"
       if (level.level === 2)
-        cellContent = "Build metrics gathered, made visible, and acted on"
+        cellContent.text = "Build metrics gathered, made visible, and acted on"
       if (level.level === 1)
-        cellContent =
+        cellContent.text =
           "Automated build and test cycle every time a change is committed"
       if (level.level === 0)
-        cellContent = "Regular automated builds and testing"
+        cellContent.text = "Regular automated builds and testing"
       if (level.level === -1)
-        cellContent = "Manual processes for building software"
+        cellContent.text = "Manual processes for building software"
     }
 
     if (columnId === "environment") {
       if (level.level === 3)
-        cellContent =
+        cellContent.text =
           "All environments managed effectively. Provisioning fully automated"
       if (level.level === 2)
-        cellContent =
+        cellContent.text =
           "Orchestrated deployment managed. Release and rollback processes tested"
       if (level.level === 1)
-        cellContent =
+        cellContent.text =
           "Fully automated, self service process for deploying software"
       if (level.level === 0)
-        cellContent = "Automated deployment to some environments"
+        cellContent.text = "Automated deployment to some environments"
       if (level.level === -1)
-        cellContent = "Manual process for deploying software"
+        cellContent.text = "Manual process for deploying software"
     }
 
     if (columnId === "release") {
       if (level.level === 3)
-        cellContent =
+        cellContent.text =
           "Operations and delivery team regularly collaborate to manage risk"
       if (level.level === 2)
-        cellContent = "Environment and application health monitored proactively"
+        cellContent.text =
+          "Environment and application health monitored proactively"
       if (level.level === 1)
-        cellContent =
+        cellContent.text =
           "Change management and approval processes defined and enforced"
       if (level.level === 0)
-        cellContent = "Painful and infrequent but reliable releases"
-      if (level.level === -1) cellContent = "Infrequent and unreliable releases"
+        cellContent.text = "Painful and infrequent but reliable releases"
+      if (level.level === -1)
+        cellContent.text = "Infrequent and unreliable releases"
     }
 
     if (columnId === "testing") {
       if (level.level === 3)
-        cellContent =
+        cellContent.text =
           "Production rollbacks rare. Defects found and fixed immediately"
-      if (level.level === 2) cellContent = "Quality metrics and trends tracked"
+      if (level.level === 2)
+        cellContent.text = "Quality metrics and trends tracked"
       if (level.level === 1)
-        cellContent = "Automated unit and acceptance testing"
+        cellContent.text = "Automated unit and acceptance testing"
       if (level.level === 0)
-        cellContent = "Automated tests written as part of development"
-      if (level.level === -1) cellContent = "Manual testing after development"
+        cellContent.text = "Automated tests written as part of development"
+      if (level.level === -1)
+        cellContent.text = "Manual testing after development"
     }
 
     if (columnId === "dataManagement") {
       if (level.level === 3)
-        cellContent = "Release to release feedback loop of database performance"
+        cellContent.text =
+          "Release to release feedback loop of database performance"
       if (level.level === 2)
-        cellContent =
+        cellContent.text =
           "Database upgrades and rollback tested with every deployment"
       if (level.level === 1)
-        cellContent =
+        cellContent.text =
           "Database changes performed automatically as part of deployment"
       if (level.level === 0)
-        cellContent = "Changes to database done with automated scripts"
+        cellContent.text = "Changes to database done with automated scripts"
       if (level.level === -1)
-        cellContent = "Data migrations unversioned and performed manually"
+        cellContent.text = "Data migrations unversioned and performed manually"
     }
 
-    // Apply styling based on state
-    let borderStyle = "border border-gray-200"
-    let labelText = null
-
-    if (isCurrentState) {
-      borderStyle = "border-0"
-      labelText = (
-        <div className="mt-1 text-xs text-green-600 font-semibold">
-          Current State
-        </div>
-      )
-    } else if (isTargetState) {
-      borderStyle = "border-0"
-      labelText = (
-        <div className="mt-1 text-xs text-blue-600 font-semibold">
-          Target State
-        </div>
-      )
-    }
-
-    // Add background color based on state
-    const bgColor = isCurrentState
-      ? "bg-green-50 border-green-200"
-      : isTargetState
-      ? "bg-blue-50 border-blue-200"
-      : ""
-
-    return (
-      <td className={`p-1 text-xs ${borderStyle} ${bgColor} text-gray-700`}>
-        {cellContent}
-        {labelText}
-      </td>
-    )
+    return cellContent
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full pb-4">
       <h1 className="text-2xl font-bold text-blue-600 mb-3">
         Continuous Delivery Maturity Assessment Table
       </h1>
@@ -148,52 +121,250 @@ const MVPMaturityTable = ({ maturityData }) => {
         </span>
       </p>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse text-xs">
-          <thead>
-            <tr className="bg-green-500">
-              <th className="text-left p-2 text-white font-semibold border border-green-600 text-xs w-1/6">
-                Practice
-              </th>
-              <th className="text-left p-2 text-white font-semibold border border-green-600 text-xs">
-                Build management and CI
-              </th>
-              <th className="text-left p-2 text-white font-semibold border border-green-600 text-xs">
-                Environment and deployments
-              </th>
-              <th className="text-left p-2 text-white font-semibold border border-green-600 text-xs">
-                Release management and compliance
-              </th>
-              <th className="text-left p-2 text-white font-semibold border border-green-600 text-xs">
-                Testing
-              </th>
-              <th className="text-left p-2 text-white font-semibold border border-green-600 text-xs">
-                Data Management
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {maturityData.maturityLevels.map((level) => (
-              <tr key={level.level} className="hover:bg-gray-50">
-                <td className="p-2 text-xs font-medium border border-gray-200 bg-gray-100">
-                  <div className="font-bold">{level.name}</div>
-                  <div className="text-gray-600 text-xs">
-                    {level.subtitle || level.description}
-                  </div>
+      <table className="w-full border-collapse">
+        <thead>
+          <tr>
+            <th className="p-2 text-sm bg-green-500 text-white font-semibold border border-green-600 w-1/6">
+              Practice
+            </th>
+            <th className="p-2 text-sm bg-green-500 text-white font-semibold border border-green-600">
+              Build management and CI
+            </th>
+            <th className="p-2 text-sm bg-green-500 text-white font-semibold border border-green-600">
+              Environment and deployments
+            </th>
+            <th className="p-2 text-sm bg-green-500 text-white font-semibold border border-green-600">
+              Release management and compliance
+            </th>
+            <th className="p-2 text-sm bg-green-500 text-white font-semibold border border-green-600">
+              Testing
+            </th>
+            <th className="p-2 text-sm bg-green-500 text-white font-semibold border border-green-600">
+              Data Management
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* Level -1: Regressive */}
+          <tr>
+            <td className="p-2 text-sm align-top border border-gray-300 bg-gray-100">
+              <div className="font-bold">Level -1: Regressive</div>
+              <div className="text-xs text-gray-600">
+                Process unrepeatable, poorly controlled and reactive
+              </div>
+            </td>
+            {[
+              "buildManagement",
+              "environment",
+              "release",
+              "testing",
+              "dataManagement",
+            ].map((column) => {
+              const cellData = getCellContent({ level: -1 }, column)
+              return (
+                <td
+                  key={`-1-${column}`}
+                  className={`p-2 border text-sm ${
+                    cellData.isCurrentState
+                      ? "bg-green-50 text-green-800"
+                      : cellData.isTargetState
+                      ? "bg-blue-50 text-blue-800"
+                      : ""
+                  }`}
+                >
+                  {cellData.text}
+                  {cellData.isCurrentState && (
+                    <div className="text-xs font-semibold text-green-600 mt-1">
+                      Current State
+                    </div>
+                  )}
+                  {cellData.isTargetState && (
+                    <div className="text-xs font-semibold text-blue-600 mt-1">
+                      Target State
+                    </div>
+                  )}
                 </td>
-                {renderCell(level, "buildManagement")}
-                {renderCell(level, "environment")}
-                {renderCell(level, "release")}
-                {renderCell(level, "testing")}
-                {renderCell(level, "dataManagement")}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="mt-4 text-sm text-gray-600 italic">
-          Table based on "Maturity Model for Configuration & Release
-          Management", Continuous Delivery, Jez Humble & David Farley
-        </div>
+              )
+            })}
+          </tr>
+
+          {/* Level 0: Repeatable */}
+          <tr>
+            <td className="p-2 text-sm align-top border border-gray-300 bg-gray-100">
+              <div className="font-bold">Level 0: Repeatable</div>
+              <div className="text-xs text-gray-600">
+                Process documented and partly automated
+              </div>
+            </td>
+            {[
+              "buildManagement",
+              "environment",
+              "release",
+              "testing",
+              "dataManagement",
+            ].map((column) => {
+              const cellData = getCellContent({ level: 0 }, column)
+              return (
+                <td
+                  key={`0-${column}`}
+                  className={`p-2 border text-sm ${
+                    cellData.isCurrentState
+                      ? "bg-green-50 text-green-800"
+                      : cellData.isTargetState
+                      ? "bg-blue-50 text-blue-800"
+                      : ""
+                  }`}
+                >
+                  {cellData.text}
+                  {cellData.isCurrentState && (
+                    <div className="text-xs font-semibold text-green-600 mt-1">
+                      Current State
+                    </div>
+                  )}
+                  {cellData.isTargetState && (
+                    <div className="text-xs font-semibold text-blue-600 mt-1">
+                      Target State
+                    </div>
+                  )}
+                </td>
+              )
+            })}
+          </tr>
+
+          {/* Level 1: Consistent */}
+          <tr>
+            <td className="p-2 text-sm align-top border border-gray-300 bg-gray-100">
+              <div className="font-bold">Level 1: Consistent</div>
+              <div className="text-xs text-gray-600">
+                Automated processes applied across whole application lifecycle
+              </div>
+            </td>
+            {[
+              "buildManagement",
+              "environment",
+              "release",
+              "testing",
+              "dataManagement",
+            ].map((column) => {
+              const cellData = getCellContent({ level: 1 }, column)
+              return (
+                <td
+                  key={`1-${column}`}
+                  className={`p-2 border text-sm ${
+                    cellData.isCurrentState
+                      ? "bg-green-50 text-green-800"
+                      : cellData.isTargetState
+                      ? "bg-blue-50 text-blue-800"
+                      : ""
+                  }`}
+                >
+                  {cellData.text}
+                  {cellData.isCurrentState && (
+                    <div className="text-xs font-semibold text-green-600 mt-1">
+                      Current State
+                    </div>
+                  )}
+                  {cellData.isTargetState && (
+                    <div className="text-xs font-semibold text-blue-600 mt-1">
+                      Target State
+                    </div>
+                  )}
+                </td>
+              )
+            })}
+          </tr>
+
+          {/* Level 2: Quantitatively managed */}
+          <tr>
+            <td className="p-2 text-sm align-top border border-gray-300 bg-gray-100">
+              <div className="font-bold">Level 2: Quantitatively managed</div>
+              <div className="text-xs text-gray-600">
+                Process measured and controlled
+              </div>
+            </td>
+            {[
+              "buildManagement",
+              "environment",
+              "release",
+              "testing",
+              "dataManagement",
+            ].map((column) => {
+              const cellData = getCellContent({ level: 2 }, column)
+              return (
+                <td
+                  key={`2-${column}`}
+                  className={`p-2 border text-sm ${
+                    cellData.isCurrentState
+                      ? "bg-green-50 text-green-800"
+                      : cellData.isTargetState
+                      ? "bg-blue-50 text-blue-800"
+                      : ""
+                  }`}
+                >
+                  {cellData.text}
+                  {cellData.isCurrentState && (
+                    <div className="text-xs font-semibold text-green-600 mt-1">
+                      Current State
+                    </div>
+                  )}
+                  {cellData.isTargetState && (
+                    <div className="text-xs font-semibold text-blue-600 mt-1">
+                      Target State
+                    </div>
+                  )}
+                </td>
+              )
+            })}
+          </tr>
+
+          {/* Level 3: Optimizing */}
+          <tr>
+            <td className="p-2 text-sm align-top border border-gray-300 bg-gray-100">
+              <div className="font-bold">Level 3: Optimizing</div>
+              <div className="text-xs text-gray-600">
+                Focus on process improvements
+              </div>
+            </td>
+            {[
+              "buildManagement",
+              "environment",
+              "release",
+              "testing",
+              "dataManagement",
+            ].map((column) => {
+              const cellData = getCellContent({ level: 3 }, column)
+              return (
+                <td
+                  key={`3-${column}`}
+                  className={`p-2 border text-sm ${
+                    cellData.isCurrentState
+                      ? "bg-green-50 text-green-800"
+                      : cellData.isTargetState
+                      ? "bg-blue-50 text-blue-800"
+                      : ""
+                  }`}
+                >
+                  {cellData.text}
+                  {cellData.isCurrentState && (
+                    <div className="text-xs font-semibold text-green-600 mt-1">
+                      Current State
+                    </div>
+                  )}
+                  {cellData.isTargetState && (
+                    <div className="text-xs font-semibold text-blue-600 mt-1">
+                      Target State
+                    </div>
+                  )}
+                </td>
+              )
+            })}
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="mt-2 text-xs text-gray-600 italic text-left">
+        Table based on "Maturity Model for Configuration & Release Management",
+        Continuous Delivery, Jez Humble & David Farley
       </div>
     </div>
   )
