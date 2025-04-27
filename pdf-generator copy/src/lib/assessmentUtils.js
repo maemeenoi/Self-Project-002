@@ -349,13 +349,298 @@ function determineOverallMaturityLevel(score) {
  * @param {number} overallScore - Overall maturity score
  * @returns {object} - Formatted report data
  */
+// function formatReportData(
+//   clientInfo,
+//   categoryScores,
+//   maturityLevels,
+//   overallScore
+// ) {
+//   // Create radar chart data from category scores
+//   const dimensionalScores = Object.entries(categoryScores).map(
+//     ([dimension, data]) => ({
+//       dimension,
+//       score: data.score,
+//       fullMark: 5,
+//     })
+//   )
+
+//   // Generate recommendations based on scores and maturity levels
+//   const recommendations = generateRecommendations(
+//     categoryScores,
+//     maturityLevels
+//   )
+
+//   // Generate short-term focus areas based on lowest scores
+//   const shortTermFocus = generateShortTermFocus(categoryScores)
+
+//   // Generate long-term objectives
+//   const longTermObjectives = generateLongTermObjectives(categoryScores)
+
+//   // Calculate potential savings
+//   const annualCloudSpend = estimateAnnualCloudSpend(
+//     clientInfo.size,
+//     clientInfo.industry
+//   )
+//   const potentialSavingsPercentage = calculatePotentialSavings(categoryScores)
+//   const annualSavingsOpportunity = Math.round(
+//     annualCloudSpend * potentialSavingsPercentage
+//   )
+
+//   // Generate summary findings
+//   const summaryFindings = generateSummaryFindings(categoryScores)
+
+//   // Create cloud spend by service data
+//   const cloudSpendByService = [
+//     { name: "Compute", value: Math.round(annualCloudSpend * 0.45) },
+//     { name: "Storage", value: Math.round(annualCloudSpend * 0.25) },
+//     { name: "Database", value: Math.round(annualCloudSpend * 0.15) },
+//     { name: "Networking", value: Math.round(annualCloudSpend * 0.1) },
+//     { name: "Other", value: Math.round(annualCloudSpend * 0.05) },
+//   ]
+
+//   // Create trend data
+//   const trendData = [
+//     {
+//       name: "Q1 2024",
+//       spend: Math.round(annualCloudSpend * 0.2),
+//       projected: Math.round(annualCloudSpend * 0.2),
+//     },
+//     {
+//       name: "Q2 2024",
+//       spend: Math.round(annualCloudSpend * 0.22),
+//       projected: Math.round(annualCloudSpend * 0.21),
+//     },
+//     {
+//       name: "Q3 2024",
+//       spend: Math.round(annualCloudSpend * 0.28),
+//       projected: Math.round(annualCloudSpend * 0.27),
+//     },
+//     {
+//       name: "Q4 2024",
+//       spend: Math.round(annualCloudSpend * 0.3),
+//       projected: Math.round(annualCloudSpend * 0.29),
+//     },
+//     {
+//       name: "Q1 2025",
+//       spend: null,
+//       projected: Math.round(annualCloudSpend * 0.25),
+//     },
+//     {
+//       name: "Q2 2025",
+//       spend: null,
+//       projected: Math.round(annualCloudSpend * 0.22),
+//     },
+//   ]
+
+//   // Practice areas for maturity table
+//   const practiceAreas = [
+//     {
+//       id: "buildManagement",
+//       name: "Build management and CI",
+//       currentLevel: determinePracticeLevel(categoryScores, "Cloud DevOps"),
+//       targetLevel: Math.min(
+//         determinePracticeLevel(categoryScores, "Cloud DevOps") + 1,
+//         3
+//       ),
+//     },
+//     {
+//       id: "environment",
+//       name: "Environment and deployments",
+//       currentLevel: determinePracticeLevel(categoryScores, "Cloud DevOps"),
+//       targetLevel: Math.min(
+//         determinePracticeLevel(categoryScores, "Cloud DevOps") + 1,
+//         3
+//       ),
+//     },
+//     {
+//       id: "release",
+//       name: "Release management",
+//       currentLevel: determinePracticeLevel(categoryScores, "Cloud DevOps"),
+//       targetLevel: Math.min(
+//         determinePracticeLevel(categoryScores, "Cloud DevOps") + 1,
+//         3
+//       ),
+//     },
+//     {
+//       id: "testing",
+//       name: "Testing",
+//       currentLevel: Math.max(
+//         determinePracticeLevel(categoryScores, "Cloud DevOps") - 1,
+//         -1
+//       ),
+//       targetLevel: Math.min(
+//         determinePracticeLevel(categoryScores, "Cloud DevOps") + 1,
+//         3
+//       ),
+//     },
+//     {
+//       id: "dataManagement",
+//       name: "Data Management",
+//       currentLevel: determinePracticeLevel(categoryScores, "Cloud Strategy"),
+//       targetLevel: Math.min(
+//         determinePracticeLevel(categoryScores, "Cloud Strategy") + 1,
+//         3
+//       ),
+//     },
+//   ]
+
+//   // Implementation roadmap phases
+//   const implementationRoadmap = [
+//     {
+//       phase: "Immediate (0-30 days)",
+//       actions: [
+//         "Implement automated instance scheduling",
+//         "Standardize resource tagging",
+//       ],
+//     },
+//     {
+//       phase: "Short-term (1-3 months)",
+//       actions: [
+//         "Right-size oversized instances",
+//         "Implement S3 lifecycle policies",
+//       ],
+//     },
+//     {
+//       phase: "Medium-term (3-6 months)",
+//       actions: ["Expand IaC coverage", "Implement cost anomaly detection"],
+//     },
+//     {
+//       phase: "Long-term (6-12 months)",
+//       actions: [
+//         "Implement FinOps practices",
+//         "Container orchestration strategy",
+//       ],
+//     },
+//   ]
+
+//   // Return the complete data object expected by report components
+//   return {
+//     reportMetadata: {
+//       organizationName: clientInfo.business,
+//       clientName: clientInfo.name,
+//       clientEmail: clientInfo.email,
+//       clientSize: clientInfo.size,
+//       clientIndustry: clientInfo.industry,
+//       reportDate: new Date().toLocaleDateString("en-US", {
+//         year: "numeric",
+//         month: "long",
+//         day: "numeric",
+//       }),
+//       reportPeriod: `Q${Math.ceil(
+//         (new Date().getMonth() + 1) / 3
+//       )} ${new Date().getFullYear()}`,
+//     },
+//     executiveSummary: {
+//       sectionTitle: "Executive Summary",
+//       subtopics: [
+//         {
+//           title: "Overview",
+//           content: `This report presents a comprehensive assessment of ${clientInfo.business}'s cloud infrastructure and practices. Our AI-powered analysis examined your organization's cloud maturity across key dimensions and identified optimization opportunities.`,
+//         },
+//         {
+//           title: "Purpose",
+//           content:
+//             "This assessment aims to help you optimize cloud costs, improve operational efficiency, and align cloud infrastructure with business objectives through data-driven recommendations.",
+//         },
+//         {
+//           title: "Methodology",
+//           content:
+//             "We analyzed your responses using a proprietary algorithm that compares your practices against industry benchmarks and identifies optimization opportunities based on proven best practices.",
+//         },
+//         {
+//           title: "Key Focuses",
+//           content: [
+//             "Cloud cost optimization across all service categories",
+//             "Infrastructure as Code (IaC) implementation and improvement",
+//             "Resource right-sizing and elimination of waste",
+//             "Governance and operational efficiency",
+//           ],
+//         },
+//         {
+//           title: "Summary of Findings",
+//           content: summaryFindings,
+//         },
+//         {
+//           title: "Key Recommendations",
+//           content: recommendations.slice(0, 4).map((rec) => rec.title),
+//         },
+//         {
+//           title: "Expected Impact",
+//           content: `Implementation of our recommendations could reduce your annual cloud spend by approximately ${Math.round(
+//             potentialSavingsPercentage * 100
+//           )}%, resulting in potential savings of $${annualSavingsOpportunity.toLocaleString()} per year while improving performance and security.`,
+//         },
+//       ],
+//     },
+//     cloudSpend: {
+//       total: annualCloudSpend,
+//       annualSavingsOpportunity: annualSavingsOpportunity,
+//       byService: cloudSpendByService,
+//       trends: trendData,
+//     },
+//     cloudMaturityAssessment: {
+//       sectionTitle: "Cloud Maturity Assessment",
+//       overallScore: overallScore,
+//       currentLevel: determineOverallMaturityLevel(overallScore),
+//       maturityLevels: MATURITY_LEVELS,
+//       subtopics: [
+//         {
+//           title: "Understanding Cloud Maturity",
+//           content:
+//             "Cloud maturity measures how effectively an organization adopts, manages, and optimizes cloud resources and practices. Higher maturity correlates with better efficiency, security, and cost optimization.",
+//         },
+//         {
+//           title: "Current Cloud Maturity Level",
+//           content: `With an overall score of ${overallScore.toFixed(
+//             1
+//           )}/5.0, your organization is at ${determineOverallMaturityLevel(
+//             overallScore
+//           )}. This indicates ${interpretMaturityLevel(overallScore)}.`,
+//         },
+//         {
+//           title: "Dimensional Analysis",
+//           content:
+//             "The radar chart shows your organization's performance across six critical cloud dimensions. Areas closer to the center represent opportunities for improvement.",
+//           dimensionalScores: dimensionalScores,
+//         },
+//         {
+//           title: "Growth Trajectory & Recommendations",
+//           content:
+//             "Based on your assessment results, we've identified specific focus areas to help advance your cloud maturity to the next level.",
+//           shortTermFocus: shortTermFocus,
+//           longTermObjectives: longTermObjectives,
+//         },
+//       ],
+//       practiceAreas: practiceAreas,
+//       description:
+//         "This maturity assessment shows your current position and target state across key DevOps and cloud practices.",
+//     },
+//     recommendations: {
+//       sectionTitle: "Recommendations & Action Plan",
+//       keyRecommendations: recommendations,
+//       expectedImpact: {
+//         annualSavings: annualSavingsOpportunity,
+//         roiPercentage: 350,
+//         additionalBenefits:
+//           "Beyond cost savings, these recommendations will improve security posture, reduce operational overhead, and increase development velocity.",
+//       },
+//       implementationRoadmap: implementationRoadmap,
+//       nextSteps: [
+//         "Schedule implementation planning session with MakeStuffGo team",
+//         "Identify internal stakeholders for each recommendation area",
+//         "Establish progress tracking metrics",
+//         "Set up bi-weekly progress reviews",
+//       ],
+//     },
+//   }
+// }
 function formatReportData(
   clientInfo,
   categoryScores,
   maturityLevels,
   overallScore
 ) {
-  // Create radar chart data from category scores
+  // Create radar chart data for maturity dimensions
   const dimensionalScores = Object.entries(categoryScores).map(
     ([dimension, data]) => ({
       dimension,
@@ -363,74 +648,6 @@ function formatReportData(
       fullMark: 5,
     })
   )
-
-  // Generate recommendations based on scores and maturity levels
-  const recommendations = generateRecommendations(
-    categoryScores,
-    maturityLevels
-  )
-
-  // Generate short-term focus areas based on lowest scores
-  const shortTermFocus = generateShortTermFocus(categoryScores)
-
-  // Generate long-term objectives
-  const longTermObjectives = generateLongTermObjectives(categoryScores)
-
-  // Calculate potential savings
-  const annualCloudSpend = estimateAnnualCloudSpend(
-    clientInfo.size,
-    clientInfo.industry
-  )
-  const potentialSavingsPercentage = calculatePotentialSavings(categoryScores)
-  const annualSavingsOpportunity = Math.round(
-    annualCloudSpend * potentialSavingsPercentage
-  )
-
-  // Generate summary findings
-  const summaryFindings = generateSummaryFindings(categoryScores)
-
-  // Create cloud spend by service data
-  const cloudSpendByService = [
-    { name: "Compute", value: Math.round(annualCloudSpend * 0.45) },
-    { name: "Storage", value: Math.round(annualCloudSpend * 0.25) },
-    { name: "Database", value: Math.round(annualCloudSpend * 0.15) },
-    { name: "Networking", value: Math.round(annualCloudSpend * 0.1) },
-    { name: "Other", value: Math.round(annualCloudSpend * 0.05) },
-  ]
-
-  // Create trend data
-  const trendData = [
-    {
-      name: "Q1 2024",
-      spend: Math.round(annualCloudSpend * 0.2),
-      projected: Math.round(annualCloudSpend * 0.2),
-    },
-    {
-      name: "Q2 2024",
-      spend: Math.round(annualCloudSpend * 0.22),
-      projected: Math.round(annualCloudSpend * 0.21),
-    },
-    {
-      name: "Q3 2024",
-      spend: Math.round(annualCloudSpend * 0.28),
-      projected: Math.round(annualCloudSpend * 0.27),
-    },
-    {
-      name: "Q4 2024",
-      spend: Math.round(annualCloudSpend * 0.3),
-      projected: Math.round(annualCloudSpend * 0.29),
-    },
-    {
-      name: "Q1 2025",
-      spend: null,
-      projected: Math.round(annualCloudSpend * 0.25),
-    },
-    {
-      name: "Q2 2025",
-      spend: null,
-      projected: Math.round(annualCloudSpend * 0.22),
-    },
-  ]
 
   // Practice areas for maturity table
   const practiceAreas = [
@@ -484,36 +701,15 @@ function formatReportData(
     },
   ]
 
-  // Implementation roadmap phases
-  const implementationRoadmap = [
-    {
-      phase: "Immediate (0-30 days)",
-      actions: [
-        "Implement automated instance scheduling",
-        "Standardize resource tagging",
-      ],
-    },
-    {
-      phase: "Short-term (1-3 months)",
-      actions: [
-        "Right-size oversized instances",
-        "Implement S3 lifecycle policies",
-      ],
-    },
-    {
-      phase: "Medium-term (3-6 months)",
-      actions: ["Expand IaC coverage", "Implement cost anomaly detection"],
-    },
-    {
-      phase: "Long-term (6-12 months)",
-      actions: [
-        "Implement FinOps practices",
-        "Container orchestration strategy",
-      ],
-    },
-  ]
+  // Generate necessary sections
+  const recommendations = generateRecommendations(
+    categoryScores,
+    maturityLevels
+  )
+  const shortTermFocus = generateShortTermFocus(categoryScores)
+  const longTermObjectives = generateLongTermObjectives(categoryScores)
+  const summaryFindings = generateSummaryFindings(categoryScores)
 
-  // Return the complete data object expected by report components
   return {
     reportMetadata: {
       organizationName: clientInfo.business,
@@ -535,25 +731,25 @@ function formatReportData(
       subtopics: [
         {
           title: "Overview",
-          content: `This report presents a comprehensive assessment of ${clientInfo.business}'s cloud infrastructure and practices. Our AI-powered analysis examined your organization's cloud maturity across key dimensions and identified optimization opportunities.`,
+          content: `This report presents an overview of ${clientInfo.business}'s cloud infrastructure maturity.`,
         },
         {
           title: "Purpose",
           content:
-            "This assessment aims to help you optimize cloud costs, improve operational efficiency, and align cloud infrastructure with business objectives through data-driven recommendations.",
+            "To assess and recommend improvements for cloud practices and maturity.",
         },
         {
           title: "Methodology",
           content:
-            "We analyzed your responses using a proprietary algorithm that compares your practices against industry benchmarks and identifies optimization opportunities based on proven best practices.",
+            "Assessment responses analyzed against industry standards to identify gaps and opportunities.",
         },
         {
           title: "Key Focuses",
           content: [
-            "Cloud cost optimization across all service categories",
-            "Infrastructure as Code (IaC) implementation and improvement",
-            "Resource right-sizing and elimination of waste",
-            "Governance and operational efficiency",
+            "Cloud cost optimization",
+            "Infrastructure as Code (IaC) practices",
+            "Automation and DevOps improvements",
+            "Governance and operational excellence",
           ],
         },
         {
@@ -564,19 +760,7 @@ function formatReportData(
           title: "Key Recommendations",
           content: recommendations.slice(0, 4).map((rec) => rec.title),
         },
-        {
-          title: "Expected Impact",
-          content: `Implementation of our recommendations could reduce your annual cloud spend by approximately ${Math.round(
-            potentialSavingsPercentage * 100
-          )}%, resulting in potential savings of $${annualSavingsOpportunity.toLocaleString()} per year while improving performance and security.`,
-        },
       ],
-    },
-    cloudSpend: {
-      total: annualCloudSpend,
-      annualSavingsOpportunity: annualSavingsOpportunity,
-      byService: cloudSpendByService,
-      trends: trendData,
     },
     cloudMaturityAssessment: {
       sectionTitle: "Cloud Maturity Assessment",
@@ -587,7 +771,7 @@ function formatReportData(
         {
           title: "Understanding Cloud Maturity",
           content:
-            "Cloud maturity measures how effectively an organization adopts, manages, and optimizes cloud resources and practices. Higher maturity correlates with better efficiency, security, and cost optimization.",
+            "Cloud maturity measures the effectiveness and optimization of cloud adoption and practices.",
         },
         {
           title: "Current Cloud Maturity Level",
@@ -595,18 +779,17 @@ function formatReportData(
             1
           )}/5.0, your organization is at ${determineOverallMaturityLevel(
             overallScore
-          )}. This indicates ${interpretMaturityLevel(overallScore)}.`,
+          )}. ${interpretMaturityLevel(overallScore)}`,
         },
         {
           title: "Dimensional Analysis",
           content:
-            "The radar chart shows your organization's performance across six critical cloud dimensions. Areas closer to the center represent opportunities for improvement.",
+            "This radar chart highlights strengths and improvement areas across cloud domains.",
           dimensionalScores: dimensionalScores,
         },
         {
           title: "Growth Trajectory & Recommendations",
-          content:
-            "Based on your assessment results, we've identified specific focus areas to help advance your cloud maturity to the next level.",
+          content: "Focus areas and goals to accelerate cloud maturity.",
           shortTermFocus: shortTermFocus,
           longTermObjectives: longTermObjectives,
         },
@@ -618,18 +801,40 @@ function formatReportData(
     recommendations: {
       sectionTitle: "Recommendations & Action Plan",
       keyRecommendations: recommendations,
-      expectedImpact: {
-        annualSavings: annualSavingsOpportunity,
-        roiPercentage: 350,
-        additionalBenefits:
-          "Beyond cost savings, these recommendations will improve security posture, reduce operational overhead, and increase development velocity.",
-      },
-      implementationRoadmap: implementationRoadmap,
+      implementationRoadmap: [
+        {
+          phase: "Immediate (0-30 days)",
+          actions: [
+            "Implement automated instance scheduling",
+            "Standardize resource tagging",
+          ],
+        },
+        {
+          phase: "Short-term (1-3 months)",
+          actions: [
+            "Right-size oversized instances",
+            "Implement S3 lifecycle policies",
+          ],
+        },
+        {
+          phase: "Medium-term (3-6 months)",
+          actions: [
+            "Expand Infrastructure as Code (IaC) practices",
+            "Introduce cost anomaly detection",
+          ],
+        },
+        {
+          phase: "Long-term (6-12 months)",
+          actions: [
+            "Adopt FinOps best practices",
+            "Enhance container orchestration strategies",
+          ],
+        },
+      ],
       nextSteps: [
-        "Schedule implementation planning session with MakeStuffGo team",
-        "Identify internal stakeholders for each recommendation area",
-        "Establish progress tracking metrics",
-        "Set up bi-weekly progress reviews",
+        "Schedule a planning session with MakeStuffGo team",
+        "Assign internal stakeholders to each recommendation area",
+        "Track progress with bi-weekly reviews",
       ],
     },
   }

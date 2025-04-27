@@ -16,17 +16,18 @@ import {
 const MVPExecutiveSummary = ({ clientData, page = 1 }) => {
   const { executiveSummary, cloudSpend, recommendations } = clientData
 
-  // Process data for pie chart
-  const pieData = cloudSpend.byService
-  const COLORS = ["#4FC3F7", "#4DB6AC", "#FFD54F", "#FF8A65", "#BA68C8"]
+  // // Process data for pie chart
 
-  // Line chart data for cost trends
-  const lineData = cloudSpend.trends
+  // const pieData = cloudSpend.byService
+  // const COLORS = ["#4FC3F7", "#4DB6AC", "#FFD54F", "#FF8A65", "#BA68C8"]
 
-  // Helper function to format currency
-  const formatCurrency = (value) => {
-    return `$${value.toLocaleString()}`
-  }
+  // // Line chart data for cost trends
+  // const lineData = cloudSpend.trends
+
+  // // Helper function to format currency
+  // const formatCurrency = (value) => {
+  //   return `$${value.toLocaleString()}`
+  // }
 
   // Helper function to find content sections
   const findSection = (title) => {
@@ -123,7 +124,7 @@ const MVPExecutiveSummary = ({ clientData, page = 1 }) => {
           {executiveSummary.sectionTitle || "Executive Summary"} (continued)
         </h1>
 
-        <div className="grid grid-cols-2 gap-6 mb-4">
+        <div className="mb-4">
           {/* Key Recommendations with Rationale */}
           <div className="mb-4">
             <h2 className="text-lg font-bold text-blue-500 mb-2">
@@ -131,7 +132,7 @@ const MVPExecutiveSummary = ({ clientData, page = 1 }) => {
             </h2>
             <div className="space-y-2">
               {recommendations.keyRecommendations
-                .slice(0, 2)
+                .slice(0, 6)
                 .map((rec, index) => (
                   <div
                     key={index}
@@ -164,17 +165,17 @@ const MVPExecutiveSummary = ({ clientData, page = 1 }) => {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <h2 className="text-lg font-bold text-blue-500 mb-2">
               Expected Impact
             </h2>
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-sm text-gray-800">{expectedImpact.content}</p>
             </div>
-          </div>
+          </div> */}
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        {/* <div className="grid grid-cols-2 gap-6">
           <div>
             <h2 className="text-lg font-bold text-blue-500 mb-2">
               Cloud Spend by Service
@@ -254,7 +255,7 @@ const MVPExecutiveSummary = ({ clientData, page = 1 }) => {
               </ResponsiveContainer>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     )
   }
