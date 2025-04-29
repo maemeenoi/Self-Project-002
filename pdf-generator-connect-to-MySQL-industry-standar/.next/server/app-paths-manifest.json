@@ -1,7 +1,0 @@
-{
-  "/api/clients/route": "app/api/clients/route.js",
-  "/api/industry-standards/route": "app/api/industry-standards/route.js",
-  "/api/responses/[clientId]/route": "app/api/responses/[clientId]/route.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js"
-}

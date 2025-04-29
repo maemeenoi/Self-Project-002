@@ -1,1 +1,7 @@
-{}
+{
+  "/api/responses/[clientId]/route": "app/api/responses/[clientId]/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/industry-standards/route": "app/api/industry-standards/route.js",
+  "/api/clients/route": "app/api/clients/route.js",
+  "/dashboard/page": "app/dashboard/page.js"
+}
