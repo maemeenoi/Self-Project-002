@@ -1,0 +1,31 @@
+{
+  "name": "cursor_app_project_1",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "daisyui": "^5.0.28",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
+    "mysql2": "^3.14.1",
+    "next": "15.3.1",
+    "next-auth": "^4.24.11",
+    "nodemailer": "^6.10.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-gauge-chart": "^0.5.1",
+    "recharts": "^2.15.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.1",
+    "tailwindcss": "^4"
+  }
+}
