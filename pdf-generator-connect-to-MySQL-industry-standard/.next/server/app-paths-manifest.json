@@ -1,7 +1,9 @@
 {
-  "/api/responses/[clientId]/route": "app/api/responses/[clientId]/route.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/api/industry-standards/route": "app/api/industry-standards/route.js",
-  "/api/clients/route": "app/api/clients/route.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/api/auth/logout/route": "app/api/auth/logout/route.js",
+  "/api/auth/session/route": "app/api/auth/session/route.js",
+  "/page": "app/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/login/page": "app/login/page.js",
+  "/register/page": "app/register/page.js"
 }

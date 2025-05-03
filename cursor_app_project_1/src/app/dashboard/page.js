@@ -1,82 +1,108 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import CustomRadarChart from "@/components/charts/RadarChart"
-import CustomBarChart from "@/components/charts/BarChart"
-import CustomGaugeChart from "@/components/charts/GaugeChart"
-import ReportGenerator from "@/components/ReportGenerator"
-import { processAssessmentData } from "@/lib/assessmentUtils"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function Dashboard() {
-  const [assessmentData, setAssessmentData] = useState(null)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isComplete, setIsComplete] = useState(false)
-  const [error, setError] = useState("")
+  const router = useRouter()
+  const { user, loading, logout } = useAuth()
+  const [clientData, setClientData] = useState(null)
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchClientData = async () => {
       try {
-        const response = await fetch("/api/responses/latest")
+        const response = await fetch("/api/auth/me")
         if (!response.ok) {
-          throw new Error("Failed to fetch assessment data")
+          throw new Error("Failed to fetch client data")
         }
         const data = await response.json()
-        setAssessmentData(processAssessmentData(data))
-      } catch (err) {
-        setError(err.message)
+        setClientData(data)
+      } catch (error) {
+        console.error("Error fetching client data:", error)
+        router.push("/login")
       }
     }
 
-    fetchData()
-  }, [])
+    if (!loading && user) {
+      fetchClientData()
+    }
+  }, [loading, user, router])
 
-  if (error) {
+  if (loading) {
     return (
-      <div className="alert alert-error">
-        <span>{error}</span>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     )
   }
 
-  if (!assessmentData) {
-    return (
-      <div className="flex justify-center items-center min-h-[calc(100vh-8rem)]">
-        <div className="loading loading-spinner loading-lg"></div>
-      </div>
-    )
+  if (!user) {
+    router.push("/login")
+    return null
   }
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Dimensional Scores</h2>
-          <CustomRadarChart data={assessmentData.dimensionalScores} />
+    <div className="min-h-screen bg-gray-100">
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <h1 className="text-xl font-semibold">Dashboard</h1>
+            </div>
+            <div className="flex items-center">
+              <button
+                onClick={logout}
+                className="ml-4 px-4 py-2 text-sm text-red-600 hover:text-red-800"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Category Scores</h2>
-          <CustomBarChart data={assessmentData.categoryScores} />
+      </nav>
+
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-4">Client Information</h2>
+            {clientData ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {clientData.name}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {clientData.email}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Role
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {clientData.role || "User"}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Overall Maturity Score</h2>
-        <CustomGaugeChart value={assessmentData.overallScore} />
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Generate Report</h2>
-        <ReportGenerator
-          clientData={assessmentData}
-          onGenerationStart={() => setIsGenerating(true)}
-          onGenerationComplete={() => {
-            setIsGenerating(false)
-            setIsComplete(true)
-          }}
-          isGenerating={isGenerating}
-          isComplete={isComplete}
-        />
-      </div>
+      </main>
     </div>
   )
 }

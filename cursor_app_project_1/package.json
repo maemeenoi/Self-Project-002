@@ -9,8 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "daisyui": "^5.0.28",
     "html2canvas": "^1.4.1",
+    "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.1",
     "mysql2": "^3.14.1",
     "next": "15.3.1",
@@ -19,7 +23,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-gauge-chart": "^0.5.1",
-    "recharts": "^2.15.3"
+    "recharts": "^2.15.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
