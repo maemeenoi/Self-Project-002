@@ -1,47 +1,89 @@
-const mysql = require("mysql2/promise")
+const sql = require("mssql")
+require("dotenv").config({ path: "./.env.local" })
 
-// Create connection pool - no password
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "127.0.0.1",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "assessment_dev",
-  port: process.env.DB_PORT || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-})
+// Create connection pool for Azure SQL
+const config = {
+  user: process.env.AZURE_SQL_USER,
+  password: process.env.AZURE_SQL_PASSWORD,
+  server: process.env.AZURE_SQL_SERVER,
+  database: process.env.AZURE_SQL_DATABASE,
+  port: 1433,
+  options: {
+    encrypt: true,
+  },
+}
 
-// Query helper function for prepared statements
-async function query(sql, params) {
+// Connect function (returns a promise)
+async function connect() {
   try {
-    const [results] = await pool.execute(sql, params)
-    return results
+    const pool = await sql.connect(config)
+    console.log("Connected to Azure SQL Database successfully")
+    return pool
   } catch (error) {
-    console.error("Database query error:", error)
+    console.error("Database connection error:", error.message)
     throw error
   }
 }
 
-// Direct query function for transactions and statements not supported by prepared statements
-async function directQuery(sql) {
+// Query helper function for prepared statements
+async function query(sqlQuery, params = []) {
+  let pool
   try {
-    const [results] = await pool.query(sql)
-    return results
+    pool = await connect()
+    const request = pool.request()
+
+    // Add parameters if any
+    if (params && Array.isArray(params)) {
+      params.forEach((param, index) => {
+        request.input(`param${index}`, param)
+      })
+    }
+
+    const result = await request.query(sqlQuery)
+    return result.recordset
   } catch (error) {
-    console.error("Database direct query error:", error)
+    console.error("Database query error:", error.message)
     throw error
+  } finally {
+    if (pool) {
+      try {
+        await pool.close()
+      } catch (closeError) {
+        console.error("Error closing connection pool:", closeError.message)
+      }
+    }
+  }
+}
+
+// Direct query function (for simple queries without parameters)
+async function directQuery(sqlQuery) {
+  let pool
+  try {
+    pool = await connect()
+    const result = await pool.request().query(sqlQuery)
+    return result.recordset
+  } catch (error) {
+    console.error("Database direct query error:", error.message)
+    throw error
+  } finally {
+    if (pool) {
+      try {
+        await pool.close()
+      } catch (closeError) {
+        console.error("Error closing connection pool:", closeError.message)
+      }
+    }
   }
 }
 
 // Get connection from pool for transaction management
 async function getConnection() {
   try {
-    return await pool.getConnection()
+    return await connect()
   } catch (error) {
-    console.error("Database connection error:", error)
+    console.error("Database connection error:", error.message)
     throw error
   }
 }
 
-module.exports = { query, directQuery, getConnection, pool }
+module.exports = { query, directQuery, getConnection }

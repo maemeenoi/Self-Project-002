@@ -1,5 +1,19 @@
 {
   "devDependencies": {
     "tailwindcss": "^4.0.9"
+  },
+  "name": "tic-tac-toe-javascript",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "mssql": "^11.0.1"
   }
 }
