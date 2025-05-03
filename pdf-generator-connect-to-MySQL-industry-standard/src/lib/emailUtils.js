@@ -77,6 +77,10 @@ The MakeStuffGo Team
 
     // Log attempt
     console.log(`Attempting to send email to: ${email}`)
+    console.log(`Magic link: ${magicLink}`)
+    console.log(process.env.EMAIL_HOST)
+    console.log(process.env.EMAIL_PORT)
+    console.log(process.env.EMAIL_USER)
 
     // Send email
     const info = await transporter.sendMail(mailOptions)

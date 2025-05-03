@@ -1,7 +1,5 @@
 {
-  "/submission-complete/page": "app/submission-complete/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
   "/page": "app/page.js",
-  "/login/page": "app/login/page.js",
-  "/questionnaire/page": "app/questionnaire/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/login/page": "app/login/page.js"
 }
