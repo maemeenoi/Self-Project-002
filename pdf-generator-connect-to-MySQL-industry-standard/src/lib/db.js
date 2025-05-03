@@ -12,10 +12,20 @@ const pool = mysql.createPool({
   queueLimit: 0,
 })
 
-// Query helper function for prepared statements
-async function query(sql, params) {
+// Sanitize parameters to replace undefined with null
+function sanitizeParams(params) {
+  if (!params) return []
+
+  return params.map((param) => (param === undefined ? null : param))
+}
+
+// Query helper function
+async function query(sql, params = []) {
   try {
-    const [results] = await pool.execute(sql, params)
+    // Sanitize parameters before executing the query
+    const sanitizedParams = sanitizeParams(params)
+
+    const [results] = await pool.execute(sql, sanitizedParams)
     return results
   } catch (error) {
     console.error("Database query error:", error)
@@ -23,10 +33,10 @@ async function query(sql, params) {
   }
 }
 
-// Direct query function for transactions and statements not supported by prepared statements
-async function directQuery(sql) {
+// Direct query function (for simple queries without parameters)
+async function directQuery(sqlQuery) {
   try {
-    const [results] = await pool.query(sql)
+    const [results] = await pool.query(sqlQuery)
     return results
   } catch (error) {
     console.error("Database direct query error:", error)
@@ -37,7 +47,8 @@ async function directQuery(sql) {
 // Get connection from pool for transaction management
 async function getConnection() {
   try {
-    return await pool.getConnection()
+    const connection = await pool.getConnection()
+    return connection
   } catch (error) {
     console.error("Database connection error:", error)
     throw error

@@ -1,161 +1,247 @@
+// src/app/login/page.js
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
-export default function Login() {
+export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [isPasswordLogin, setIsPasswordLogin] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [magicLinkSent, setMagicLinkSent] = useState(false)
 
-  async function handleSubmit(e) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectPath = searchParams.get("redirect") || "/dashboard"
+  const errorParam = searchParams.get("error")
+
+  // Set error message from URL parameter if present
+  useState(() => {
+    if (errorParam) {
+      switch (errorParam) {
+        case "missing_token":
+          setError("Missing authentication token. Please try again.")
+          break
+        case "invalid_token":
+          setError("Invalid or expired token. Please request a new link.")
+          break
+        case "server_error":
+          setError("An error occurred. Please try again later.")
+          break
+        default:
+          setError("Authentication error. Please try again.")
+      }
+    }
+  }, [errorParam])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
-    setIsLoading(true)
+    setIsSubmitting(true)
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      })
+      if (isPasswordLogin) {
+        // Password login
+        if (!email || !password) {
+          throw new Error("Email and password are required")
+        }
 
-      const data = await response.json()
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        })
 
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed")
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || "Login failed")
+        }
+
+        // Redirect to dashboard or requested page
+        router.push(redirectPath)
+      } else {
+        // Magic link login
+        if (!email) {
+          throw new Error("Email is required")
+        }
+
+        const response = await fetch("/api/auth/send-magic-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, redirectUrl: redirectPath }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to send magic link")
+        }
+
+        // Show success message
+        setMagicLinkSent(true)
       }
-
-      // Redirect to dashboard on success
-      router.push("/dashboard")
     } catch (err) {
       setError(err.message)
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Or{" "}
-          <Link
-            href="/register"
-            className="font-medium text-blue-600 hover:text-blue-500"
+  if (magicLinkSent) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
+          <svg
+            className="h-16 w-16 text-green-500 mx-auto"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            create a new account
-          </Link>
-        </p>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            ></path>
+          </svg>
+          <h2 className="text-2xl font-bold text-gray-800 mt-4">
+            Check Your Email
+          </h2>
+          <p className="mt-2 text-gray-600">
+            We've sent a magic link to <strong>{email}</strong>. Click the link
+            in the email to access your account.
+          </p>
+          <p className="mt-6 text-sm text-gray-500">
+            Don't see the email? Check your spam folder or{" "}
+            <button
+              onClick={() => setMagicLinkSent(false)}
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              try again
+            </button>
+          </p>
+        </div>
       </div>
+    )
+  }
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {error && (
-            <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-red-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800">Sign In</h2>
+          <p className="mt-2 text-gray-600">
+            Access your Cloud Assessment Dashboard
+          </p>
+        </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+        {error && (
+          <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md">
+            {error}
+          </div>
+        )}
+
+        <div className="mt-6">
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={() => setIsPasswordLogin(false)}
+              className={`w-1/2 py-2 text-center ${
+                !isPasswordLogin
+                  ? "border-b-2 border-blue-500 text-blue-600 font-medium"
+                  : "border-b border-gray-200 text-gray-500"
+              }`}
+            >
+              Magic Link
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsPasswordLogin(true)}
+              className={`w-1/2 py-2 text-center ${
+                isPasswordLogin
+                  ? "border-b-2 border-blue-500 text-blue-600 font-medium"
+                  : "border-b border-gray-200 text-gray-500"
+              }`}
+            >
+              Password
+            </button>
+          </div>
+
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Email address
+                Email Address
               </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="you@example.com"
+              />
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <div className="mt-1">
+            {isPasswordLogin && (
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Password
+                </label>
                 <input
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="current-password"
-                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter your password"
                 />
               </div>
-            </div>
+            )}
 
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                  isLoading ? "opacity-75 cursor-not-allowed" : ""
+                disabled={isSubmitting}
+                className={`w-full py-2 px-4 text-white font-medium rounded-md ${
+                  isSubmitting
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
                 }`}
               >
-                {isLoading ? "Signing in..." : "Sign in"}
+                {isSubmitting
+                  ? "Processing..."
+                  : isPasswordLogin
+                  ? "Sign In"
+                  : "Send Magic Link"}
               </button>
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6">
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account yet?{" "}
               <Link
-                href="/"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                href="/questionnaire"
+                className="text-blue-600 hover:text-blue-800 hover:underline"
               >
-                Back to home
+                Take the assessment
               </Link>
-            </div>
+            </p>
           </div>
         </div>
       </div>

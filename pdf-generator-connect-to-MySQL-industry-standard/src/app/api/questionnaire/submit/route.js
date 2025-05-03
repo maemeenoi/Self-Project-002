@@ -1,139 +1,95 @@
 // src/app/api/questionnaire/submit/route.js
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
 import { query } from "../../../../lib/db"
+import { createMagicLinkToken } from "../../../../lib/tokenUtils"
+import { sendMagicLinkEmail } from "../../../../lib/emailUtils"
 
 export async function POST(request) {
   try {
-    // Get the session cookie
-    const sessionCookie = cookies().get("session")
+    const data = await request.json()
+    const { answers, email } = data
 
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
-    }
-
-    // Parse the session data
-    const session = JSON.parse(sessionCookie.value)
-    const clientId = session.clientId
-
-    if (!clientId) {
-      return NextResponse.json({ error: "Invalid session" }, { status: 401 })
-    }
-
-    // Get the submitted answers
-    const { answers } = await request.json()
-
-    if (!Array.isArray(answers) || answers.length === 0) {
+    if (!answers || !email) {
       return NextResponse.json(
-        { error: "No answers provided" },
+        { error: "Missing required fields" },
         { status: 400 }
       )
     }
 
-    // Insert responses into the database
-    const insertPromises = answers.map(async (answer) => {
-      const { questionId, score, text } = answer
-
-      // Validate the answer
-      if (!questionId) {
-        throw new Error("Question ID is required for all answers")
-      }
-
-      // Check if a response already exists
-      const existingResponses = await query(
-        "SELECT * FROM Responses WHERE ClientID = ? AND QuestionID = ?",
-        [clientId, questionId]
-      )
-
-      if (existingResponses.length > 0) {
-        // Update existing response
-        await query(
-          "UPDATE Responses SET ResponseText = ?, Score = ?, ResponseDate = NOW() WHERE ClientID = ? AND QuestionID = ?",
-          [text || null, score || null, clientId, questionId]
-        )
-      } else {
-        // Insert new response
-        await query(
-          "INSERT INTO Responses (ClientID, QuestionID, ResponseText, Score, ResponseDate) VALUES (?, ?, ?, ?, NOW())",
-          [clientId, questionId, text || null, score || null]
-        )
-      }
-    })
-
-    // Extract client information from basic questions (1-5)
-    const clientInfoAnswers = answers.filter(
-      (a) => a.questionId >= 1 && a.questionId <= 5
+    // Check if this email already has a client record
+    const existingClients = await query(
+      "SELECT * FROM Clients WHERE ContactEmail = ?",
+      [email]
     )
 
-    if (clientInfoAnswers.length > 0) {
-      // First, get the client data to check if we need to update it
-      const clientData = await query(
-        "SELECT * FROM Clients WHERE ClientID = ?",
-        [clientId]
+    let clientId
+
+    if (existingClients.length > 0) {
+      // Use existing client
+      clientId = existingClients[0].ClientID
+    } else {
+      // Create a new client record
+      // Use the email username as the ClientName
+      const username = email.split("@")[0]
+      const insertResult = await query(
+        "INSERT INTO Clients (ClientName, ContactEmail) VALUES (?, ?)",
+        [username, email]
       )
 
-      if (clientData && clientData.length > 0) {
-        // Check which fields need updating
-        const updates = []
-        const params = []
+      clientId = insertResult.insertId
+    }
 
-        const nameAnswer = clientInfoAnswers.find((a) => a.questionId === 1)
-        if (nameAnswer && nameAnswer.text) {
-          updates.push("ClientName = ?")
-          params.push(nameAnswer.text)
-        }
+    // Now we have a valid clientId, store responses
+    for (const answer of answers) {
+      // Make sure all parameters are properly defined, using null for undefined values
+      const questionId = answer.questionId || null
+      const responseText = answer.responseText || null
+      const score = answer.score !== undefined ? answer.score : null
 
-        const businessAnswer = clientInfoAnswers.find((a) => a.questionId === 2)
-        if (businessAnswer && businessAnswer.text) {
-          updates.push("OrganizationName = ?")
-          params.push(businessAnswer.text)
-        }
-
-        const emailAnswer = clientInfoAnswers.find((a) => a.questionId === 3)
-        if (emailAnswer && emailAnswer.text) {
-          updates.push("ContactEmail = ?")
-          params.push(emailAnswer.text)
-        }
-
-        const sizeAnswer = clientInfoAnswers.find((a) => a.questionId === 4)
-        if (sizeAnswer && sizeAnswer.text) {
-          updates.push("Size = ?")
-          params.push(sizeAnswer.text)
-        }
-
-        const industryAnswer = clientInfoAnswers.find((a) => a.questionId === 5)
-        if (industryAnswer && industryAnswer.text) {
-          updates.push("Industry = ?")
-          params.push(industryAnswer.text)
-        }
-
-        // Only update if we have changes
-        if (updates.length > 0) {
-          params.push(clientId)
-
-          await query(
-            `UPDATE Clients SET ${updates.join(", ")} WHERE ClientID = ?`,
-            params
-          )
-
-          console.log(
-            "Updated client information based on questionnaire answers"
-          )
-        }
+      // Only proceed if we have at least a questionId
+      if (questionId !== null) {
+        await query(
+          `INSERT INTO Responses 
+           (ClientID, QuestionID, ResponseText, Score, TempEmail) 
+           VALUES (?, ?, ?, ?, ?)`,
+          [clientId, questionId, responseText, score, email]
+        )
       }
     }
 
-    // Wait for all inserts to complete
-    await Promise.all(insertPromises)
+    // Generate a magic link token
+    const token = await createMagicLinkToken(email, clientId)
 
-    return NextResponse.json({
-      success: true,
-      message: "Questionnaire submitted successfully",
-    })
+    // Create the magic link URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+    const magicLink = `${baseUrl}/api/auth/magic-link?token=${token}`
+
+    // Send the email with the magic link
+    const emailResult = await sendMagicLinkEmail(email, magicLink)
+
+    // Return appropriate response based on email sending success
+    if (emailResult.success) {
+      return NextResponse.json({
+        success: true,
+        message:
+          "Assessment submitted successfully. Check your email for results.",
+        emailSent: true,
+      })
+    } else {
+      console.error("Email sending failed:", emailResult.error)
+      // Return success for the submission but flag the email failure
+      return NextResponse.json({
+        success: true,
+        message:
+          "Assessment submitted successfully, but there was an issue sending the email.",
+        emailSent: false,
+        emailError: emailResult.error,
+      })
+    }
   } catch (error) {
-    console.error("Error submitting questionnaire:", error)
+    console.error("Questionnaire submission error:", error)
     return NextResponse.json(
-      { error: "Failed to submit questionnaire", details: error.message },
+      { error: "Failed to submit questionnaire. Please try again." },
       { status: 500 }
     )
   }

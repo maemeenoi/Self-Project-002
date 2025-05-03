@@ -1,72 +1,78 @@
+// src/app/api/auth/login/route.js
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { query } from "../../../../lib/db"
 import bcrypt from "bcryptjs"
-import { cookies } from "next/headers"
 
 export async function POST(request) {
   try {
+    // Get login credentials
     const { email, password } = await request.json()
 
-    // Input validation
     if (!email || !password) {
       return NextResponse.json(
-        { message: "Email and password are required" },
+        { error: "Email and password are required" },
         { status: 400 }
       )
     }
 
-    // Find the user by email
-    const users = await query(
-      "SELECT Users.*, Clients.ClientID, Clients.ClientName FROM Users LEFT JOIN Clients ON Users.UserID = Clients.UserID WHERE Users.Email = ?",
+    // Find client by email
+    const clients = await query(
+      "SELECT ClientID, ClientName, ContactEmail, PasswordHash FROM Clients WHERE ContactEmail = ?",
       [email]
     )
 
-    if (users.length === 0) {
+    if (clients.length === 0) {
       return NextResponse.json(
-        { message: "Invalid email or password" },
+        { error: "Invalid email or password" },
         { status: 401 }
       )
     }
 
-    const user = users[0]
+    const client = clients[0]
 
-    // Compare passwords
-    const passwordMatch = await bcrypt.compare(password, user.Password)
-    if (!passwordMatch) {
+    // Check if client has a password
+    if (!client.PasswordHash) {
       return NextResponse.json(
-        { message: "Invalid email or password" },
+        { error: "No password set. Please use magic link login." },
         { status: 401 }
       )
     }
 
-    // Set session cookie
-    cookies().set({
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, client.PasswordHash)
+
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 }
+      )
+    }
+
+    // Create session
+    const session = {
+      userId: client.ClientID,
+      clientId: client.ClientID,
+      clientName: client.ClientName,
+      email: client.ContactEmail,
+      isAuthenticated: true,
+      loginMethod: "password",
+    }
+
+    // Store session in cookie
+    const cookieStore = cookies()
+    cookieStore.set({
       name: "session",
-      value: JSON.stringify({
-        userId: user.UserID,
-        clientId: user.ClientID,
-        clientName: user.ClientName,
-        email: user.Email,
-      }),
+      value: JSON.stringify(session),
       httpOnly: true,
-      path: "/",
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: "/",
     })
 
-    // Return user info (excluding password)
-    return NextResponse.json({
-      userId: user.UserID,
-      clientId: user.ClientID,
-      clientName: user.ClientName,
-      email: user.Email,
-      message: "Login successful",
-    })
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Login error:", error)
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to log in" }, { status: 500 })
   }
 }
