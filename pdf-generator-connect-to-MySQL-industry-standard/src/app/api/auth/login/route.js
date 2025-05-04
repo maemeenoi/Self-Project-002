@@ -18,7 +18,7 @@ export async function POST(request) {
 
     // Find client by email
     const clients = await query(
-      "SELECT ClientID, ClientName, ContactName, ContactEmail, PasswordHash FROM Clients WHERE ContactEmail = ?",
+      "SELECT * FROM Clients WHERE ContactEmail = ?",
       [email]
     )
 
@@ -65,8 +65,8 @@ export async function POST(request) {
       loginMethod: "password",
     }
 
-    // Store session in cookie
-    const cookieStore = cookies()
+    // Store session in cookie - adding await here
+    const cookieStore = await cookies()
     cookieStore.set({
       name: "session",
       value: JSON.stringify(session),

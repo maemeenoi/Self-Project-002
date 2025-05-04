@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   RadarChart,
   PolarGrid,
@@ -18,14 +18,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  AreaChart,
+  Area,
 } from "recharts"
 import Link from "next/link"
-import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import ReportGenerator from "../../components/report/ReportGenerator"
-const GaugeMeter = dynamic(() => import("@/components/GaugeMeter"), {
-  ssr: false,
-})
+import GaugeMeter from "../../components/GaugeMeter"
+
 export default function Dashboard() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState(null)
@@ -68,12 +68,6 @@ export default function Dashboard() {
     checkAuth()
   }, [router])
 
-  const getOrganizationName = () => {
-    if (!processedData?.reportMetadata?.organizationName) {
-      return user?.clientName || "Unknown Organization"
-    }
-    return processedData.reportMetadata.organizationName
-  }
   // Fetch clients list (only for admin users with no specific clientId)
   useEffect(() => {
     async function fetchClients() {
@@ -115,27 +109,39 @@ export default function Dashboard() {
     async function fetchResponses() {
       setIsLoading(true)
       try {
+        // Fetch responses with client info included
         const response = await fetch(
           `/api/responses/${selectedClient.ClientID}`
         )
         const data = await response.json()
+        console.log("API response:", data)
 
-        if (data && data.length > 0) {
+        // Check if we have responses
+        if (data.responses && data.responses.length > 0) {
+          // Prepare data for processing
+          const responseData = data.responses
+
+          // Attach client info directly to responses array
+          responseData.ClientInfo = data.clientInfo
+
+          // Process the data
           const module = await import("../../lib/assessmentUtils")
           const processed = module.default.processAssessmentData(
-            data,
+            responseData,
             industryStandards
           )
 
+          console.log("Processed data:", processed)
           setProcessedData(processed)
         } else {
-          // No responses found - need to complete questionnaire
+          // No responses found
           setError(
             "No assessment data found. Please complete the questionnaire first."
           )
         }
       } catch (error) {
-        setError("Failed to load responses.")
+        console.error("Error fetching data:", error)
+        setError("Failed to load responses: " + error.message)
       } finally {
         setIsLoading(false)
       }
@@ -182,6 +188,56 @@ export default function Dashboard() {
     setIsReportComplete(true)
   }
 
+  // Calculate progress percentages
+  const getProgressPercentage = (type) => {
+    const total =
+      countStandards("above") + countStandards("meet") + countStandards("below")
+    if (total === 0) return 0
+    return Math.round((countStandards(type) / total) * 100)
+  }
+
+  // Prepare time-to-value data based on assessment
+  const getTimeToValueData = () => {
+    if (!processedData) return []
+
+    // Create a simulated data based on maturity score
+    const score = processedData.cloudMaturityAssessment.overallScore || 3
+
+    // Lower score = longer time to value, higher score = shorter time
+    return [
+      {
+        name: "Initial Implementation",
+        current: 5 - Math.min(4, score),
+        optimized: 1,
+      },
+      { name: "Time to Market", current: 6 - Math.min(5, score), optimized: 2 },
+      {
+        name: "Deployment Frequency",
+        current: 4 - Math.min(3, score),
+        optimized: 1,
+      },
+      {
+        name: "Change Failure Rate",
+        current: 5 - Math.min(4, score),
+        optimized: 1.5,
+      },
+    ]
+  }
+
+  // Calculate costs saved with implementation of recommendations
+  const calculatePotentialSavings = () => {
+    if (!processedData) return { current: 1000, optimized: 700 }
+
+    // Base the savings percentage on maturity level
+    const score = processedData.cloudMaturityAssessment.overallScore || 3
+    const savingsPercentage = 0.4 - score * 0.05 // 20-40% savings depending on maturity
+
+    return {
+      current: 1000, // Placeholder for current cloud spend
+      optimized: Math.round(1000 * (1 - savingsPercentage)),
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-base-200" data-theme="corporate">
       {/* Top Navigation Bar */}
@@ -204,19 +260,27 @@ export default function Dashboard() {
         <div className="flex items-center gap-4 pr-4">
           <div className="text-right">
             <p className="text-sm font-medium text-gray-700">
-              {user?.contactName || "User"}
+              {processedData?.reportMetadata?.clientName ||
+                user?.clientName ||
+                selectedClient?.ContactName ||
+                "User"}
             </p>
             <p className="text-xs text-gray-500">
-              {getOrganizationName() || "Cloud Assessment Client"}
+              {processedData?.reportMetadata?.organizationName ||
+                selectedClient?.ClientName ||
+                "Organization"}
             </p>
           </div>
 
           <div className="dropdown dropdown-end">
             <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
               <div className="w-10 rounded-full bg-primary text-white flex items-center justify-center">
-                {user?.contactName?.charAt(0) ||
-                  user?.clientName?.charAt(0) ||
-                  "U"}
+                {(
+                  processedData?.reportMetadata?.clientName ||
+                  user?.clientName ||
+                  selectedClient?.ContactName ||
+                  "U"
+                ).charAt(0)}
               </div>
             </label>
             <ul
@@ -241,23 +305,15 @@ export default function Dashboard() {
           {/* Page Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-primary to-indigo-500 text-white rounded-full p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 12l9-9 9 9M4 10v10h16V10"
-                  />
-                </svg>
+              <div className="mx-auto max-w-2xl lg:mx-0">
+                <h1 className="text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">
+                  Cloud Maturity Dashboard
+                </h1>
+                <p className="text-large text-gray-500">
+                  {processedData?.reportMetadata?.reportDate ||
+                    "Your cloud assessment results"}
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-800">Dashboard</h3>
             </div>
 
             {/* Generate Report Button */}
@@ -275,7 +331,7 @@ export default function Dashboard() {
           </div>
 
           {/* Client selector - Only shown for admin users */}
-          {user && !user.clientId && clients.length > 0 && (
+          {/* {user && !user.clientId && clients.length > 0 && (
             <div className="mb-6">
               <select
                 className="select select-bordered w-full max-w-xs"
@@ -298,7 +354,7 @@ export default function Dashboard() {
                 ))}
               </select>
             </div>
-          )}
+          )} */}
 
           {isLoading && (
             <div className="flex justify-center items-center h-64">
@@ -321,92 +377,86 @@ export default function Dashboard() {
 
           {!isLoading && processedData && (
             <>
-              {/* Standards Status Cards Row */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-gradient-to-r from-green-400 to-green-600 text-white p-6 rounded-lg shadow">
-                  <h2 className="text-lg">Above Standard</h2>
-                  <p className="text-4xl font-bold">
-                    {countStandards("above")}
-                  </p>
-                  <p className="text-sm mt-2">
-                    Number of metrics exceeding industry standards
-                  </p>
+              {/* Improved Status Summary - Single card with progress bars */}
+              <div className="bg-white p-6 rounded-lg shadow mb-6">
+                <h2 className="text-lg font-bold text-gray-700 mb-4">
+                  Standards Compliance Summary
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium">Above Standard</span>
+                      <span className="text-green-600 font-bold">
+                        {countStandards("above")}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-green-500 h-2.5 rounded-full"
+                        style={{ width: `${getProgressPercentage("above")}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium">Meets Standard</span>
+                      <span className="text-yellow-600 font-bold">
+                        {countStandards("meet")}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-yellow-500 h-2.5 rounded-full"
+                        style={{ width: `${getProgressPercentage("meet")}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium">Below Standard</span>
+                      <span className="text-red-600 font-bold">
+                        {countStandards("below")}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-red-500 h-2.5 rounded-full"
+                        style={{ width: `${getProgressPercentage("below")}%` }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white p-6 rounded-lg shadow">
-                  <h2 className="text-lg">Meets Standard</h2>
-                  <p className="text-4xl font-bold">{countStandards("meet")}</p>
-                  <p className="text-sm mt-2">
-                    Number of metrics at industry standard
-                  </p>
-                </div>
-                <div className="bg-gradient-to-r from-red-400 to-red-600 text-white p-6 rounded-lg shadow">
-                  <h2 className="text-lg">Below Standard</h2>
-                  <p className="text-4xl font-bold">
-                    {countStandards("below")}
-                  </p>
-                  <p className="text-sm mt-2">
-                    Number of metrics below industry standard
-                  </p>
+
+                <div className="flex mt-4 pt-2 border-t border-gray-100">
+                  <div className="text-sm text-gray-500">
+                    <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>{" "}
+                    Above: Exceeding industry benchmarks
+                  </div>
+                  <div className="text-sm text-gray-500 mx-4">
+                    <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1"></span>{" "}
+                    Meets: At industry standard
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span>{" "}
+                    Below: Improvement needed
+                  </div>
                 </div>
               </div>
 
               {/* Maturity Score Section - Two Gauges Side by Side */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Original SVG Gauge */}
+                {/* Gauge Meter */}
                 <div className="bg-white p-6 rounded-lg shadow">
                   <h2 className="text-lg font-bold text-gray-700 mb-4">
-                    Cloud Maturity Level
+                    Cloud Maturity Gauge
                   </h2>
-                  <div className="flex flex-col items-center">
-                    <div className="relative w-48 h-48">
-                      <svg viewBox="0 0 120 120" className="w-full h-full">
-                        {/* Background circle */}
-                        <circle
-                          cx="60"
-                          cy="60"
-                          r="54"
-                          fill="none"
-                          stroke="#f3f4f6"
-                          strokeWidth="12"
-                        />
-
-                        {/* Score circle - 5 is full circle */}
-                        <circle
-                          cx="60"
-                          cy="60"
-                          r="54"
-                          fill="none"
-                          stroke="#3b82f6"
-                          strokeWidth="12"
-                          strokeLinecap="round"
-                          strokeDasharray="339.3"
-                          strokeDashoffset={
-                            339.3 -
-                            339.3 *
-                              (processedData.cloudMaturityAssessment
-                                .overallScore /
-                                5)
-                          }
-                          transform="rotate(-90 60 60)"
-                        />
-
-                        {/* Score text */}
-                        <text
-                          x="60"
-                          y="60"
-                          textAnchor="middle"
-                          dy=".3em"
-                          fontSize="24"
-                          fontWeight="bold"
-                          fill="#1f2937"
-                        >
-                          {processedData.cloudMaturityAssessment.overallScore.toFixed(
-                            1
-                          )}
-                        </text>
-                      </svg>
-                    </div>
-                    <p className="text-center text-gray-600 mt-4 font-medium">
+                  <GaugeMeter
+                    value={processedData.cloudMaturityAssessment.overallScore}
+                  />
+                  <div className="mt-2 text-center">
+                    <p className="text-sm text-gray-600">
                       Current maturity level:{" "}
                       <span className="text-blue-600 font-bold">
                         {processedData.cloudMaturityAssessment.currentLevel}
@@ -415,21 +465,43 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Highcharts Gauge Meter */}
+                {/* New Time-to-Value Graph */}
                 <div className="bg-white p-6 rounded-lg shadow">
                   <h2 className="text-lg font-bold text-gray-700 mb-4">
-                    Cloud Maturity Gauge
+                    Time-to-Value Analysis
                   </h2>
-                  <GaugeMeter
-                    value={processedData.cloudMaturityAssessment.overallScore}
-                  />
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart
+                      data={getTimeToValueData()}
+                      layout="vertical"
+                      margin={{ top: 5, right: 30, left: 50, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" unit=" weeks" />
+                      <YAxis type="category" dataKey="name" width={130} />
+                      <Tooltip
+                        formatter={(value) => [`${value} weeks`, null]}
+                      />
+                      <Legend />
+                      <Bar dataKey="current" name="Current" fill="#4F46E5" />
+                      <Bar
+                        dataKey="optimized"
+                        name="Optimized"
+                        fill="#10B981"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="mt-2 text-xs text-gray-500 text-center">
+                    Comparison of current vs. optimized time-to-value metrics
+                    based on assessment
+                  </div>
                 </div>
               </div>
 
               {/* Enhanced Radar Chart */}
               <div className="bg-white p-6 rounded-lg shadow mb-6">
                 <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  Dimensional Analysis
+                  Cloud Dimensional Analysis
                 </h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <RadarChart
@@ -505,6 +577,103 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
 
+              {/* Added: Cost Optimization Potential */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Cost Optimization Potential */}
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h2 className="text-lg font-bold text-gray-700 mb-4">
+                    Cost Optimization Potential
+                  </h2>
+                  <div className="flex flex-col items-center">
+                    <div className="w-full max-w-md">
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart
+                          data={[calculatePotentialSavings()]}
+                          margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" hide={true} />
+                          <YAxis tickFormatter={(value) => `$${value}`} />
+                          <Tooltip formatter={(value) => [`$${value}`, null]} />
+                          <Legend verticalAlign="top" />
+                          <Bar
+                            dataKey="current"
+                            name="Current Spend"
+                            fill="#FF8A65"
+                          />
+                          <Bar
+                            dataKey="optimized"
+                            name="Optimized Spend"
+                            fill="#4DB6AC"
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="text-center mt-4">
+                      <div className="text-3xl font-bold text-green-600">
+                        $
+                        {calculatePotentialSavings().current -
+                          calculatePotentialSavings().optimized}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Potential monthly savings
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Category Scores Bar Chart */}
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h2 className="text-lg font-bold text-gray-700 mb-4">
+                    Category Performance
+                  </h2>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart
+                      data={Object.entries(
+                        processedData.recommendations.categoryScores
+                      ).map(([category, data]) => ({
+                        category: category,
+                        score: data.score,
+                        standardScore: 3.5, // Using a default standard score for visualization
+                      }))}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="category" />
+                      <YAxis domain={[0, 5]} />
+                      <Tooltip
+                        formatter={(value, name) => {
+                          return [
+                            `${value.toFixed(1)}/5.0`,
+                            name === "score"
+                              ? "Your Score"
+                              : "Industry Benchmark",
+                          ]
+                        }}
+                      />
+                      <Legend />
+                      <Bar
+                        dataKey="score"
+                        name="Your Score"
+                        fill="#4F46E5"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="standardScore"
+                        name="Industry Benchmark"
+                        fill="#10B981"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
               {/* Dimension Details */}
               <div className="bg-white p-6 rounded-lg shadow mb-6">
                 <h2 className="text-lg font-bold text-gray-700 mb-4">
@@ -558,107 +727,6 @@ export default function Dashboard() {
                       )}
                     </tbody>
                   </table>
-                </div>
-              </div>
-
-              {/* Category Scores Bar Chart */}
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  Category Performance Analysis
-                </h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart
-                    data={Object.entries(
-                      processedData.recommendations.categoryScores
-                    ).map(([category, data]) => ({
-                      category: category,
-                      score: data.score,
-                      standardScore: 3.5, // Using a default standard score for visualization
-                    }))}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" />
-                    <YAxis domain={[0, 5]} />
-                    <Tooltip
-                      formatter={(value, name) => {
-                        return [
-                          `${value.toFixed(1)}/5.0`,
-                          name === "score"
-                            ? "Your Score"
-                            : "Industry Benchmark",
-                        ]
-                      }}
-                    />
-                    <Legend />
-                    <Bar
-                      dataKey="score"
-                      name="Your Score"
-                      fill="#4F46E5"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="standardScore"
-                      name="Industry Benchmark"
-                      fill="#10B981"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-                <p className="text-sm text-gray-600 mt-2 text-center">
-                  This chart compares your scores across different cloud
-                  assessment categories with industry benchmarks.
-                </p>
-              </div>
-
-              {/* Key Recommendations */}
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  Key Recommendations
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {processedData.recommendations.keyRecommendations
-                    .slice(0, 4)
-                    .map((recommendation, index) => (
-                      <div
-                        key={index}
-                        className={`p-4 rounded-lg border ${
-                          recommendation.priority === "Critical"
-                            ? "bg-red-50 border-red-200"
-                            : recommendation.priority === "High"
-                            ? "bg-orange-50 border-orange-200"
-                            : "bg-yellow-50 border-yellow-200"
-                        }`}
-                      >
-                        <h3 className="font-medium text-gray-800">
-                          {recommendation.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {recommendation.rationale}
-                        </p>
-                        <div className="flex justify-between mt-2">
-                          <span className="text-xs text-gray-500">
-                            Impact: {recommendation.impact}
-                          </span>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${
-                              recommendation.priority === "Critical"
-                                ? "bg-red-100 text-red-800"
-                                : recommendation.priority === "High"
-                                ? "bg-orange-100 text-orange-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
-                          >
-                            {recommendation.priority}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
                 </div>
               </div>
             </>

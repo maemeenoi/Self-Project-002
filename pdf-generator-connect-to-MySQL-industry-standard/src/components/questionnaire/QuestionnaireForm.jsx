@@ -4,9 +4,67 @@ import { useState, useEffect } from "react"
 
 export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
   const [answers, setAnswers] = useState({})
-  const [currentCategory, setCurrentCategory] = useState(null)
+  const [currentCategory, setCurrentCategory] = useState("Client Information") // Start with client info
   const [formProgress, setFormProgress] = useState(0)
   const [ratingOptions, setRatingOptions] = useState({})
+
+  // Basic client information questions (1-5)
+  const clientInfoQuestions = [
+    {
+      QuestionID: 1,
+      QuestionText: "Your Name",
+      Category: "Client Information",
+      placeholder: "Enter your full name",
+    },
+    {
+      QuestionID: 2,
+      QuestionText: "Organization/Business Name",
+      Category: "Client Information",
+      placeholder: "Enter your organization name",
+    },
+    {
+      QuestionID: 3,
+      QuestionText: "Email Address",
+      Category: "Client Information",
+      placeholder: "email@example.com",
+      type: "email",
+    },
+    {
+      QuestionID: 4,
+      QuestionText: "Company Size (number of employees)",
+      Category: "Client Information",
+      options: [
+        "1-10 employees",
+        "11-50 employees",
+        "51-200 employees",
+        "201-500 employees",
+        "501-1000 employees",
+        "1000+ employees",
+      ],
+    },
+    {
+      QuestionID: 5,
+      QuestionText: "Industry",
+      Category: "Client Information",
+      options: [
+        "Technology",
+        "Financial Services",
+        "Healthcare",
+        "Education",
+        "Manufacturing",
+        "Retail",
+        "Government",
+        "Non-profit",
+        "Other",
+      ],
+    },
+  ]
+
+  // Combine client info with provided questions
+  const allQuestions = {
+    "Client Information": clientInfoQuestions,
+    ...questions,
+  }
 
   // Fetch rating options for questions
   useEffect(() => {
@@ -27,13 +85,6 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
     fetchRatingOptions()
   }, [])
 
-  // Set initial category when questions are loaded
-  useEffect(() => {
-    if (questions && Object.keys(questions).length > 0) {
-      setCurrentCategory(Object.keys(questions)[0])
-    }
-  }, [questions])
-
   // Handle when a rating changes
   const handleRatingChange = (questionId, value) => {
     setAnswers((prev) => ({
@@ -50,9 +101,17 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
     }))
   }
 
+  // Handle dropdown select answers
+  const handleSelectChange = (questionId, value) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: { text: value },
+    }))
+  }
+
   // Navigate to previous category
   const goToPreviousCategory = () => {
-    const categories = Object.keys(questions)
+    const categories = Object.keys(allQuestions)
     const currentIndex = categories.indexOf(currentCategory)
 
     if (currentIndex > 0) {
@@ -63,9 +122,31 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
     setFormProgress(Math.max(0, ((currentIndex - 1) / categories.length) * 100))
   }
 
+  // Check if all required fields in the current category are filled
+  const isCurrentCategoryComplete = () => {
+    // For Client Information category, check that required fields are filled
+    if (currentCategory === "Client Information") {
+      // Make sure questions 1-3 (name, business, email) have answers
+      const requiredQuestions = [1, 2, 3]
+      return requiredQuestions.every(
+        (qId) =>
+          answers[qId] && answers[qId].text && answers[qId].text.trim() !== ""
+      )
+    }
+
+    // For other categories, we can be more flexible
+    return true
+  }
+
   // Navigate to next category
   const goToNextCategory = () => {
-    const categories = Object.keys(questions)
+    // Validate current category first
+    if (!isCurrentCategoryComplete()) {
+      alert("Please fill in all required fields before continuing.")
+      return
+    }
+
+    const categories = Object.keys(allQuestions)
     const currentIndex = categories.indexOf(currentCategory)
 
     if (currentIndex < categories.length - 1) {
@@ -87,15 +168,17 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
       ([questionId, answer]) => ({
         questionId: parseInt(questionId, 10),
         score: answer.score,
-        text: answer.text,
+        // FIX: Change from "text" to "responseText" to match API expectations
+        responseText: answer.text,
       })
     )
 
+    console.log("Submitting formatted answers:", formattedAnswers)
     onSubmit(formattedAnswers)
   }
 
   // If no questions or categories are loaded
-  if (!questions || Object.keys(questions).length === 0 || !currentCategory) {
+  if (!allQuestions || Object.keys(allQuestions).length === 0) {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -104,8 +187,8 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
     )
   }
 
-  const currentQuestions = questions[currentCategory] || []
-  const categories = Object.keys(questions)
+  const currentQuestions = allQuestions[currentCategory] || []
+  const categories = Object.keys(allQuestions)
   const currentCategoryIndex = categories.indexOf(currentCategory)
   const isLastCategory = currentCategoryIndex === categories.length - 1
 
@@ -138,16 +221,53 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
           >
             <h3 className="font-medium text-gray-800 mb-3">
               {question.QuestionText}
+              {currentCategory === "Client Information" &&
+                question.QuestionID <= 3 && (
+                  <span className="text-red-500 ml-1">*</span>
+                )}
             </h3>
 
             {/* Different question types based on Category */}
-            {[
-              "Cloud Strategy",
-              "Cloud Cost",
-              "Cloud Security",
-              "Cloud People",
-              "Cloud DevOps",
-            ].includes(question.Category) ? (
+            {currentCategory === "Client Information" ? (
+              // Form inputs for client information
+              <div className="mt-4">
+                {question.options ? (
+                  // Select dropdown for options
+                  <select
+                    value={answers[question.QuestionID]?.text || ""}
+                    onChange={(e) =>
+                      handleSelectChange(question.QuestionID, e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select an option</option>
+                    {question.options.map((option, index) => (
+                      <option key={index} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  // Text input for name, business, email
+                  <input
+                    type={question.type || "text"}
+                    value={answers[question.QuestionID]?.text || ""}
+                    onChange={(e) =>
+                      handleTextChange(question.QuestionID, e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder={question.placeholder || ""}
+                    required={question.QuestionID <= 3}
+                  />
+                )}
+              </div>
+            ) : [
+                "Cloud Strategy",
+                "Cloud Cost",
+                "Cloud Security",
+                "Cloud People",
+                "Cloud DevOps",
+              ].includes(question.Category) ? (
               // Rating scale with options from database
               <div className="mt-4">
                 <p className="text-sm text-gray-500 mb-2">
@@ -245,6 +365,13 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
           </div>
         ))}
       </div>
+
+      {/* Required fields note for Client Information section */}
+      {currentCategory === "Client Information" && (
+        <div className="text-sm text-gray-500">
+          <span className="text-red-500">*</span> Required fields
+        </div>
+      )}
 
       {/* Navigation buttons */}
       <div className="flex justify-between pt-4 border-t border-gray-200">

@@ -2,13 +2,13 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
-export async function GET() {
+export async function GET(request) {
   try {
-    // Clear session cookie
-    const cookieStore = cookies()
+    // Clear session cookie - use await with cookies()
+    const cookieStore = await cookies()
     cookieStore.delete("session")
 
-    // Redirect to login page
+    // Redirect to login page - use the request parameter that's passed to the function
     return NextResponse.redirect(new URL("/login", request.url))
   } catch (error) {
     console.error("Logout error:", error)

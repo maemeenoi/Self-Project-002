@@ -22,6 +22,12 @@ export default function LandingPage() {
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
               <Link
+                href="/questionnaire"
+                className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700"
+              >
+                Take Assessment
+              </Link>
+              <Link
                 href="/login"
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
@@ -63,6 +69,12 @@ export default function LandingPage() {
           <div className="sm:hidden">
             <div className="pt-2 pb-3 space-y-1">
               <Link
+                href="/questionnaire"
+                className="block px-3 py-2 text-base font-medium text-green-600 hover:bg-green-50 hover:text-green-700"
+              >
+                Take Assessment
+              </Link>
+              <Link
                 href="/login"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               >
@@ -95,10 +107,10 @@ export default function LandingPage() {
             <div className="mt-8 sm:flex sm:justify-center lg:justify-start">
               <div className="rounded-md shadow">
                 <Link
-                  href="/register"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
+                  href="/questionnaire"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 md:py-4 md:text-lg md:px-10"
                 >
-                  Get Started
+                  Take Assessment
                 </Link>
               </div>
               <div className="mt-3 sm:mt-0 sm:ml-3">
@@ -107,6 +119,14 @@ export default function LandingPage() {
                   className="w-full flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
                 >
                   Login
+                </Link>
+              </div>
+              <div className="mt-3 sm:mt-0 sm:ml-3">
+                <Link
+                  href="/register"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
+                >
+                  Register
                 </Link>
               </div>
             </div>
@@ -313,6 +333,29 @@ export default function LandingPage() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Assessment CTA Section */}
+      <div className="bg-blue-50 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:text-center">
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              Ready to optimize your cloud infrastructure?
+            </h2>
+            <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+              Start with our free cloud assessment and get personalized
+              recommendations.
+            </p>
+            <div className="mt-8 flex justify-center">
+              <Link
+                href="/questionnaire"
+                className="px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 md:py-4 md:text-lg md:px-10"
+              >
+                Take the Assessment Now
+              </Link>
             </div>
           </div>
         </div>

@@ -23,17 +23,60 @@ export async function POST(request) {
     )
 
     let clientId
+    let clientName = ""
+    let industryType = null
+    let companySize = null
+    let contactName = null
+
+    // Extract client information from answers
+    const clientInfoMap = {
+      1: (value) => {
+        contactName = value
+      },
+      2: (value) => {
+        clientName = value
+      },
+      4: (value) => {
+        companySize = value
+      },
+      5: (value) => {
+        industryType = value
+      },
+    }
+
+    // Process answers to extract client information
+    answers.forEach((answer) => {
+      if (clientInfoMap[answer.questionId] && answer.responseText) {
+        clientInfoMap[answer.questionId](answer.responseText)
+      }
+    })
+
+    // If client name is still empty, use email username as fallback
+    if (!clientName) {
+      clientName = email.split("@")[0]
+    }
 
     if (existingClients.length > 0) {
       // Use existing client
       clientId = existingClients[0].ClientID
+
+      // Update the existing client with new information
+      await query(
+        `UPDATE Clients 
+         SET ClientName = ?, 
+             IndustryType = ?, 
+             CompanySize = ?, 
+             ContactName = ? 
+         WHERE ClientID = ?`,
+        [clientName, industryType, companySize, contactName, clientId]
+      )
     } else {
-      // Create a new client record
-      // Use the email username as the ClientName
-      const username = email.split("@")[0]
+      // Create a new client record with all the information
       const insertResult = await query(
-        "INSERT INTO Clients (ClientName, ContactEmail) VALUES (?, ?)",
-        [username, email]
+        `INSERT INTO Clients 
+         (ClientName, ContactEmail, IndustryType, CompanySize, ContactName, CreatedDate) 
+         VALUES (?, ?, ?, ?, ?, NOW())`,
+        [clientName, email, industryType, companySize, contactName]
       )
 
       clientId = insertResult.insertId
