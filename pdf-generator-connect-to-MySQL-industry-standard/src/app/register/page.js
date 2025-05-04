@@ -9,8 +9,8 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
-    name: "",
-    businessName: "",
+    contactName: "", // Changed from 'name' to 'contactName' for clarity
+    businessName: "", // This will be stored in ClientName field
     industry: "",
     size: "",
   })
@@ -42,8 +42,8 @@ export default function Register() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          name: formData.name,
-          businessName: formData.businessName,
+          contactName: formData.contactName, // Changed from 'name' to 'contactName'
+          businessName: formData.businessName, // This goes to ClientName in database
           industry: formData.industry,
           size: formData.size,
         }),
@@ -172,28 +172,28 @@ export default function Register() {
 
             <div className="border-t border-gray-200 pt-4">
               <h3 className="text-lg font-medium text-gray-900">
-                Basic Information
+                Organization Information
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                We'll use this to start your cloud assessment
+                We'll use this to customize your cloud assessment
               </p>
             </div>
 
             <div>
               <label
-                htmlFor="name"
+                htmlFor="contactName"
                 className="block text-sm font-medium text-gray-700"
               >
-                Your Name
+                Your Name (Contact Person)
               </label>
               <div className="mt-1">
                 <input
-                  id="name"
-                  name="name"
+                  id="contactName"
+                  name="contactName"
                   type="text"
                   autoComplete="name"
                   required
-                  value={formData.name}
+                  value={formData.contactName}
                   onChange={handleChange}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
@@ -205,7 +205,7 @@ export default function Register() {
                 htmlFor="businessName"
                 className="block text-sm font-medium text-gray-700"
               >
-                Business/Organization Name
+                Organization/Business Name
               </label>
               <div className="mt-1">
                 <input

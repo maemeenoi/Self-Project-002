@@ -1,139 +1,156 @@
-// components/GaugeMeter.jsx
-// can try svg match 1 - 5 in each image
-import { useRef, useEffect } from "react"
-import * as d3 from "d3"
+import { useState, useEffect } from "react"
 
-// Helper function to get maturity level label
-const getMatureityLabel = (score) => {
-  if (score < 2) return "Level 1: Initial"
-  if (score < 3) return "Level 2: Repeatable"
-  if (score < 4) return "Level 3: Defined"
-  if (score < 4.6) return "Level 4: Managed"
-  return "Level 5: Optimized"
-}
+const GaugeMeter = ({ value = 3.2, maxValue = 5 }) => {
+  // Normalize the value to ensure it's within 0-maxValue range
+  const normalizedValue = Math.max(0, Math.min(maxValue, parseFloat(value)))
 
-// Conversion functions
-function percToRad(perc) {
-  return degToRad(perc * 360)
-}
+  // Calculate the angle for the needle (0 = -180 degrees, maxValue = 0 degrees)
+  // Map from [0,maxValue] range to [-180,0] degrees
+  const needleAngle = -180 + (normalizedValue / maxValue) * 180
 
-function degToRad(deg) {
-  return (deg * Math.PI) / 180
-}
+  // Helper function to get health score label
+  const getHealthLabel = (score) => {
+    if (score < 1) return "Critical Health"
+    if (score < 2) return "Poor Health"
+    if (score < 3) return "Fair Health"
+    if (score < 4) return "Good Health"
+    if (score < 4.6) return "Very Good Health"
+    return "Excellent Health"
+  }
 
-const GaugeMeter = ({ value }) => {
-  const ref = useRef()
+  // Tick markers for the gauge scale
+  const ticks = Array.from({ length: maxValue + 1 }, (_, i) => i)
 
-  useEffect(() => {
-    const percent = value / 5 // Normalize the value to a 0-1 range
-    const width = 400
-    const height = 220
-    const barWidth = 50
-    const numSections = 5
-    const chartInset = 10
-    const padRad = 0.05
-    const radius = Math.min(width, height * 2) / 2
-
-    d3.select(ref.current).selectAll("*").remove()
-
-    const svg = d3
-      .select(ref.current)
-      .append("svg")
-      .attr("width", width)
-      .attr("height", height)
-
-    const chart = svg
-      .append("g")
-      .attr("transform", `translate(${width / 2}, ${height})`)
-
-    // Define the gauge arc geometry
-    // We're creating a half-circle (π radians)
-    const startAngle = -Math.PI / 2 // Start at -90 degrees (top)
-    const endAngle = Math.PI / 2 // End at 90 degrees (bottom)
-
-    // Create background sections
-    const sectionWidth = Math.PI / numSections
-    const colors = ["#900C3F", "#C70039", "#FF5733", "#FFC300", "#DAF7A6"]
-
-    for (let i = 0; i < numSections; i++) {
-      const sectionStart = startAngle + i * sectionWidth
-      const sectionEnd = sectionStart + sectionWidth
-
-      const arc = d3
-        .arc()
-        .innerRadius(radius - barWidth)
-        .outerRadius(radius)
-        .startAngle(sectionStart)
-        .endAngle(sectionEnd)
-
-      chart.append("path").attr("d", arc).attr("fill", colors[i])
-    }
-
-    // Add value labels
-    for (let i = 0; i <= numSections; i++) {
-      const labelAngle = startAngle + i * sectionWidth
-      const labelRadius = radius + 15
-
-      const labelX = Math.cos(labelAngle) * (radius - barWidth / 2)
-      const labelY = Math.sin(labelAngle) * (radius - barWidth / 2)
-
-      chart
-        .append("text")
-        .attr("x", labelX)
-        .attr("y", labelY)
-        .attr("dy", "0.3em")
-        .attr("text-anchor", "middle")
-        .attr("font-size", "12px")
-        .attr("fill", "#333")
-        .text(i + 1)
-    }
-
-    // Draw the needle
-    const needleLength = radius - chartInset
-    const needleRadius = 5
-
-    // Calculate the angle for the needle based on value (0-5 range)
-    // Map the 0-5 range to the startAngle-endAngle range
-    const needleAngle = startAngle + percent * Math.PI
-
-    const needleX = Math.cos(needleAngle) * needleLength
-    const needleY = Math.sin(needleAngle) * needleLength
-
-    // Draw needle circle base
-    chart
-      .append("circle")
-      .attr("cx", 0)
-      .attr("cy", 0)
-      .attr("r", needleRadius)
-      .attr("fill", "#333")
-
-    // Draw the needle line
-    chart
-      .append("line")
-      .attr("x1", 0)
-      .attr("y1", 0)
-      .attr("x2", needleX)
-      .attr("y2", needleY)
-      .attr("stroke", "#333")
-      .attr("stroke-width", 3)
-
-    // Add the value text
-    chart
-      .append("text")
-      .attr("text-anchor", "middle")
-      .attr("x", 0)
-      .attr("y", -radius / 2)
-      .attr("font-size", "24px")
-      .attr("font-weight", "bold")
-      .attr("fill", "#333")
-      .text(`${value.toFixed(1)}/5.0`)
-  }, [value])
+  // Colors for the gauge segments - red on left (poor) to green on right (good)
+  const segmentColors = [
+    "#DF5353", // Red - Level 1 (left side - lowest score)
+    "#FFB15C", // Orange - Level 2
+    "#FFEB3B", // Yellow - Level 3
+    "#C5E1A5", // Light Green - Level 4
+    "#66BB6A", // Dark Green - Level 5 (right side - highest score)
+  ]
 
   return (
     <div className="flex flex-col items-center">
-      <div ref={ref}></div>
-      <div className="mt-4 text-lg font-semibold text-center">
-        Maturity Level: {getMatureityLabel(value)}
+      <div className="relative w-full h-64">
+        {/* Gauge Background */}
+        <svg viewBox="0 0 300 200" className="w-full h-full">
+          <defs>
+            {/* Shadow for needle */}
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="1" dy="1" stdDeviation="2" floodOpacity="0.3" />
+            </filter>
+          </defs>
+
+          {/* Outer arc segments - colored sections */}
+          {segmentColors.map((color, index) => {
+            // Each segment is 36 degrees (180 / 5)
+            const startAngle = -180 + index * 36
+            const endAngle = startAngle + 36
+
+            // Convert angles to radians
+            const startRad = (startAngle * Math.PI) / 180
+            const endRad = (endAngle * Math.PI) / 180
+
+            // Calculate arc points (radius 110, center at 150,150)
+            const x1 = 150 + 110 * Math.cos(startRad)
+            const y1 = 150 + 110 * Math.sin(startRad)
+            const x2 = 150 + 110 * Math.cos(endRad)
+            const y2 = 150 + 110 * Math.sin(endRad)
+
+            // Arc flag is 0 for arcs less than 180 degrees
+            const largeArcFlag = 0
+
+            return (
+              <path
+                key={index}
+                d={`M ${x1},${y1} A110,110 0 ${largeArcFlag},1 ${x2},${y2}`}
+                fill="none"
+                stroke={color}
+                strokeWidth="30"
+                strokeLinecap="round"
+              />
+            )
+          })}
+
+          {/* Ticks and labels */}
+          {ticks.map((tick) => {
+            // Position each tick evenly along the arc
+            const angle = -180 + (tick / maxValue) * 180
+            const rad = (angle * Math.PI) / 180
+
+            // Calculate tick positions
+            const innerRadius = 90
+            const outerRadius = 110
+            const labelRadius = 130
+
+            const x1 = 150 + innerRadius * Math.cos(rad)
+            const y1 = 150 + innerRadius * Math.sin(rad)
+            const x2 = 150 + outerRadius * Math.cos(rad)
+            const y2 = 150 + outerRadius * Math.sin(rad)
+            const labelX = 150 + labelRadius * Math.cos(rad)
+            const labelY = 150 + labelRadius * Math.sin(rad)
+
+            return (
+              <g key={tick}>
+                {/* Tick marks - white lines */}
+                <line
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke="white"
+                  strokeWidth="2"
+                />
+
+                {/* Tick labels */}
+                <text
+                  x={labelX}
+                  y={labelY}
+                  fontSize="16"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                  alignmentBaseline="middle"
+                  fill="#333"
+                >
+                  {tick}
+                </text>
+              </g>
+            )
+          })}
+
+          {/* Needle with shadow */}
+          <line
+            x1="150"
+            y1="150"
+            x2={150 + 100 * Math.cos((needleAngle * Math.PI) / 180)}
+            y2={150 + 100 * Math.sin((needleAngle * Math.PI) / 180)}
+            stroke="#777"
+            strokeWidth="6"
+            strokeLinecap="round"
+            filter="url(#shadow)"
+          />
+
+          {/* Needle center pivot */}
+          <circle cx="150" cy="150" r="8" fill="#555" />
+
+          {/* Value display */}
+          <text
+            x="150"
+            y="190"
+            fontSize="24"
+            fontWeight="bold"
+            textAnchor="middle"
+            fill="#333"
+          >
+            {normalizedValue.toFixed(1)}/5.0
+          </text>
+        </svg>
+      </div>
+
+      {/* Health score label */}
+      <div className="mt-2 text-2xl font-bold text-center">
+        {getHealthLabel(normalizedValue)}
       </div>
     </div>
   )

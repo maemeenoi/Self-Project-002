@@ -9,6 +9,7 @@ export async function GET(request) {
     // Extract token from URL
     const { searchParams } = new URL(request.url)
     const token = searchParams.get("token")
+    const redirectPath = searchParams.get("redirect") || "/dashboard"
 
     if (!token) {
       return NextResponse.redirect(
@@ -27,31 +28,60 @@ export async function GET(request) {
 
     // Check if client exists
     let clientId = tokenData.ClientID
-    let clientName = tokenData.ClientName
+    let clientName
+    let contactName
     let email = tokenData.Email
+
+    if (clientId) {
+      // Client exists, get their name
+      const clients = await query(
+        "SELECT ClientName, ContactName FROM Clients WHERE ClientID = ?",
+        [clientId]
+      )
+
+      if (clients.length > 0) {
+        clientName = clients[0].ClientName
+        contactName = clients[0].ContactName
+
+        // Update last login date
+        await query(
+          "UPDATE Clients SET LastLoginDate = NOW(), AuthMethod = CASE WHEN PasswordHash IS NOT NULL THEN 'both' ELSE 'magic_link' END WHERE ClientID = ?",
+          [clientId]
+        )
+      } else {
+        // Client ID exists in token but not in database
+        clientId = null
+      }
+    }
 
     // Create client if it doesn't exist
     if (!clientId) {
-      const newClient = await query(
-        "INSERT INTO Clients (ClientName, ContactEmail) VALUES (?, ?)",
-        [email.split("@")[0], email]
+      const clientNameFromEmail = email.split("@")[0]
+
+      const insertResult = await query(
+        "INSERT INTO Clients (ClientName, ContactName, ContactEmail, AuthMethod, LastLoginDate) VALUES (?, ?, ?, 'magic_link', NOW())",
+        [clientNameFromEmail, clientNameFromEmail, email] // Use email username as both ClientName and ContactName initially
       )
 
-      clientId = newClient.insertId
-      clientName = email.split("@")[0]
+      clientId = insertResult.insertId
+      clientName = clientNameFromEmail
+      contactName = clientNameFromEmail
 
       // Update the magic link record with the new client ID
-      await query("UPDATE MagicLinks SET ClientID = ? WHERE TokenID = ?", [
-        clientId,
-        tokenData.TokenID,
-      ])
+      if (tokenData.TokenID) {
+        await query("UPDATE MagicLinks SET ClientID = ? WHERE TokenID = ?", [
+          clientId,
+          tokenData.TokenID,
+        ])
+      }
     }
 
     // Create session
     const session = {
-      userId: tokenData.TokenID,
+      userId: clientId,
       clientId: clientId,
-      clientName: clientName,
+      clientName: clientName || email.split("@")[0],
+      contactName: contactName || email.split("@")[0],
       email: email,
       isAuthenticated: true,
       loginMethod: "magic_link",
@@ -68,8 +98,8 @@ export async function GET(request) {
       path: "/",
     })
 
-    // Redirect to dashboard
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+    // Redirect to dashboard or specified redirect path
+    return NextResponse.redirect(new URL(redirectPath, request.url))
   } catch (error) {
     console.error("Magic link authentication error:", error)
     return NextResponse.redirect(

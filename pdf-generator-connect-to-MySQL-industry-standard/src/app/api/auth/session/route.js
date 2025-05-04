@@ -1,3 +1,4 @@
+// src/app/api/auth/session/route.js
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
@@ -23,6 +24,7 @@ export async function GET() {
         userId: session.userId,
         clientId: session.clientId,
         clientName: session.clientName,
+        contactName: session.contactName || "", // Include contact name
         email: session.email,
       },
     })

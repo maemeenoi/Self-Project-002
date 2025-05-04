@@ -18,7 +18,7 @@ export async function POST(request) {
 
     // Find client by email
     const clients = await query(
-      "SELECT ClientID, ClientName, ContactEmail, PasswordHash FROM Clients WHERE ContactEmail = ?",
+      "SELECT ClientID, ClientName, ContactName, ContactEmail, PasswordHash FROM Clients WHERE ContactEmail = ?",
       [email]
     )
 
@@ -49,11 +49,17 @@ export async function POST(request) {
       )
     }
 
+    // Update last login date
+    await query("UPDATE Clients SET LastLoginDate = NOW() WHERE ClientID = ?", [
+      client.ClientID,
+    ])
+
     // Create session
     const session = {
       userId: client.ClientID,
       clientId: client.ClientID,
       clientName: client.ClientName,
+      contactName: client.ContactName || "", // Include contact name
       email: client.ContactEmail,
       isAuthenticated: true,
       loginMethod: "password",

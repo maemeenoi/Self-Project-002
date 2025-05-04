@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
         const response = await fetch("/api/auth/session")
         const data = await response.json()
 
-        if (data.isLoggedIn) {
+        if (data.isLoggedIn && data.user) {
           setUser(data.user)
         } else {
           setUser(null)
@@ -46,15 +46,16 @@ export function AuthProvider({ children }) {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed")
+        throw new Error(data.error || "Login failed")
       }
 
-      setUser({
-        userId: data.userId,
-        clientId: data.clientId,
-        clientName: data.clientName,
-        email: data.email,
-      })
+      // Fetch the session data again to get the user info
+      const sessionResponse = await fetch("/api/auth/session")
+      const sessionData = await sessionResponse.json()
+
+      if (sessionData.isLoggedIn && sessionData.user) {
+        setUser(sessionData.user)
+      }
 
       return { success: true }
     } catch (error) {
@@ -65,15 +66,27 @@ export function AuthProvider({ children }) {
   // Logout function
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
+      const response = await fetch("/api/auth/logout", {
+        method: "GET",
       })
 
+      if (!response.ok) {
+        console.error("Logout API error:", response.status)
+      }
+
+      // Clear user state regardless of API response
       setUser(null)
+
+      // Redirect to home page
       router.push("/")
 
       return { success: true }
     } catch (error) {
+      console.error("Logout error:", error)
+
+      // Clear user state even if the API call failed
+      setUser(null)
+
       return { success: false, error: error.message }
     }
   }
@@ -93,6 +106,7 @@ export function AuthProvider({ children }) {
         throw new Error(data.message || "Registration failed")
       }
 
+      // Set user data
       setUser({
         userId: data.userId,
         clientId: data.clientId,

@@ -1,14 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "../../contexts/AuthContext"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 export default function Navbar() {
   const { user, isLoggedIn, logout } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   // Check if the current page is the landing page
   const isLandingPage = pathname === "/"
@@ -18,9 +19,29 @@ export default function Navbar() {
     isLandingPage ||
     pathname === "/login" ||
     pathname === "/register" ||
-    pathname === "/questionnaire"
+    pathname === "/questionnaire" ||
+    pathname === "/submission-complete"
   ) {
     return null
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "GET", // Changed to GET to match the route handler method
+        headers: { "Content-Type": "application/json" },
+      })
+
+      // Use the logout function from AuthContext
+      if (logout) {
+        await logout()
+      }
+
+      // Force a page refresh and redirect to the home page
+      router.push("/")
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
   }
 
   return (
@@ -63,7 +84,7 @@ export default function Navbar() {
                     {user?.clientName || "User"}
                   </span>
                   <button
-                    onClick={() => logout()}
+                    onClick={handleLogout}
                     className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                   >
                     Logout
@@ -150,7 +171,7 @@ export default function Navbar() {
                   </div>
                 </div>
                 <button
-                  onClick={() => logout()}
+                  onClick={handleLogout}
                   className="ml-auto px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                 >
                   Logout

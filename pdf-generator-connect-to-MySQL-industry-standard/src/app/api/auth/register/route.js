@@ -1,3 +1,4 @@
+// src/app/api/auth/register/route.js
 import { NextResponse } from "next/server"
 import { query, getConnection } from "../../../../lib/db"
 import bcrypt from "bcryptjs"
@@ -6,22 +7,31 @@ import { cookies } from "next/headers"
 export async function POST(request) {
   let connection
   try {
-    const { email, password, name, businessName, industry, size } =
+    const { email, password, contactName, businessName, industry, size } =
       await request.json()
 
     // Input validation
-    if (!email || !password || !name || !businessName || !industry || !size) {
+    if (
+      !email ||
+      !password ||
+      !contactName ||
+      !businessName ||
+      !industry ||
+      !size
+    ) {
       return NextResponse.json(
         { message: "All fields are required" },
         { status: 400 }
       )
     }
 
-    // Check if user already exists
-    const existingUsers = await query("SELECT * FROM Users WHERE Email = ?", [
-      email,
-    ])
-    if (existingUsers.length > 0) {
+    // Check if client already exists
+    const existingClients = await query(
+      "SELECT * FROM Clients WHERE ContactEmail = ?",
+      [email]
+    )
+
+    if (existingClients.length > 0) {
       return NextResponse.json(
         { message: "Email is already registered" },
         { status: 409 }
@@ -31,25 +41,20 @@ export async function POST(request) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Get a connection from the pool
+    // Get a connection for transaction
     connection = await getConnection()
-
-    // Start transaction
     await connection.beginTransaction()
 
     try {
-      // Insert the user
-      const [userResult] = await connection.execute(
-        "INSERT INTO Users (Email, Password, CreatedDate) VALUES (?, ?, NOW())",
-        [email, hashedPassword]
-      )
-
-      const userId = userResult.insertId
-
-      // Insert the client
+      // Insert directly into Clients table with all info
+      // Note that:
+      // - businessName goes into ClientName
+      // - contactName goes into ContactName
       const [clientResult] = await connection.execute(
-        "INSERT INTO Clients (ClientName, ContactEmail, ContactPhone, UserID) VALUES (?, ?, ?, ?)",
-        [businessName, email, "", userId]
+        `INSERT INTO Clients 
+         (ClientName, ContactName, ContactEmail, PasswordHash, AuthMethod, IndustryType, CompanySize, LastLoginDate) 
+         VALUES (?, ?, ?, ?, 'password', ?, ?, NOW())`,
+        [businessName, contactName, email, hashedPassword, industry, size]
       )
 
       const clientId = clientResult.insertId
@@ -57,15 +62,18 @@ export async function POST(request) {
       // Commit the transaction
       await connection.commit()
 
-      // Set session cookie - using await cookies()
-      const cookieStore = await cookies()
+      // Set session cookie
+      const cookieStore = cookies()
       cookieStore.set({
         name: "session",
         value: JSON.stringify({
-          userId,
-          clientId,
-          clientName: name,
-          email,
+          userId: clientId,
+          clientId: clientId,
+          clientName: businessName,
+          contactName: contactName,
+          email: email,
+          isAuthenticated: true,
+          loginMethod: "password",
         }),
         httpOnly: true,
         path: "/",
@@ -74,8 +82,7 @@ export async function POST(request) {
       })
 
       return NextResponse.json({
-        userId,
-        clientId,
+        clientId: clientId,
         message: "Registration successful",
       })
     } catch (error) {

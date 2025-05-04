@@ -1,7 +1,6 @@
-// src/app/login/page.js
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
@@ -19,7 +18,7 @@ export default function LoginPage() {
   const errorParam = searchParams.get("error")
 
   // Set error message from URL parameter if present
-  useState(() => {
+  useEffect(() => {
     if (errorParam) {
       switch (errorParam) {
         case "missing_token":
@@ -32,7 +31,7 @@ export default function LoginPage() {
           setError("An error occurred. Please try again later.")
           break
         default:
-          setError("Authentication error. Please try again.")
+          setError(errorParam.replace(/_/g, " "))
       }
     }
   }, [errorParam])
@@ -236,11 +235,29 @@ export default function LoginPage() {
             <p className="text-sm text-gray-600">
               Don't have an account yet?{" "}
               <Link
+                href="/register"
+                className="text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                Create an account
+              </Link>
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              {isPasswordLogin
+                ? "Forgot your password? Use the Magic Link option."
+                : "Magic Link is a passwordless login method that sends a secure link to your email."}
+            </p>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="text-xs text-center text-gray-500">
+              You can also{" "}
+              <Link
                 href="/questionnaire"
                 className="text-blue-600 hover:text-blue-800 hover:underline"
               >
-                Take the assessment
-              </Link>
+                complete the assessment
+              </Link>{" "}
+              without creating an account
             </p>
           </div>
         </div>

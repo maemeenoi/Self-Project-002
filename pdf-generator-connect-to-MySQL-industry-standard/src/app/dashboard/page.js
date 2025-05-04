@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import {
   RadarChart,
   PolarGrid,
@@ -20,10 +20,12 @@ import {
   CartesianGrid,
 } from "recharts"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import ReportGenerator from "../../components/report/ReportGenerator"
-import GaugeMeter from "../../components/GaugeMeter"
-
+const GaugeMeter = dynamic(() => import("@/components/GaugeMeter"), {
+  ssr: false,
+})
 export default function Dashboard() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState(null)
@@ -68,12 +70,10 @@ export default function Dashboard() {
 
   const getOrganizationName = () => {
     if (!processedData?.reportMetadata?.organizationName) {
-      console.log("Organization name not found, using default")
-      return user?.organization || "Unknown Organization"
+      return user?.clientName || "Unknown Organization"
     }
     return processedData.reportMetadata.organizationName
   }
-
   // Fetch clients list (only for admin users with no specific clientId)
   useEffect(() => {
     async function fetchClients() {
@@ -204,7 +204,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-4 pr-4">
           <div className="text-right">
             <p className="text-sm font-medium text-gray-700">
-              {user?.clientName || selectedClient?.ClientName || "Guest User"}
+              {user?.contactName || "User"}
             </p>
             <p className="text-xs text-gray-500">
               {getOrganizationName() || "Cloud Assessment Client"}
@@ -214,9 +214,9 @@ export default function Dashboard() {
           <div className="dropdown dropdown-end">
             <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
               <div className="w-10 rounded-full bg-primary text-white flex items-center justify-center">
-                {user?.clientName?.charAt(0) ||
-                  selectedClient?.ClientName?.charAt(0) ||
-                  "G"}
+                {user?.contactName?.charAt(0) ||
+                  user?.clientName?.charAt(0) ||
+                  "U"}
               </div>
             </label>
             <ul
@@ -415,7 +415,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* D3.js Gauge Meter */}
+                {/* Highcharts Gauge Meter */}
                 <div className="bg-white p-6 rounded-lg shadow">
                   <h2 className="text-lg font-bold text-gray-700 mb-4">
                     Cloud Maturity Gauge

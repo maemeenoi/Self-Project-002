@@ -1,4 +1,4 @@
-// src/app/questionnaire/page.js (complete version)
+// src/app/questionnaire/page.js (updated version)
 "use client"
 
 import { useState, useEffect } from "react"
@@ -69,7 +69,7 @@ export default function QuestionnairePage() {
 
         // Check if we have any questions after filtering
         if (Object.keys(groupedQuestions).length === 0) {
-          setError("No assessment questions found. Please skip to dashboard.")
+          setError("No assessment questions found")
           setIsLoading(false)
           return
         }
@@ -125,22 +125,11 @@ export default function QuestionnairePage() {
     }
   }
 
-  // Skip to dashboard function
-  const skipToQuestion = () => {
-    router.push("/dashboard")
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         <p className="mt-4 text-gray-600">Loading questionnaire...</p>
-        <button
-          onClick={skipToQuestion}
-          className="mt-6 px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-        >
-          Skip to dashboard
-        </button>
       </div>
     )
   }
@@ -168,19 +157,13 @@ export default function QuestionnairePage() {
             </div>
           </div>
         </div>
-        <div className="mt-6 flex flex-col items-center">
+        <div className="mt-6">
           <button
             onClick={() => window.location.reload()}
-            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             Try Again
           </button>
-          <Link
-            href="/dashboard"
-            className="text-blue-600 hover:text-blue-800 hover:underline"
-          >
-            Skip questionnaire and go to dashboard
-          </Link>
         </div>
       </div>
     )
@@ -247,10 +230,10 @@ export default function QuestionnairePage() {
           </div>
         </div>
         <Link
-          href="/dashboard"
+          href="/"
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          Go to Dashboard
+          Return to Home
         </Link>
       </div>
     )
@@ -268,12 +251,6 @@ export default function QuestionnairePage() {
             Help us understand your cloud infrastructure to provide personalized
             recommendations.
           </p>
-          <Link
-            href="/dashboard"
-            className="mt-2 inline-block text-sm text-blue-600 hover:text-blue-800 hover:underline"
-          >
-            Skip questionnaire
-          </Link>
         </div>
 
         <div className="bg-white shadow rounded-lg p-6">
