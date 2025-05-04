@@ -1,22 +1,13 @@
 import { useRef, useState } from "react"
 
-// Note: The actual jsPDF and html2canvas libraries would be imported in a real implementation.
-// For this example, we're simulating their behavior.
-
 // Import report page components
-// In a real implementation, these would be imported from their respective files
-// For example: import ReportCoverPage from "./report/ReportCoverPage";
-
-// Import our created components
 import ReportCoverPage from "./ReportCoverPage"
 import ReportExecutiveSummary from "./ReportExecutiveSummary"
 import ReportMaturityAssessment from "./ReportMaturityAssessment"
-import ReportCategoryBreakdown from "./ReportCategoryBreakdown"
 import ReportRecommendations from "./ReportRecommendations"
-import ReportDetailedResults from "./ReportDetailedResults"
-import ReportEndPage from "./ReportEndPage"
+import ReportEndCoverPage from "./ReportEndPage"
 
-const ImprovedReportGenerator = ({
+const ReportGenerator = ({
   clientData,
   onGenerationStart,
   onGenerationComplete,
@@ -27,6 +18,9 @@ const ImprovedReportGenerator = ({
   const [currentPage, setCurrentPage] = useState("")
   const reportRef = useRef(null)
 
+  // Log client data to help with debugging
+  console.log("Client data being used for report:", clientData)
+
   const generatePDF = async () => {
     if (onGenerationStart) onGenerationStart()
 
@@ -34,38 +28,42 @@ const ImprovedReportGenerator = ({
       setGenerationProgress(0)
       setCurrentPage("Initializing...")
 
-      // Import the enhanced html2canvas-pro
-      const html2canvasPro = (await import("html2canvas-pro")).default
-
-      // Import jsPDF
+      // Import the jsPDF and html2canvas libraries
+      const html2canvas = (await import("html2canvas-pro")).default
       const { jsPDF } = await import("jspdf")
 
-      // Create PDF with landscape orientation (A4)
+      // Create PDF with landscape orientation
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "mm",
         format: "a4",
       })
 
-      // Get all pages that need to be captured
-      const pages = reportRef.current.querySelectorAll(".report-page")
+      // Get all pages from the report container
+      const pages = reportRef.current.querySelectorAll(".page")
       const totalPages = pages.length
+
+      console.log(`Found ${totalPages} pages to include in the PDF`)
 
       // Capture each page separately
       for (let i = 0; i < totalPages; i++) {
         const page = pages[i]
         const pageName = page.getAttribute("data-page-name") || `Page ${i + 1}`
 
+        console.log(`Processing page ${i + 1}: ${pageName}`)
+
         // Update progress
         setCurrentPage(pageName)
         setGenerationProgress(Math.round((i / totalPages) * 100))
 
         // Use html2canvas with better settings
-        const canvas = await html2canvasPro(page, {
+        const canvas = await html2canvas(page, {
           scale: 2, // Higher resolution
           useCORS: true, // Allow images from other domains
           logging: false, // Disable logs
-          allowTaint: true, // Allow tainted canvas for better performance
+          backgroundColor: "#FFFFFF", // Ensure white background
+          imageTimeout: 30000, // Longer timeout for images
+          removeContainer: false, // Keep container for accurate rendering
         })
 
         const imgData = canvas.toDataURL("image/jpeg", 0.95)
@@ -77,22 +75,27 @@ const ImprovedReportGenerator = ({
         pdf.addImage(imgData, "JPEG", 0, 0, 297, 210)
 
         // Small delay to allow UI to update
-        await new Promise((resolve) => setTimeout(resolve, 50))
+        await new Promise((resolve) => setTimeout(resolve, 100))
       }
 
       // Update progress to 100%
       setGenerationProgress(100)
-      setCurrentPage("Finalizing...")
+      setCurrentPage("Finalizing PDF...")
 
       // Save the PDF with client organization name
-      const fileName = `${clientData.reportMetadata.organizationName.replace(
-        /[^a-zA-Z0-9]/g,
-        "_"
-      )}_CloudAssessment.pdf`
-      pdf.save(fileName)
+      const safeFileName = clientData.reportMetadata?.organizationName
+        ? clientData.reportMetadata.organizationName.replace(
+            /[^a-zA-Z0-9]/g,
+            "_"
+          )
+        : "CloudAssessment"
 
-      // Notify completion
-      if (onGenerationComplete) onGenerationComplete()
+      pdf.save(`${safeFileName}_CloudAssessment.pdf`)
+
+      // Wait a bit before completing to ensure PDF is saved
+      setTimeout(() => {
+        if (onGenerationComplete) onGenerationComplete()
+      }, 500)
     } catch (error) {
       console.error("PDF generation failed:", error)
       if (onGenerationComplete) onGenerationComplete()
@@ -100,19 +103,19 @@ const ImprovedReportGenerator = ({
   }
 
   return (
-    <div>
+    <>
       {/* Report generation button */}
       <button
         onClick={generatePDF}
         disabled={isGenerating}
-        className={`inline-flex items-center px-6 py-3 rounded-lg font-medium ${
+        className={`px-6 py-3 rounded-lg font-medium ${
           isGenerating
             ? "bg-gray-300 text-gray-600 cursor-not-allowed"
             : "bg-blue-600 text-white hover:bg-blue-700"
         }`}
       >
         {isGenerating ? (
-          <>
+          <span className="flex items-center">
             <svg
               className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
               xmlns="http://www.w3.org/2000/svg"
@@ -133,16 +136,12 @@ const ImprovedReportGenerator = ({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            {generationProgress < 100 ? (
-              <span>
-                Generating PDF ({generationProgress}%) - {currentPage}
-              </span>
-            ) : (
-              <span>Saving PDF...</span>
-            )}
-          </>
+            {generationProgress < 100
+              ? `Generating PDF (${generationProgress}%) - ${currentPage}`
+              : "Saving PDF..."}
+          </span>
         ) : isComplete ? (
-          <>
+          <span className="flex items-center">
             <svg
               className="h-5 w-5 mr-2 text-white"
               fill="none"
@@ -155,9 +154,9 @@ const ImprovedReportGenerator = ({
               <path d="M5 13l4 4L19 7"></path>
             </svg>
             PDF Report Ready!
-          </>
+          </span>
         ) : (
-          <>
+          <span className="flex items-center">
             <svg
               className="mr-2 h-5 w-5"
               fill="none"
@@ -172,7 +171,7 @@ const ImprovedReportGenerator = ({
               />
             </svg>
             Generate PDF Report
-          </>
+          </span>
         )}
       </button>
 
@@ -182,7 +181,6 @@ const ImprovedReportGenerator = ({
           position: "absolute",
           left: "-9999px",
           top: 0,
-          opacity: 0, // Make invisible but render
           width: "297mm", // A4 landscape width
           height: "210mm", // A4 landscape height
           overflow: "hidden",
@@ -190,42 +188,52 @@ const ImprovedReportGenerator = ({
         ref={reportRef}
       >
         {/* Cover Page */}
-        <div className="report-page" data-page-name="Cover Page">
+        <div
+          className="page"
+          data-page-name="Cover Page"
+          style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
+        >
           <ReportCoverPage clientData={clientData} />
         </div>
 
-        {/* Executive Summary */}
-        <div className="report-page" data-page-name="Executive Summary">
+        {/* Executive Summary - Page 1 */}
+        <div
+          className="page"
+          data-page-name="Executive Summary 1"
+          style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
+        >
           <ReportExecutiveSummary clientData={clientData} />
         </div>
 
         {/* Cloud Maturity Assessment */}
-        <div className="report-page" data-page-name="Maturity Assessment">
+        <div
+          className="page"
+          data-page-name="Maturity Assessment"
+          style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
+        >
           <ReportMaturityAssessment clientData={clientData} />
         </div>
 
-        {/* Category Breakdown */}
-        <div className="report-page" data-page-name="Category Details">
-          <ReportCategoryBreakdown clientData={clientData} />
-        </div>
-
-        {/* Recommendations */}
-        <div className="report-page" data-page-name="Recommendations">
+        {/* Recommendations & Action Plan */}
+        <div
+          className="page"
+          data-page-name="Recommendations"
+          style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
+        >
           <ReportRecommendations clientData={clientData} />
         </div>
 
-        {/* Detailed Results */}
-        <div className="report-page" data-page-name="Detailed Results">
-          <ReportDetailedResults clientData={clientData} />
-        </div>
-
-        {/* End Page */}
-        <div className="report-page" data-page-name="Contact Information">
-          <ReportEndPage clientData={clientData} />
+        {/* End Cover Page */}
+        <div
+          className="page"
+          data-page-name="End Page"
+          style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
+        >
+          <ReportEndCoverPage clientData={clientData} />
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
-export default ImprovedReportGenerator
+export default ReportGenerator
