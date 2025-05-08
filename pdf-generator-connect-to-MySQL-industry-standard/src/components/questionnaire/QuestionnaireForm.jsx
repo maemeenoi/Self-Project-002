@@ -73,9 +73,13 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
         const response = await fetch("/api/questionnaire-options")
         if (response.ok) {
           const data = await response.json()
+          console.log("Rating options fetched:", data)
           setRatingOptions(data)
         } else {
-          console.error("Failed to fetch rating options")
+          console.error(
+            "Failed to fetch rating options:",
+            await response.text()
+          )
         }
       } catch (error) {
         console.error("Error fetching rating options:", error)
@@ -86,10 +90,18 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
   }, [])
 
   // Handle when a rating changes
-  const handleRatingChange = (questionId, value) => {
+  const handleRatingChange = (questionId, value, optionId, standardText) => {
+    console.log(
+      `Rating changed for question ${questionId}: value=${value}, optionId=${optionId}, text=${standardText}`
+    )
     setAnswers((prev) => ({
       ...prev,
-      [questionId]: { score: parseInt(value, 10) },
+      [questionId]: {
+        score: parseInt(value, 10),
+        questionId: questionId,
+        optionId: optionId,
+        standardText: standardText, // Store the standard text
+      },
     }))
   }
 
@@ -165,15 +177,25 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
   const handleSubmit = () => {
     // Format answers for submission
     const formattedAnswers = Object.entries(answers).map(
-      ([questionId, answer]) => ({
-        questionId: parseInt(questionId, 10),
-        score: answer.score,
-        // FIX: Change from "text" to "responseText" to match API expectations
-        responseText: answer.text,
-      })
+      ([questionId, answer]) => {
+        // Create the answer object
+        const formatted = {
+          questionId: parseInt(questionId, 10),
+          score: answer.score,
+          text: answer.text,
+          standardText: answer.standardText,
+        }
+
+        // Only include optionId if it exists
+        if (answer.optionId) {
+          formatted.optionId = answer.optionId
+        }
+
+        return formatted
+      }
     )
 
-    console.log("Submitting formatted answers:", formattedAnswers)
+    console.log("Submitting answers:", formattedAnswers)
     onSubmit(formattedAnswers)
   }
 
@@ -227,7 +249,7 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
                 )}
             </h3>
 
-            {/* Different question types based on Category */}
+            {/* Different question types based on Category and QuestionID */}
             {currentCategory === "Client Information" ? (
               // Form inputs for client information
               <div className="mt-4">
@@ -261,6 +283,19 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
                   />
                 )}
               </div>
+            ) : question.QuestionID === 20 ? (
+              // Special case: Question 20 is a text input (opinion answer)
+              <div className="mt-4">
+                <textarea
+                  value={answers[question.QuestionID]?.text || ""}
+                  onChange={(e) =>
+                    handleTextChange(question.QuestionID, e.target.value)
+                  }
+                  placeholder="Enter your thoughts here..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  rows={4}
+                ></textarea>
+              </div>
             ) : [
                 "Cloud Strategy",
                 "Cloud Cost",
@@ -274,78 +309,47 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
                   Select the most appropriate option:
                 </p>
                 <div className="space-y-2">
-                  {ratingOptions[question.QuestionID]
-                    ? // Use options from database
-                      ratingOptions[question.QuestionID].map((option) => (
-                        <label
-                          key={option.score}
-                          className={`flex items-center p-3 rounded-lg cursor-pointer ${
+                  {ratingOptions[question.QuestionID] ? (
+                    // Use options from database with StandardText
+                    ratingOptions[question.QuestionID].map((option) => (
+                      <label
+                        key={option.id || option.score}
+                        className={`flex items-center p-3 rounded-lg cursor-pointer ${
+                          answers[question.QuestionID]?.score === option.score
+                            ? "bg-blue-100 border border-blue-300"
+                            : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`question_${question.QuestionID}`}
+                          value={option.score}
+                          checked={
                             answers[question.QuestionID]?.score === option.score
-                              ? "bg-blue-100 border border-blue-300"
-                              : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name={`question_${question.QuestionID}`}
-                            value={option.score}
-                            checked={
-                              answers[question.QuestionID]?.score ===
-                              option.score
-                            }
-                            onChange={() =>
-                              handleRatingChange(
-                                question.QuestionID,
-                                option.score
-                              )
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                          />
-                          <div className="ml-3">
-                            <span className="text-sm font-medium text-gray-900">
-                              {option.score}. {option.text}
-                            </span>
-                          </div>
-                        </label>
-                      ))
-                    : // Fallback to generic options
-                      [1, 2, 3, 4, 5].map((rating) => (
-                        <label
-                          key={rating}
-                          className={`flex items-center p-3 rounded-lg cursor-pointer ${
-                            answers[question.QuestionID]?.score === rating
-                              ? "bg-blue-100 border border-blue-300"
-                              : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name={`question_${question.QuestionID}`}
-                            value={rating}
-                            checked={
-                              answers[question.QuestionID]?.score === rating
-                            }
-                            onChange={() =>
-                              handleRatingChange(question.QuestionID, rating)
-                            }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                          />
-                          <div className="ml-3">
-                            <span className="text-sm font-medium text-gray-900">
-                              {rating}.{" "}
-                              {rating === 1
-                                ? "Poor"
-                                : rating === 2
-                                ? "Below Average"
-                                : rating === 3
-                                ? "Average"
-                                : rating === 4
-                                ? "Good"
-                                : "Excellent"}
-                            </span>
-                          </div>
-                        </label>
-                      ))}
+                          }
+                          onChange={() =>
+                            handleRatingChange(
+                              question.QuestionID,
+                              option.score,
+                              option.id,
+                              option.text // Pass StandardText
+                            )
+                          }
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                        />
+                        <div className="ml-3">
+                          <span className="text-sm font-medium text-gray-900">
+                            {option.score}. {option.text}
+                          </span>
+                        </div>
+                      </label>
+                    ))
+                  ) : (
+                    // If no options are available, show loading message
+                    <div className="text-sm text-gray-500 italic">
+                      Loading options...
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

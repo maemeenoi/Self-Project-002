@@ -21,7 +21,7 @@
     "highcharts-react-official": "^3.2.2",
     "html2canvas-pro": "^1.5.8",
     "jspdf": "^3.0.1",
-    "mysql2": "^3.14.0",
+    "mysql2": "^3.14.1",
     "next": "15.3.0",
     "nodemailer": "^6.10.1",
     "react": "^19.0.0",

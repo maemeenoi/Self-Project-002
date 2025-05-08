@@ -20,6 +20,8 @@ export async function GET(request) {
     // Validate token
     const tokenData = await validateToken(token)
 
+    console.log("Token validation result:", tokenData ? "Valid" : "Invalid")
+
     if (!tokenData) {
       return NextResponse.redirect(
         new URL("/login?error=invalid_token", request.url)
@@ -29,19 +31,17 @@ export async function GET(request) {
     // Check if client exists
     let clientId = tokenData.ClientID
     let clientName
-    let contactName
     let email = tokenData.Email
 
     if (clientId) {
-      // Client exists, get their name
+      // Client exists, get their name - only get columns that exist in the table
       const clients = await query(
-        "SELECT ClientName, ContactName FROM Clients WHERE ClientID = ?",
+        "SELECT ClientName FROM Clients WHERE ClientID = ?",
         [clientId]
       )
 
       if (clients.length > 0) {
         clientName = clients[0].ClientName
-        contactName = clients[0].ContactName
 
         // Update last login date
         await query(
@@ -59,13 +59,12 @@ export async function GET(request) {
       const clientNameFromEmail = email.split("@")[0]
 
       const insertResult = await query(
-        "INSERT INTO Clients (ClientName, ContactName, ContactEmail, AuthMethod, LastLoginDate) VALUES (?, ?, ?, 'magic_link', NOW())",
-        [clientNameFromEmail, clientNameFromEmail, email] // Use email username as both ClientName and ContactName initially
+        "INSERT INTO Clients (ClientName, ContactEmail, AuthMethod, LastLoginDate) VALUES (?, ?, 'magic_link', NOW())",
+        [clientNameFromEmail, email] // Use email username as ClientName initially
       )
 
       clientId = insertResult.insertId
       clientName = clientNameFromEmail
-      contactName = clientNameFromEmail
 
       // Update the magic link record with the new client ID
       if (tokenData.TokenID) {
@@ -81,7 +80,6 @@ export async function GET(request) {
       userId: clientId,
       clientId: clientId,
       clientName: clientName || email.split("@")[0],
-      contactName: contactName || email.split("@")[0],
       email: email,
       isAuthenticated: true,
       loginMethod: "magic_link",

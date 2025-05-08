@@ -2,36 +2,78 @@
 import { NextResponse } from "next/server"
 import { query } from "../../../../lib/db"
 
-export async function GET(request, context) {
+export async function GET(request, { params }) {
   try {
-    // Correctly extract the clientId parameter
-    const clientId = context.params.clientId
+    const clientId = params.clientId
+    console.log("Fetching responses for client ID:", clientId)
 
-    // First fetch the client information
-    const clientInfo = await query(
-      "SELECT ClientID, ClientName, ContactName, ContactEmail, CompanySize, IndustryType FROM Clients WHERE ClientID = ?",
+    if (!clientId) {
+      return NextResponse.json(
+        { error: "Client ID is required" },
+        { status: 400 }
+      )
+    }
+
+    // First get the client info - using query instead of directQuery to handle parameters
+    console.log("Fetching client info...")
+    const clientResults = await query(
+      `SELECT ClientID, ClientName, OrganizationName, ContactEmail, CompanySize, IndustryType
+       FROM Clients WHERE ClientID = ?`,
       [clientId]
     )
 
-    // Then fetch the responses
-    const responses = await query(
-      "SELECT * FROM Responses WHERE ClientID = ?",
+    console.log("Client query result:", clientResults)
+
+    if (clientResults.length === 0) {
+      return NextResponse.json({ error: "Client not found" }, { status: 404 })
+    }
+
+    const clientInfo = clientResults[0]
+    console.log("Client info:", clientInfo)
+
+    // Then get their responses
+    console.log("Fetching responses...")
+
+    // First check if there are any responses at all
+    const responseCount = await query(
+      `SELECT COUNT(*) as count FROM Responses WHERE ClientID = ?`,
       [clientId]
     )
 
-    // Log for debugging
-    console.log("Enhanced responses prepared:", {
-      responseCount: responses.length,
-      clientInfo: clientInfo.length > 0 ? clientInfo[0] : null,
-    })
+    console.log("Response count:", responseCount[0].count)
 
-    // Return combined data
+    if (responseCount[0].count === 0) {
+      return NextResponse.json({
+        clientInfo,
+        responses: [],
+      })
+    }
+
+    // Now fetch the actual responses with a join to Questions
+    const responseResults = await query(
+      `SELECT r.ResponseID, r.ClientID, r.QuestionID, r.ResponseText, r.Score, r.ResponseDate,
+              q.QuestionText, q.Category, q.StandardText
+       FROM Responses r
+       LEFT JOIN Questions q ON r.QuestionID = q.QuestionID
+       WHERE r.ClientID = ?
+       ORDER BY r.QuestionID`,
+      [clientId]
+    )
+
+    console.log(
+      `Found ${responseResults.length} responses for client ${clientId}`
+    )
+
+    // Return both client info and their responses
     return NextResponse.json({
-      responses: responses,
-      clientInfo: clientInfo.length > 0 ? clientInfo[0] : null,
+      clientInfo,
+      responses: responseResults,
     })
   } catch (error) {
     console.error("Error fetching responses:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to fetch responses", details: error.message },
+      { status: 500 }
+    )
   }
 }

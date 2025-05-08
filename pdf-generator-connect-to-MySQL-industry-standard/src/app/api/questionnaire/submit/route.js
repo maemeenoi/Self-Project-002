@@ -7,7 +7,14 @@ import { sendMagicLinkEmail } from "../../../../lib/emailUtils"
 export async function POST(request) {
   try {
     const data = await request.json()
-    const { answers, email } = data
+    const { answers, email, organizationName, companySize } = data
+
+    console.log("Submission data:", {
+      answersCount: answers?.length,
+      email,
+      organizationName,
+      companySize,
+    })
 
     if (!answers || !email) {
       return NextResponse.json(
@@ -16,6 +23,25 @@ export async function POST(request) {
       )
     }
 
+    // Extract key client information from the form responses
+    let clientName = ""
+    let industry = ""
+    let clientCompanySize = companySize || ""
+    let clientOrgName = organizationName || ""
+
+    // Extract client info from answers
+    answers.forEach((answer) => {
+      if (answer.questionId === 1 && answer.text) {
+        clientName = answer.text
+      } else if (answer.questionId === 2 && answer.text) {
+        clientOrgName = answer.text || clientOrgName
+      } else if (answer.questionId === 4 && answer.text) {
+        clientCompanySize = answer.text || clientCompanySize
+      } else if (answer.questionId === 5 && answer.text) {
+        industry = answer.text
+      }
+    })
+
     // Check if this email already has a client record
     const existingClients = await query(
       "SELECT * FROM Clients WHERE ContactEmail = ?",
@@ -23,80 +49,129 @@ export async function POST(request) {
     )
 
     let clientId
-    let clientName = ""
-    let industryType = null
-    let companySize = null
-    let contactName = null
-
-    // Extract client information from answers
-    const clientInfoMap = {
-      1: (value) => {
-        contactName = value
-      },
-      2: (value) => {
-        clientName = value
-      },
-      4: (value) => {
-        companySize = value
-      },
-      5: (value) => {
-        industryType = value
-      },
-    }
-
-    // Process answers to extract client information
-    answers.forEach((answer) => {
-      if (clientInfoMap[answer.questionId] && answer.responseText) {
-        clientInfoMap[answer.questionId](answer.responseText)
-      }
-    })
-
-    // If client name is still empty, use email username as fallback
-    if (!clientName) {
-      clientName = email.split("@")[0]
-    }
 
     if (existingClients.length > 0) {
-      // Use existing client
+      // Use existing client but update details from the form
       clientId = existingClients[0].ClientID
 
-      // Update the existing client with new information
-      await query(
-        `UPDATE Clients 
-         SET ClientName = ?, 
-             IndustryType = ?, 
-             CompanySize = ?, 
-             ContactName = ? 
-         WHERE ClientID = ?`,
-        [clientName, industryType, companySize, contactName, clientId]
-      )
-    } else {
-      // Create a new client record with all the information
-      const insertResult = await query(
-        `INSERT INTO Clients 
-         (ClientName, ContactEmail, IndustryType, CompanySize, ContactName, CreatedDate) 
-         VALUES (?, ?, ?, ?, ?, NOW())`,
-        [clientName, email, industryType, companySize, contactName]
-      )
+      // Build the update SQL with all the fields we want to update
+      const updateSql = `
+        UPDATE Clients 
+        SET 
+          ClientName = CASE WHEN ? != '' THEN ? ELSE ClientName END,
+          OrganizationName = CASE WHEN ? != '' THEN ? ELSE OrganizationName END,
+          CompanySize = CASE WHEN ? != '' THEN ? ELSE CompanySize END,
+          IndustryType = CASE WHEN ? != '' THEN ? ELSE IndustryType END,
+          LastLoginDate = NOW()
+        WHERE ClientID = ?
+      `
+      const updateParams = [
+        clientName,
+        clientName,
+        clientOrgName,
+        clientOrgName,
+        clientCompanySize,
+        clientCompanySize,
+        industry,
+        industry,
+        clientId,
+      ]
 
+      console.log("Updating client with ID:", clientId)
+      await query(updateSql, updateParams)
+    } else {
+      // Create a new client record with all details
+      const insertSql = `
+        INSERT INTO Clients (
+          ClientName, 
+          OrganizationName, 
+          ContactEmail, 
+          CompanySize,
+          IndustryType, 
+          AuthMethod,
+          CreatedDate
+        ) VALUES (?, ?, ?, ?, ?, 'magic_link', NOW())
+      `
+
+      // Use email username as fallback if name not provided
+      const username = clientName || email.split("@")[0]
+
+      const insertParams = [
+        username,
+        clientOrgName || username,
+        email,
+        clientCompanySize || null,
+        industry || null,
+      ]
+
+      console.log("Creating new client with name:", username)
+      const insertResult = await query(insertSql, insertParams)
       clientId = insertResult.insertId
     }
 
+    console.log("Using client ID:", clientId)
+
     // Now we have a valid clientId, store responses
     for (const answer of answers) {
-      // Make sure all parameters are properly defined, using null for undefined values
+      // Make sure all parameters are properly defined
       const questionId = answer.questionId || null
-      const responseText = answer.responseText || null
+      const responseText = answer.text || null
       const score = answer.score !== undefined ? answer.score : null
 
-      // Only proceed if we have at least a questionId
-      if (questionId !== null) {
-        await query(
-          `INSERT INTO Responses 
-           (ClientID, QuestionID, ResponseText, Score, TempEmail) 
-           VALUES (?, ?, ?, ?, ?)`,
-          [clientId, questionId, responseText, score, email]
-        )
+      console.log("Processing answer:", { questionId, responseText, score })
+
+      if (questionId === null) {
+        console.warn("Skipping answer with null questionId")
+        continue
+      }
+
+      // For client info questions (1-5)
+      if (questionId <= 5) {
+        console.log("Handling client info question:", questionId)
+        // Save client info questions directly - they use ResponseText
+        try {
+          await query(
+            `INSERT INTO Responses 
+             (ClientID, QuestionID, ResponseText, ResponseDate) 
+             VALUES (?, ?, ?, NOW())`,
+            [clientId, questionId, responseText]
+          )
+          console.log("Saved client info response for question", questionId)
+        } catch (error) {
+          console.error("Error saving client response:", error)
+        }
+      }
+      // For assessment questions with scores (6-19)
+      else if (questionId >= 6 && questionId <= 19 && score !== null) {
+        console.log("Handling assessment question:", questionId)
+        // Save assessment responses with Score
+        try {
+          await query(
+            `INSERT INTO Responses 
+             (ClientID, QuestionID, Score, ResponseDate) 
+             VALUES (?, ?, ?, NOW())`,
+            [clientId, questionId, score]
+          )
+          console.log("Saved assessment response for question", questionId)
+        } catch (error) {
+          console.error("Error saving assessment response:", error)
+        }
+      }
+      // For question 20 (feedback) - text only
+      else if (questionId === 20) {
+        console.log("Handling feedback question:", questionId)
+        // Save feedback response
+        try {
+          await query(
+            `INSERT INTO Responses 
+             (ClientID, QuestionID, ResponseText, ResponseDate) 
+             VALUES (?, ?, ?, NOW())`,
+            [clientId, questionId, responseText]
+          )
+          console.log("Saved feedback response for question", questionId)
+        } catch (error) {
+          console.error("Error saving feedback response:", error)
+        }
       }
     }
 
@@ -107,11 +182,13 @@ export async function POST(request) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
     const magicLink = `${baseUrl}/api/auth/magic-link?token=${token}`
 
+    console.log("Generated magic link for email:", email)
+
     // Send the email with the magic link
     const emailResult = await sendMagicLinkEmail(email, magicLink)
 
     // Return appropriate response based on email sending success
-    if (emailResult.success) {
+    if (emailResult && emailResult.success) {
       return NextResponse.json({
         success: true,
         message:
@@ -119,14 +196,17 @@ export async function POST(request) {
         emailSent: true,
       })
     } else {
-      console.error("Email sending failed:", emailResult.error)
+      console.error(
+        "Email sending failed:",
+        emailResult ? emailResult.error : "Unknown error"
+      )
       // Return success for the submission but flag the email failure
       return NextResponse.json({
         success: true,
         message:
           "Assessment submitted successfully, but there was an issue sending the email.",
         emailSent: false,
-        emailError: emailResult.error,
+        emailError: emailResult ? emailResult.error : "Unknown error",
       })
     }
   } catch (error) {

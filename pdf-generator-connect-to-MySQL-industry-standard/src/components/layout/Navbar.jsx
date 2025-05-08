@@ -19,7 +19,7 @@ export default function Navbar() {
     isLandingPage ||
     pathname === "/login" ||
     pathname === "/register" ||
-    pathname === "/questionnaire" ||
+    // pathname === "/questionnaire" ||
     pathname === "/submission-complete"
   ) {
     return null
@@ -165,6 +165,9 @@ export default function Navbar() {
                 <div className="ml-3">
                   <div className="text-base font-medium text-gray-800">
                     {user?.clientName || "User"}
+                  </div>
+                  <div className="text-sm font-medium text-gray-500">
+                    {user?.clientOrgName || ""}
                   </div>
                   <div className="text-sm font-medium text-gray-500">
                     {user?.email || ""}

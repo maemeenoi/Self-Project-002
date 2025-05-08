@@ -18,13 +18,12 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  AreaChart,
-  Area,
 } from "recharts"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import ReportGenerator from "../../components/report/ReportGenerator"
 import GaugeMeter from "../../components/GaugeMeter"
+import FlowDiagram from "@/components/FlowDiagram"
 
 export default function Dashboard() {
   const [clients, setClients] = useState([])
@@ -36,6 +35,13 @@ export default function Dashboard() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
   const [isReportComplete, setIsReportComplete] = useState(false)
   const [user, setUser] = useState(null)
+  const [clientInfo, setClientInfo] = useState({
+    clientName: "",
+    organizationName: "",
+    email: "",
+    industry: "",
+    companySize: "",
+  })
   const router = useRouter()
 
   // Check authentication
@@ -87,61 +93,162 @@ export default function Dashboard() {
     }
   }, [user])
 
-  // Fetch industry standards
+  // Fetch industry standards with debugging
   useEffect(() => {
     async function fetchIndustryStandards() {
       try {
+        console.log("Fetching industry standards...")
         const response = await fetch("/api/industry-standards")
+
+        if (!response.ok) {
+          console.error(
+            "Industry standards API returned error:",
+            response.status,
+            response.statusText
+          )
+          return
+        }
+
         const data = await response.json()
+        console.log(
+          `Received ${data.length} industry standards:`,
+          data.slice(0, 2)
+        )
         setIndustryStandards(data)
       } catch (error) {
-        console.error(error)
+        console.error("Error fetching industry standards:", error)
       }
     }
 
     fetchIndustryStandards()
   }, [])
 
-  // Fetch responses when a client is selected
+  // Fetch responses when a client is selected with enhanced debugging
   useEffect(() => {
-    if (!selectedClient || industryStandards.length === 0) return
+    if (!selectedClient) {
+      console.log("No client selected, skipping response fetch")
+      return
+    }
+
+    if (industryStandards.length === 0) {
+      console.log("No industry standards loaded yet, waiting...")
+      return
+    }
 
     async function fetchResponses() {
       setIsLoading(true)
+      setError(null)
+
       try {
+        console.log(
+          `Fetching responses for client ID: ${selectedClient.ClientID}`
+        )
         // Fetch responses with client info included
         const response = await fetch(
           `/api/responses/${selectedClient.ClientID}`
         )
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error(
+            "Responses API returned error:",
+            response.status,
+            errorText
+          )
+          setError(
+            `Failed to load responses: ${response.status} ${response.statusText}`
+          )
+          setIsLoading(false)
+          return
+        }
+
         const data = await response.json()
-        console.log("API response:", data)
+        console.log("Responses API returned data:", {
+          clientInfo: data.clientInfo,
+          responsesCount: data.responses?.length || 0,
+        })
+
+        // Check if we have valid responses data structure
+        if (!data.responses) {
+          console.error("Invalid response format - missing responses array")
+          setError("Invalid response data format")
+          setIsLoading(false)
+          return
+        }
 
         // Check if we have responses
-        if (data.responses && data.responses.length > 0) {
-          // Prepare data for processing
-          const responseData = data.responses
-
-          // Attach client info directly to responses array
-          responseData.ClientInfo = data.clientInfo
-
-          // Process the data
-          const module = await import("../../lib/assessmentUtils")
-          const processed = module.default.processAssessmentData(
-            responseData,
-            industryStandards
-          )
-
-          console.log("Processed data:", processed)
-          setProcessedData(processed)
-        } else {
-          // No responses found
+        if (data.responses.length === 0) {
+          console.log("No responses found for this client")
           setError(
             "No assessment data found. Please complete the questionnaire first."
           )
+          setIsLoading(false)
+          return
         }
+
+        // Check responses data structure
+        const assessmentQuestions = data.responses.filter(
+          (r) => r.QuestionID >= 6 && r.QuestionID <= 19
+        )
+        console.log(
+          `Found ${assessmentQuestions.length} assessment responses (questions 6-19)`
+        )
+
+        if (assessmentQuestions.length === 0) {
+          console.error("No assessment questions found in responses")
+          setError(
+            "No assessment data found. Please complete the assessment questions."
+          )
+          setIsLoading(false)
+          return
+        }
+
+        // Prepare data for processing
+        const responseData = data.responses
+
+        // Attach client info directly to responses array
+        responseData.ClientInfo = data.clientInfo
+
+        // Log industry standards before processing
+        console.log(
+          `Using ${industryStandards.length} industry standards for comparison`
+        )
+
+        console.log("Starting data processing...")
+        // Process the data
+        const module = await import("../../lib/assessmentUtils")
+        const processed = module.default.processAssessmentData(
+          responseData,
+          industryStandards
+        )
+
+        console.log("Data processing result:", processed ? "Success" : "Failed")
+
+        if (!processed) {
+          setError("Failed to process assessment data")
+          setIsLoading(false)
+          return
+        }
+
+        // Verify key processed data elements
+        console.log("Verifying processed data structure")
+
+        if (!processed.cloudMaturityAssessment) {
+          console.error("Missing cloudMaturityAssessment in processed data")
+        } else {
+          console.log("Cloud maturity assessment data present")
+        }
+
+        if (!processed.recommendations) {
+          console.error("Missing recommendations in processed data")
+        } else {
+          console.log("Recommendations data present")
+        }
+
+        setProcessedData(processed)
       } catch (error) {
-        console.error("Error fetching data:", error)
-        setError("Failed to load responses: " + error.message)
+        console.error("Error fetching or processing data:", error)
+        setError("Error: " + error.message)
       } finally {
         setIsLoading(false)
       }
@@ -238,67 +345,30 @@ export default function Dashboard() {
     }
   }
 
+  // Update the getOrganizationName function
+  const getOrganizationName = () => {
+    if (selectedClient?.OrganizationName) {
+      return selectedClient.OrganizationName
+    }
+    if (processedData?.reportMetadata?.organizationName) {
+      return processedData.reportMetadata.organizationName
+    }
+    return user?.organization || "Unknown Organization"
+  }
+
+  // Add a function to get company size
+  const getCompanySize = () => {
+    if (selectedClient?.CompanySize) {
+      return selectedClient.CompanySize
+    }
+    if (processedData?.reportMetadata?.clientSize) {
+      return processedData.reportMetadata.clientSize
+    }
+    return ""
+  }
+
   return (
     <div className="flex min-h-screen bg-base-200" data-theme="corporate">
-      {/* Top Navigation Bar */}
-      <nav className="navbar bg-base-100 fixed top-0 z-50 shadow-md p-0 flex justify-between h-16">
-        {/* Logo and Organization Name */}
-        <div className="flex items-center gap-2 px-4">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <img
-              src="/logo.png"
-              alt="MakeStuffGo Logo"
-              className="h-8 w-auto"
-            />
-            <span className="font-bold text-lg text-primary">
-              {"MakeStuffGo"}
-            </span>
-          </Link>
-        </div>
-
-        {/* Profile Dropdown */}
-        <div className="flex items-center gap-4 pr-4">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-700">
-              {processedData?.reportMetadata?.clientName ||
-                user?.clientName ||
-                selectedClient?.ContactName ||
-                "User"}
-            </p>
-            <p className="text-xs text-gray-500">
-              {processedData?.reportMetadata?.organizationName ||
-                selectedClient?.ClientName ||
-                "Organization"}
-            </p>
-          </div>
-
-          <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
-              <div className="w-10 rounded-full bg-primary text-white flex items-center justify-center">
-                {(
-                  processedData?.reportMetadata?.clientName ||
-                  user?.clientName ||
-                  selectedClient?.ContactName ||
-                  "U"
-                ).charAt(0)}
-              </div>
-            </label>
-            <ul
-              tabIndex={0}
-              className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
-            >
-              <li>
-                <a>Profile</a>
-              </li>
-              <div className="divider my-0"></div>
-              <li>
-                <a href="/api/auth/logout">Sign Out</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content */}
       <div className="flex pt-16 min-h-screen bg-base-200 w-full">
         <main className="flex-1 p-6 overflow-y-auto">
@@ -330,32 +400,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Client selector - Only shown for admin users */}
-          {/* {user && !user.clientId && clients.length > 0 && (
-            <div className="mb-6">
-              <select
-                className="select select-bordered w-full max-w-xs"
-                onChange={(e) => {
-                  const selectedId = e.target.value
-                  const client = clients.find(
-                    (c) => c.ClientID.toString() === selectedId
-                  )
-                  setSelectedClient(client || null)
-                }}
-                value={selectedClient?.ClientID || ""}
-              >
-                <option value="" disabled>
-                  Select a client
-                </option>
-                {clients.map((client) => (
-                  <option key={client.ClientID} value={client.ClientID}>
-                    {client.ClientName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )} */}
-
           {isLoading && (
             <div className="flex justify-center items-center h-64">
               <div className="loading loading-spinner loading-lg"></div>
@@ -375,57 +419,215 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* User Overview Card */}
+          <div className="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 className="text-lg font-bold text-gray-700 mb-4">
+              User Overview
+            </h2>
+
+            <div className="flex flex-col md:flex-row">
+              {/* Left side - Basic Info */}
+              <div className="flex-1 pr-4">
+                <div className="mb-4">
+                  <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-2xl border border-blue-200 mx-auto md:mx-0">
+                    {processedData?.reportMetadata?.clientName?.charAt(0) ||
+                      user?.clientName?.charAt(0) ||
+                      "U"}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Name</h3>
+                    <p className="font-semibold text-gray-800">
+                      {processedData?.reportMetadata?.clientName ||
+                        user?.clientName ||
+                        "Unknown"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Organization
+                    </h3>
+                    <p className="font-semibold text-gray-800">
+                      {processedData?.reportMetadata?.organizationName ||
+                        "Unknown Organization"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Email</h3>
+                    <p className="font-semibold text-gray-800">
+                      {user?.email || "Not provided"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side - Additional Info */}
+              <div className="flex-1 pt-4 md:pt-0 md:pl-4 md:border-l border-gray-200">
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Industry
+                    </h3>
+                    <p className="font-semibold text-gray-800">
+                      {processedData?.reportMetadata?.industryType ||
+                        "Not specified"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Company Size
+                    </h3>
+                    <p className="font-semibold text-gray-800">
+                      {processedData?.reportMetadata?.clientSize ||
+                        "Not specified"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Assessment Date
+                    </h3>
+                    <p className="font-semibold text-gray-800">
+                      {/* Use a fixed date format that will be consistent between server and client */}
+                      {processedData?.reportMetadata?.reportDate || "Today"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Overall Score
+                    </h3>
+                    <div className="flex items-center">
+                      <span className="font-bold text-xl text-blue-600 mr-2">
+                        {processedData?.cloudMaturityAssessment?.overallScore?.toFixed(
+                          1
+                        ) || "N/A"}
+                      </span>
+                      <span className="text-sm text-gray-600">/ 5.0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Maturity Level Badge */}
+            <div className="mt-5 pt-4 border-t border-gray-200">
+              <div className="flex items-center">
+                <div className="w-full">
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">
+                    Current Maturity Level
+                  </h3>
+                  <div className="flex items-center">
+                    <div
+                      className={`px-4 py-1 rounded-full font-medium text-sm ${
+                        processedData?.cloudMaturityAssessment?.currentLevel ===
+                        "Initial"
+                          ? "bg-red-100 text-red-800"
+                          : processedData?.cloudMaturityAssessment
+                              ?.currentLevel === "Developing"
+                          ? "bg-orange-100 text-orange-800"
+                          : processedData?.cloudMaturityAssessment
+                              ?.currentLevel === "Defined"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : processedData?.cloudMaturityAssessment
+                              ?.currentLevel === "Advanced"
+                          ? "bg-blue-100 text-blue-800"
+                          : processedData?.cloudMaturityAssessment
+                              ?.currentLevel === "Optimized"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {processedData?.cloudMaturityAssessment?.currentLevel ||
+                        "Not Available"}
+                    </div>
+                    <Link
+                      href="/questionnaire"
+                      className="ml-auto text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      Take Assessment Again
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {!isLoading && processedData && (
             <>
-              {/* Improved Status Summary - Single card with progress bars */}
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
+              {/* Standards Compliance Summary - Three separate themed cards */}
+              <div className="mb-6">
                 <h2 className="text-lg font-bold text-gray-700 mb-4">
                   Standards Compliance Summary
                 </h2>
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium">Above Standard</span>
-                      <span className="text-green-600 font-bold">
+                  {/* Above Standard Card */}
+                  <div className="bg-white p-6 rounded-lg shadow border-t-4 border-green-500">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-gray-800">
+                        Above Standard
+                      </h3>
+                      <span className="text-green-600 text-2xl font-bold">
                         {countStandards("above")}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
                       <div
                         className="bg-green-500 h-2.5 rounded-full"
                         style={{ width: `${getProgressPercentage("above")}%` }}
                       ></div>
                     </div>
+                    <p className="text-sm text-gray-600">
+                      Areas where your organization exceeds industry benchmarks
+                    </p>
                   </div>
 
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium">Meets Standard</span>
-                      <span className="text-yellow-600 font-bold">
+                  {/* Meets Standard Card */}
+                  <div className="bg-white p-6 rounded-lg shadow border-t-4 border-yellow-500">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-gray-800">
+                        Meets Standard
+                      </h3>
+                      <span className="text-yellow-600 text-2xl font-bold">
                         {countStandards("meet")}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
                       <div
                         className="bg-yellow-500 h-2.5 rounded-full"
                         style={{ width: `${getProgressPercentage("meet")}%` }}
                       ></div>
                     </div>
+                    <p className="text-sm text-gray-600">
+                      Areas aligned with current industry standards
+                    </p>
                   </div>
 
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium">Below Standard</span>
-                      <span className="text-red-600 font-bold">
+                  {/* Below Standard Card */}
+                  <div className="bg-white p-6 rounded-lg shadow border-t-4 border-red-500">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-gray-800">
+                        Below Standard
+                      </h3>
+                      <span className="text-red-600 text-2xl font-bold">
                         {countStandards("below")}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
                       <div
                         className="bg-red-500 h-2.5 rounded-full"
                         style={{ width: `${getProgressPercentage("below")}%` }}
                       ></div>
                     </div>
+                    <p className="text-sm text-gray-600">
+                      Areas that need attention to meet industry benchmarks
+                    </p>
                   </div>
                 </div>
 
@@ -729,18 +931,20 @@ export default function Dashboard() {
                   </table>
                 </div>
               </div>
-            </>
-          )}
 
-          {!selectedClient && !isLoading && !user?.clientId && (
-            <div className="bg-white p-6 rounded-lg shadow text-center">
-              <h2 className="text-xl font-semibold text-gray-700">
-                Welcome to the Cloud Assessment Dashboard
-              </h2>
-              <p className="text-gray-600 mt-2">
-                Please select a client to view assessment data.
-              </p>
-            </div>
+              {/* Flow Diagram */}
+              <div className="bg-white p-6 rounded-lg shadow mb-6">
+                <h2 className="text-lg font-bold text-gray-700 mb-4">
+                  How It Works!
+                </h2>
+                <div className="flex justify-center">
+                  <FlowDiagram />
+                </div>
+                <div className="text-center mt-2 text-sm text-gray-500">
+                  A visual representation of the assessment process
+                </div>
+              </div>
+            </>
           )}
 
           {!processedData &&
