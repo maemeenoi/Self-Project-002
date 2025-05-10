@@ -3,9 +3,61 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useState } from "react"
+import { signIn } from "next-auth/react"
+import LoginModal from "../components/LoginModal"
+import GoogleSignInButton from "@/components/GoogleSignInButton"
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [returnEmail, setReturnEmail] = useState("")
+  const [isSendingLink, setIsSendingLink] = useState(false)
+  const [linkSent, setLinkSent] = useState(false)
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const [error, setError] = useState("")
+
+  const handleMagicLinkRequest = async (e) => {
+    e.preventDefault()
+
+    if (
+      !returnEmail ||
+      !returnEmail.includes("@") ||
+      !returnEmail.includes(".")
+    ) {
+      setError("Please enter a valid email address")
+      return
+    }
+
+    setIsSendingLink(true)
+    setError("")
+
+    try {
+      const response = await fetch("/api/auth/send-magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: returnEmail,
+          redirectUrl: "/dashboard",
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to send magic link")
+      }
+
+      setLinkSent(true)
+      setReturnEmail("")
+    } catch (error) {
+      console.error("Error sending magic link:", error)
+      setError(error.message)
+    } finally {
+      setIsSendingLink(false)
+    }
+  }
+
+  const handleGoogleSignIn = () => {
+    signIn("google", { callbackUrl: "/dashboard" })
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -21,23 +73,17 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Login
+              </button>
               <Link
                 href="/questionnaire"
                 className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700"
               >
                 Take Assessment
-              </Link>
-              <Link
-                href="/login"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Register
               </Link>
             </div>
             <div className="flex items-center sm:hidden">
@@ -68,28 +114,31 @@ export default function LandingPage() {
         {isMenuOpen && (
           <div className="sm:hidden">
             <div className="pt-2 pb-3 space-y-1">
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false)
+                  setIsLoginModalOpen(true)
+                }}
+                className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              >
+                Login
+              </button>
               <Link
                 href="/questionnaire"
                 className="block px-3 py-2 text-base font-medium text-green-600 hover:bg-green-50 hover:text-green-700"
               >
                 Take Assessment
               </Link>
-              <Link
-                href="/login"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="block px-3 py-2 text-base font-medium text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-              >
-                Register
-              </Link>
             </div>
           </div>
         )}
       </nav>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24">
@@ -111,22 +160,6 @@ export default function LandingPage() {
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 md:py-4 md:text-lg md:px-10"
                 >
                   Take Assessment
-                </Link>
-              </div>
-              <div className="mt-3 sm:mt-0 sm:ml-3">
-                <Link
-                  href="/login"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-                >
-                  Login
-                </Link>
-              </div>
-              <div className="mt-3 sm:mt-0 sm:ml-3">
-                <Link
-                  href="/register"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
-                >
-                  Register
                 </Link>
               </div>
             </div>
@@ -228,6 +261,108 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Returning User Section */}
+      <div
+        id="returning-user-section"
+        className="bg-white py-10 border-t border-gray-100"
+      >
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Already Completed an Assessment?
+            </h2>
+            <p className="mt-2 text-lg text-gray-600">
+              Access your cloud maturity dashboard
+            </p>
+          </div>
+
+          <div className="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
+            {linkSent ? (
+              <div className="text-center py-4">
+                <svg
+                  className="mx-auto h-12 w-12 text-green-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">
+                  Magic Link Sent!
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Check your email inbox for a link to access your dashboard.
+                </p>
+                <button
+                  onClick={() => setLinkSent(false)}
+                  className="mt-4 text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Send another link
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col md:flex-row md:space-x-6">
+                  {/* Google Sign-In Option */}
+                  <div className="flex-1 mb-6 md:mb-0">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                      Continue with Google
+                    </h3>
+                    <GoogleSignInButton
+                      text="Sign in with Google"
+                      callbackUrl="/dashboard"
+                    />
+                  </div>
+
+                  {/* Email Magic Link Option */}
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                      Get a Magic Link
+                    </h3>
+                    <form onSubmit={handleMagicLinkRequest}>
+                      <div className="flex">
+                        <input
+                          type="email"
+                          value={returnEmail}
+                          onChange={(e) => setReturnEmail(e.target.value)}
+                          placeholder="Enter your email"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          required
+                        />
+                        <button
+                          type="submit"
+                          disabled={isSendingLink}
+                          className={`px-4 py-2 border border-transparent rounded-r-md shadow-sm text-sm font-medium text-white ${
+                            isSendingLink
+                              ? "bg-gray-400"
+                              : "bg-blue-600 hover:bg-blue-700"
+                          }`}
+                        >
+                          {isSendingLink ? "Sending..." : "Send Link"}
+                        </button>
+                      </div>
+                    </form>
+                    {error && (
+                      <p className="mt-2 text-sm text-red-600">{error}</p>
+                    )}
+                  </div>
+                </div>
+
+                <p className="mt-6 text-xs text-gray-500 text-center">
+                  We'll send a secure link to your email that gives you instant
+                  access to your assessment results.
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>

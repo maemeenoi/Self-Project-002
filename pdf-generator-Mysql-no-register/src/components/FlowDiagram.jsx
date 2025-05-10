@@ -19,8 +19,8 @@ export default function FlowDiagram() {
                 1. Complete Assessment
               </h4>
               <p className="text-sm text-gray-600">
-                Answer questions about your cloud infrastructure without
-                creating an account
+                Answer questions about your cloud infrastructure with a simple
+                questionnaire
               </p>
             </div>
             <div className="absolute left-1/2 transform -translate-x-1/2 w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
@@ -59,7 +59,7 @@ export default function FlowDiagram() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                   />
                 </svg>
               </div>
@@ -69,10 +69,11 @@ export default function FlowDiagram() {
             </div>
             <div className="w-1/2 pl-8">
               <h4 className="font-semibold text-blue-600">
-                2. Receive Magic Link
+                2. Sign In with Google
               </h4>
               <p className="text-sm text-gray-600">
-                Provide your email and get instant access to your results
+                Simply click the Google Sign-In button for secure and quick
+                authentication
               </p>
             </div>
           </div>
@@ -82,7 +83,7 @@ export default function FlowDiagram() {
             <div className="w-1/2 pr-8 text-right">
               <h4 className="font-semibold text-blue-600">3. View Dashboard</h4>
               <p className="text-sm text-gray-600">
-                Click the magic link to instantly access your personalized
+                Instantly access your personalized cloud maturity assessment
                 dashboard
               </p>
             </div>
@@ -122,7 +123,7 @@ export default function FlowDiagram() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
               </div>
@@ -132,10 +133,11 @@ export default function FlowDiagram() {
             </div>
             <div className="w-1/2 pl-8">
               <h4 className="font-semibold text-blue-600">
-                4. Optional Password Setup
+                4. Generate PDF Report
               </h4>
               <p className="text-sm text-gray-600">
-                Create a password if you want to log in directly next time
+                Create a detailed PDF report of your assessment results to share
+                with stakeholders
               </p>
             </div>
           </div>

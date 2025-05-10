@@ -13,7 +13,7 @@ export async function GET(request) {
 
     if (!token) {
       return NextResponse.redirect(
-        new URL("/login?error=missing_token", request.url)
+        new URL("/questionnaire?error=missing_token", request.url)
       )
     }
 
@@ -24,7 +24,7 @@ export async function GET(request) {
 
     if (!tokenData) {
       return NextResponse.redirect(
-        new URL("/login?error=invalid_token", request.url)
+        new URL("/questionnaire?error=invalid_token", request.url)
       )
     }
 
@@ -34,9 +34,9 @@ export async function GET(request) {
     let email = tokenData.Email
 
     if (clientId) {
-      // Client exists, get their name - only get columns that exist in the table
+      // Client exists, get their name
       const clients = await query(
-        "SELECT ClientName FROM Clients WHERE ClientID = ?",
+        "SELECT ClientName, OrganizationName FROM Clients WHERE ClientID = ?",
         [clientId]
       )
 
@@ -45,7 +45,7 @@ export async function GET(request) {
 
         // Update last login date
         await query(
-          "UPDATE Clients SET LastLoginDate = NOW(), AuthMethod = CASE WHEN PasswordHash IS NOT NULL THEN 'both' ELSE 'magic_link' END WHERE ClientID = ?",
+          "UPDATE Clients SET LastLoginDate = NOW() WHERE ClientID = ?",
           [clientId]
         )
       } else {
@@ -57,10 +57,11 @@ export async function GET(request) {
     // Create client if it doesn't exist
     if (!clientId) {
       const clientNameFromEmail = email.split("@")[0]
+      const organizationName = clientNameFromEmail // Default organization name
 
       const insertResult = await query(
-        "INSERT INTO Clients (ClientName, ContactEmail, AuthMethod, LastLoginDate) VALUES (?, ?, 'magic_link', NOW())",
-        [clientNameFromEmail, email] // Use email username as ClientName initially
+        "INSERT INTO Clients (ClientName, OrganizationName, ContactEmail, AuthMethod, LastLoginDate) VALUES (?, ?, ?, 'magic_link', NOW())",
+        [clientNameFromEmail, organizationName, email]
       )
 
       clientId = insertResult.insertId
@@ -96,12 +97,12 @@ export async function GET(request) {
       path: "/",
     })
 
-    // Redirect to dashboard or specified redirect path
+    // Redirect to dashboard
     return NextResponse.redirect(new URL(redirectPath, request.url))
   } catch (error) {
     console.error("Magic link authentication error:", error)
     return NextResponse.redirect(
-      new URL("/login?error=server_error", request.url)
+      new URL("/questionnaire?error=server_error", request.url)
     )
   }
 }

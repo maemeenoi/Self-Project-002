@@ -76,10 +76,24 @@ export default function QuestionnairePage() {
   }, [router])
 
   const handleQuestionnaireSubmit = (formAnswers) => {
+    console.log("QuestionnaireForm submitted answers:", formAnswers)
+
+    // Check if formAnswers is valid
+    if (
+      !formAnswers ||
+      !Array.isArray(formAnswers) ||
+      formAnswers.length === 0
+    ) {
+      console.error(
+        "Invalid or empty answers received from QuestionnaireForm:",
+        formAnswers
+      )
+    }
+
+    // Store the answers in state
     setAnswers(formAnswers)
     setShowEmailStep(true)
   }
-
   const handleEmailSubmit = async (email) => {
     setIsSubmitting(true)
 
@@ -206,12 +220,6 @@ export default function QuestionnairePage() {
               >
                 Home
               </Link>
-              <Link
-                href="/register"
-                className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors duration-200"
-              >
-                Register
-              </Link>
             </div>
           </div>
         </div>
@@ -232,6 +240,7 @@ export default function QuestionnairePage() {
             <EmailStep
               onSubmit={handleEmailSubmit}
               isSubmitting={isSubmitting}
+              answers={answers} // Make sure this prop is being passed
             />
           ) : (
             <>

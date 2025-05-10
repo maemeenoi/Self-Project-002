@@ -1,4 +1,4 @@
-// src/app/api/questionnaire/submit/route.js
+// src/app/api/questionnaire/submit/route.js - Update the POST handler
 import { NextResponse } from "next/server"
 import { query } from "../../../../lib/db"
 import { createMagicLinkToken } from "../../../../lib/tokenUtils"
@@ -7,16 +7,25 @@ import { sendMagicLinkEmail } from "../../../../lib/emailUtils"
 export async function POST(request) {
   try {
     const data = await request.json()
-    const { answers, email, organizationName, companySize } = data
+    const { answers, email, organizationName, companySize, authMethod } = data
 
     console.log("Submission data:", {
       answersCount: answers?.length,
       email,
       organizationName,
       companySize,
+      authMethod,
     })
 
-    if (!answers || !email) {
+    if (!answers) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      )
+    }
+
+    // If authMethod is 'google', email might come from the authenticated session
+    if (!email && authMethod !== "google") {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -43,73 +52,86 @@ export async function POST(request) {
     })
 
     // Check if this email already has a client record
-    const existingClients = await query(
-      "SELECT * FROM Clients WHERE ContactEmail = ?",
-      [email]
-    )
+    let clientId = null
 
-    let clientId
+    if (email) {
+      const existingClients = await query(
+        "SELECT * FROM Clients WHERE ContactEmail = ?",
+        [email]
+      )
 
-    if (existingClients.length > 0) {
-      // Use existing client but update details from the form
-      clientId = existingClients[0].ClientID
+      if (existingClients.length > 0) {
+        // Use existing client but update details from the form
+        clientId = existingClients[0].ClientID
 
-      // Build the update SQL with all the fields we want to update
-      const updateSql = `
-        UPDATE Clients 
-        SET 
-          ClientName = CASE WHEN ? != '' THEN ? ELSE ClientName END,
-          OrganizationName = CASE WHEN ? != '' THEN ? ELSE OrganizationName END,
-          CompanySize = CASE WHEN ? != '' THEN ? ELSE CompanySize END,
-          IndustryType = CASE WHEN ? != '' THEN ? ELSE IndustryType END,
-          LastLoginDate = NOW()
-        WHERE ClientID = ?
-      `
-      const updateParams = [
-        clientName,
-        clientName,
-        clientOrgName,
-        clientOrgName,
-        clientCompanySize,
-        clientCompanySize,
-        industry,
-        industry,
-        clientId,
-      ]
+        // Build the update SQL with all the fields we want to update
+        const updateSql = `
+          UPDATE Clients 
+          SET 
+            ClientName = CASE WHEN ? != '' THEN ? ELSE ClientName END,
+            OrganizationName = CASE WHEN ? != '' THEN ? ELSE OrganizationName END,
+            CompanySize = CASE WHEN ? != '' THEN ? ELSE CompanySize END,
+            IndustryType = CASE WHEN ? != '' THEN ? ELSE IndustryType END,
+            LastLoginDate = NOW()
+          WHERE ClientID = ?
+        `
+        const updateParams = [
+          clientName,
+          clientName,
+          clientOrgName,
+          clientOrgName,
+          clientCompanySize,
+          clientCompanySize,
+          industry,
+          industry,
+          clientId,
+        ]
 
-      console.log("Updating client with ID:", clientId)
-      await query(updateSql, updateParams)
-    } else {
-      // Create a new client record with all details
-      const insertSql = `
-        INSERT INTO Clients (
-          ClientName, 
-          OrganizationName, 
-          ContactEmail, 
-          CompanySize,
-          IndustryType, 
-          AuthMethod,
-          CreatedDate
-        ) VALUES (?, ?, ?, ?, ?, 'magic_link', NOW())
-      `
+        console.log("Updating client with ID:", clientId)
+        await query(updateSql, updateParams)
+      } else if (email) {
+        // Create a new client record with all details
+        const insertSql = `
+          INSERT INTO Clients (
+            ClientName, 
+            OrganizationName, 
+            ContactEmail, 
+            CompanySize,
+            IndustryType, 
+            AuthMethod,
+            CreatedDate
+          ) VALUES (?, ?, ?, ?, ?, ?, NOW())
+        `
 
-      // Use email username as fallback if name not provided
-      const username = clientName || email.split("@")[0]
+        // Use email username as fallback if name not provided
+        const username = clientName || email.split("@")[0]
+        const authMethodValue =
+          authMethod === "google" ? "google" : "magic_link"
 
-      const insertParams = [
-        username,
-        clientOrgName || username,
-        email,
-        clientCompanySize || null,
-        industry || null,
-      ]
+        const insertParams = [
+          username,
+          clientOrgName || username,
+          email,
+          clientCompanySize || null,
+          industry || null,
+          authMethodValue,
+        ]
 
-      console.log("Creating new client with name:", username)
-      const insertResult = await query(insertSql, insertParams)
-      clientId = insertResult.insertId
+        console.log("Creating new client with name:", username)
+        const insertResult = await query(insertSql, insertParams)
+        clientId = insertResult.insertId
+      }
     }
 
     console.log("Using client ID:", clientId)
+
+    // Only continue if we have a valid clientId
+    if (!clientId) {
+      return NextResponse.json(
+        { error: "Failed to find or create client record" },
+        { status: 500 }
+      )
+    }
 
     // Now we have a valid clientId, store responses
     for (const answer of answers) {
@@ -175,7 +197,16 @@ export async function POST(request) {
       }
     }
 
-    // Generate a magic link token
+    // If using Google auth, we don't need to send a magic link
+    if (authMethod === "google") {
+      return NextResponse.json({
+        success: true,
+        message:
+          "Assessment submitted successfully with Google authentication.",
+      })
+    }
+
+    // Otherwise, generate a magic link token
     const token = await createMagicLinkToken(email, clientId)
 
     // Create the magic link URL

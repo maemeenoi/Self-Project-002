@@ -184,6 +184,7 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
           score: answer.score,
           text: answer.text,
           standardText: answer.standardText,
+          optionId: answer.optionId,
         }
 
         // Only include optionId if it exists
@@ -196,6 +197,10 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
     )
 
     console.log("Submitting answers:", formattedAnswers)
+    // Check if we have answers to submit
+    if (formattedAnswers.length === 0) {
+      console.error("No answers to submit - answers object is empty")
+    }
     onSubmit(formattedAnswers)
   }
 

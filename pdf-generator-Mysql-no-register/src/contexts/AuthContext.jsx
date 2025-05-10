@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { signOut } from "next-auth/react" // Import Next-Auth signOut function
 
 // Create context
 const AuthContext = createContext()
@@ -15,6 +16,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     async function checkSession() {
       try {
+        // First try to check Next-Auth session via your API endpoint
         const response = await fetch("/api/auth/session")
         const data = await response.json()
 
@@ -34,45 +36,16 @@ export function AuthProvider({ children }) {
     checkSession()
   }, [])
 
-  // Login function
-  const login = async (email, password) => {
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Login failed")
-      }
-
-      // Fetch the session data again to get the user info
-      const sessionResponse = await fetch("/api/auth/session")
-      const sessionData = await sessionResponse.json()
-
-      if (sessionData.isLoggedIn && sessionData.user) {
-        setUser(sessionData.user)
-      }
-
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
-  }
-
-  // Logout function
+  // Logout function - supports both auth systems
   const logout = async () => {
     try {
+      // Try to log out using your custom API
       const response = await fetch("/api/auth/logout", {
         method: "GET",
       })
 
-      if (!response.ok) {
-        console.error("Logout API error:", response.status)
-      }
+      // Also sign out from Next-Auth
+      await signOut({ redirect: false })
 
       // Clear user state regardless of API response
       setUser(null)
@@ -91,43 +64,13 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // Register function
-  const register = async (userData) => {
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed")
-      }
-
-      // Set user data
-      setUser({
-        userId: data.userId,
-        clientId: data.clientId,
-        clientName: userData.name,
-        email: userData.email,
-      })
-
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
-  }
-
-  // Context value
+  // Context value with setUser exposed for Next-Auth integration
   const value = {
     user,
+    setUser, // Expose setUser for Next-Auth integration
     isLoggedIn: !!user,
     loading,
-    login,
     logout,
-    register,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

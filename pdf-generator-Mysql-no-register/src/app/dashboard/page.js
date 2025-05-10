@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useSession, signOut } from "next-auth/react"
 import {
   RadarChart,
   PolarGrid,
@@ -20,7 +22,6 @@ import {
   CartesianGrid,
 } from "recharts"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import ReportGenerator from "../../components/report/ReportGenerator"
 import GaugeMeter from "../../components/GaugeMeter"
 import FlowDiagram from "@/components/FlowDiagram"
@@ -35,44 +36,95 @@ export default function Dashboard() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
   const [isReportComplete, setIsReportComplete] = useState(false)
   const [user, setUser] = useState(null)
-  const [clientInfo, setClientInfo] = useState({
-    clientName: "",
-    organizationName: "",
-    email: "",
-    industry: "",
-    companySize: "",
-  })
+  const { data: session, status } = useSession()
+  const searchParams = useSearchParams()
   const router = useRouter()
 
-  // Check authentication
   useEffect(() => {
-    async function checkAuth() {
+    async function processPendingAssessment() {
       try {
-        const response = await fetch("/api/auth/session")
-        const data = await response.json()
+        // Check if we're coming from assessment with Google auth
+        const source = searchParams.get("source")
 
-        if (!data.isLoggedIn) {
-          // Redirect to login if not authenticated
-          router.push("/login?redirect=/dashboard")
-          return
-        }
+        if (source === "assessment" && session?.user?.email) {
+          console.log("Processing pending assessment after Google auth")
 
-        setUser(data.user)
+          // Retrieve stored assessment answers
+          let pendingAnswers
+          try {
+            const storedData = sessionStorage.getItem(
+              "pendingAssessmentAnswers"
+            )
+            if (!storedData) {
+              console.error("No stored assessment data found")
+              return
+            }
 
-        // If user has a clientId, automatically select it
-        if (data.user?.clientId) {
-          setSelectedClient({
-            ClientID: data.user.clientId,
-            ClientName: data.user.clientName || "Unknown",
+            pendingAnswers = JSON.parse(storedData)
+            console.log(`Retrieved ${pendingAnswers.length} stored answers`)
+          } catch (parseError) {
+            console.error(
+              "Error retrieving stored assessment data:",
+              parseError
+            )
+            return
+          }
+
+          // Submit the answers to the server
+          console.log("Submitting assessment data to server...")
+          const response = await fetch("/api/questionnaire/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              answers: pendingAnswers,
+              email: session.user.email,
+              authMethod: "google",
+            }),
           })
+
+          if (!response.ok) {
+            const errorData = await response.json()
+            console.error(
+              "Error submitting assessment after Google auth:",
+              errorData
+            )
+          } else {
+            console.log("Assessment successfully submitted after Google auth")
+
+            // Clear the stored answers
+            sessionStorage.removeItem("pendingAssessmentAnswers")
+
+            // Reload the page to show the assessment results (without the source parameter)
+            router.replace("/dashboard")
+          }
         }
       } catch (error) {
-        console.error("Failed to check authentication:", error)
+        console.error("Error processing pending assessment:", error)
       }
     }
 
-    checkAuth()
-  }, [router])
+    if (status === "authenticated") {
+      processPendingAssessment()
+    }
+  }, [session, status, searchParams, router])
+
+  // Check authentication
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login?redirect=/dashboard")
+    } else if (status === "authenticated" && session.user) {
+      // Set user from session
+      setUser(session.user)
+
+      // If user has a clientId, automatically select it
+      if (session.user?.clientId) {
+        setSelectedClient({
+          ClientID: session.user.clientId,
+          ClientName: session.user.clientName || "Unknown",
+        })
+      }
+    }
+  }, [status, session, router])
 
   // Fetch clients list (only for admin users with no specific clientId)
   useEffect(() => {
@@ -257,6 +309,10 @@ export default function Dashboard() {
     fetchResponses()
   }, [selectedClient, industryStandards])
 
+  if (status === "loading") {
+    return <div>Loading...</div>
+  }
+
   // Count how many standards are above/below/meeting
   const countStandards = (type) => {
     // Check if the required data exists
@@ -293,6 +349,16 @@ export default function Dashboard() {
   const handleGenerationComplete = () => {
     setIsGeneratingReport(false)
     setIsReportComplete(true)
+  }
+
+  // Add a logout handler function
+  const handleLogout = async () => {
+    try {
+      await signOut({ redirect: false })
+      router.push("/")
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
   }
 
   // Calculate progress percentages
@@ -345,38 +411,49 @@ export default function Dashboard() {
     }
   }
 
-  // Update the getOrganizationName function
-  const getOrganizationName = () => {
-    if (selectedClient?.OrganizationName) {
-      return selectedClient.OrganizationName
-    }
-    if (processedData?.reportMetadata?.organizationName) {
-      return processedData.reportMetadata.organizationName
-    }
-    return user?.organization || "Unknown Organization"
-  }
-
-  // Add a function to get company size
-  const getCompanySize = () => {
-    if (selectedClient?.CompanySize) {
-      return selectedClient.CompanySize
-    }
-    if (processedData?.reportMetadata?.clientSize) {
-      return processedData.reportMetadata.clientSize
-    }
-    return ""
-  }
-
   return (
-    <div className="flex min-h-screen bg-base-200" data-theme="corporate">
+    <div className="flex min-h-screen bg-base-200">
+      {/* Fixed Header/Navigation */}
+      <header className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo/Site Title */}
+            <div className="flex items-center">
+              <Link
+                href="/dashboard"
+                className="font-bold text-xl text-blue-600"
+              >
+                MakeStuffGo
+              </Link>
+            </div>
+
+            {/* User Menu */}
+            <div className="flex items-center">
+              {session?.user && (
+                <div className="flex items-center space-x-4">
+                  <div className="text-sm text-gray-700">
+                    {session.user.name || session.user.email}
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
       {/* Main Content */}
-      <div className="flex pt-16 min-h-screen bg-base-200 w-full">
-        <main className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 pt-16 w-full">
+        <main className="flex-1 p-6 max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="mx-auto max-w-2xl lg:mx-0">
-                <h1 className="text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl">
+              <div className="max-w-2xl lg:mx-0">
+                <h1 className="text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
                   Cloud Maturity Dashboard
                 </h1>
                 <p className="text-large text-gray-500">

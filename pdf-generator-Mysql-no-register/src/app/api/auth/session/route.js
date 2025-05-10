@@ -1,43 +1,43 @@
-// src/app/api/auth/session/route.js
+// app/api/auth/session/route.js
+import { getServerSession } from "next-auth/next"
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { authOptions } from "../[...nextauth]/route"
 
 export async function GET() {
   try {
-    // Get the session cookie - with await
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get("session")
+    // Try to get the Next-Auth session
+    const session = await getServerSession(authOptions)
 
-    if (!sessionCookie) {
+    // If Next-Auth session exists, format it to match your custom auth format
+    if (session && session.user) {
       return NextResponse.json({
-        isLoggedIn: false,
-        user: null,
+        isLoggedIn: true,
+        user: {
+          userId: session.user.clientId || session.user.id,
+          clientId: session.user.clientId,
+          clientName: session.user.clientName || session.user.name,
+          email: session.user.email,
+          // Add any other required fields
+        },
       })
     }
 
-    // Parse the session data
-    const session = JSON.parse(sessionCookie.value)
-
-    return NextResponse.json({
-      isLoggedIn: true,
-      user: {
-        userId: session.userId,
-        clientId: session.clientId,
-        clientName: session.clientName,
-        contactName: session.contactName || "", // Include contact name
-        email: session.email,
-      },
-    })
-  } catch (error) {
-    console.error("Session parsing error:", error)
-
-    // Clear the invalid session cookie
-    const cookieStore = await cookies()
-    cookieStore.delete("session")
-
+    // If no Next-Auth session, return not logged in
     return NextResponse.json({
       isLoggedIn: false,
       user: null,
     })
+  } catch (error) {
+    console.error("Session API error:", error)
+
+    // Clear any invalid session and return not logged in
+    return NextResponse.json(
+      {
+        isLoggedIn: false,
+        user: null,
+        error: "Session error",
+      },
+      { status: 500 }
+    )
   }
 }
