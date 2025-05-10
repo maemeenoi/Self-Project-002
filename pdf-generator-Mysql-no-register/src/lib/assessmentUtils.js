@@ -1,352 +1,15 @@
-// // src/lib/assessmentUtils.js - Simplified version
-
-// /**
-//  * Processes database responses into maturity assessment data
-//  * @param {Array} responses - Array of response objects from the database
-//  * @param {Array} industryStandards - Array of industry standard objects
-//  * @returns {Object} Processed assessment data
-//  */
-// export function processAssessmentData(responses, industryStandards) {
-//   console.log("Processing responses with ClientInfo:", responses.ClientInfo)
-
-//   // Extract client information from ClientInfo or responses
-//   let clientInfo = {}
-
-//   if (responses.ClientInfo) {
-//     clientInfo = {
-//       name: responses.ClientInfo.ClientName || "Unknown",
-//       business:
-//         responses.ClientInfo.OrganizationName ||
-//         responses.ClientInfo.ClientName ||
-//         "Unknown",
-//       email: responses.ClientInfo.ContactEmail || "Unknown",
-//       size: responses.ClientInfo.CompanySize || "Unknown",
-//       industry: responses.ClientInfo.IndustryType || "Unknown",
-//     }
-//   } else {
-//     // Otherwise extract from responses as before
-//     clientInfo = {
-//       name:
-//         responses.find((r) => r.QuestionID === 1)?.ResponseText || "Unknown",
-//       business:
-//         responses.find((r) => r.QuestionID === 2)?.ResponseText || "Unknown",
-//       email:
-//         responses.find((r) => r.QuestionID === 3)?.ResponseText || "Unknown",
-//       size:
-//         responses.find((r) => r.QuestionID === 4)?.ResponseText || "Unknown",
-//       industry:
-//         responses.find((r) => r.QuestionID === 5)?.ResponseText || "Unknown",
-//     }
-//   }
-
-//   console.log("Extracted client info:", clientInfo)
-
-//   // Create a map of Industry Standards for fast lookup
-//   const standardMap = {}
-//   const questionMap = {}
-
-//   industryStandards.forEach((standard) => {
-//     if (standard.QuestionID != null && standard.Score != null) {
-//       const key = `${standard.QuestionID}_${standard.Score}`
-//       standardMap[key] = standard.StandardText
-//       questionMap[standard.QuestionID] = standard.QuestionText
-//     }
-//   })
-
-//   // Enrich responses with Standard Text and Question Text
-//   const enrichedResponses = responses
-//     .filter((r) => r.QuestionID !== undefined)
-//     .map((r) => {
-//       const key = `${r.QuestionID}_${r.Score}`
-//       return {
-//         ...r,
-//         StandardText: r.StandardText || "No standard available",
-//         QuestionText: questionMap[r.QuestionID] || `Question ${r.QuestionID}`,
-//         // Calculate standard score for comparison (if available in industry standards)
-//         StandardScore: 3.5, // Default for comparison purposes
-//       }
-//     })
-
-//   // Group questions by category
-//   const categoryMapping = {
-//     "Cloud Strategy": [6, 7, 8],
-//     "Cloud Cost": [9, 10, 11],
-//     "Cloud Security": [12, 13],
-//     "Cloud People": [14, 19, 20],
-//     "Cloud DevOps": [15, 16, 17, 18],
-//   }
-
-//   // Calculate scores for each category
-//   const categoryScores = {}
-//   Object.entries(categoryMapping).forEach(([category, questionIds]) => {
-//     const scores = questionIds
-//       .map((id) => {
-//         const response = responses.find((r) => r.QuestionID === id)
-//         return response?.Score || 0
-//       })
-//       .filter((score) => score > 0)
-
-//     // Calculate average score if we have valid scores
-//     if (scores.length > 0) {
-//       categoryScores[category] = {
-//         score: parseFloat(
-//           (
-//             scores.reduce((sum, score) => sum + score, 0) / scores.length
-//           ).toFixed(1)
-//         ),
-//         responses: scores,
-//       }
-//     }
-//   })
-
-//   // Calculate overall score
-//   const overallScore = parseFloat(
-//     (
-//       Object.values(categoryScores).reduce((sum, cat) => sum + cat.score, 0) /
-//       Object.values(categoryScores).length
-//     ).toFixed(1)
-//   )
-
-//   // Generate recommendations
-//   const recommendations = generateRecommendations(categoryScores)
-
-//   // Create dimensional scores for radar chart
-//   const dimensionalScores = Object.entries(categoryScores).map(
-//     ([dimension, data]) => ({
-//       dimension,
-//       score: data.score,
-//       standardScore: 3.5, // Using a default standard score for comparison
-//       fullMark: 5,
-//     })
-//   )
-
-//   // Return formatted data
-//   return {
-//     reportMetadata: {
-//       organizationName: clientInfo.organizationName,
-//       clientName: clientInfo.contactName,
-//       clientEmail: clientInfo.email,
-//       clientSize: clientInfo.size,
-//       clientIndustry: clientInfo.industry,
-//       reportDate: new Date().toLocaleDateString("en-US", {
-//         year: "numeric",
-//         month: "long",
-//         day: "numeric",
-//       }),
-//       reportPeriod: `Q${Math.ceil(
-//         (new Date().getMonth() + 1) / 3
-//       )} ${new Date().getFullYear()}`,
-//     },
-//     executiveSummary: {
-//       sectionTitle: "Executive Summary",
-//       subtopics: [
-//         {
-//           title: "Overview",
-//           content: `This report presents an overview of ${clientInfo.organizationName}'s cloud infrastructure maturity.`,
-//         },
-//         {
-//           title: "Purpose",
-//           content:
-//             "To assess and recommend improvements for cloud practices and maturity.",
-//         },
-//         {
-//           title: "Methodology",
-//           content:
-//             "Assessment responses analyzed against industry standards to identify gaps and opportunities.",
-//         },
-//         {
-//           title: "Key Recommendations",
-//           content: recommendations.slice(0, 4).map((rec) => rec.title),
-//         },
-//       ],
-//     },
-//     cloudMaturityAssessment: {
-//       overallScore: overallScore,
-//       currentLevel: determineOverallMaturityLevel(overallScore),
-//       dimensionalScores: dimensionalScores,
-//       subtopics: [
-//         {
-//           title: "Dimensional Analysis",
-//           dimensionalScores: dimensionalScores,
-//         },
-//       ],
-//       practiceAreas: generatePracticeAreas(categoryScores),
-//     },
-//     recommendations: {
-//       keyRecommendations: recommendations,
-//       categoryScores,
-//       responses: enrichedResponses,
-//     },
-//   }
-// }
-
-// /**
-//  * Determines overall maturity level based on score
-//  */
-// function determineOverallMaturityLevel(score) {
-//   if (score < 2) return "Level 1: Initial"
-//   if (score < 3) return "Level 2: Repeatable"
-//   if (score < 4) return "Level 3: Defined"
-//   if (score < 4.6) return "Level 4: Managed"
-//   return "Level 5: Optimized"
-// }
-
-// /**
-//  * Generate practice areas for maturity table
-//  */
-// function generatePracticeAreas(categoryScores) {
-//   return [
-//     {
-//       id: "buildManagement",
-//       name: "Build management and CI",
-//       currentLevel: determinePracticeLevel(categoryScores, "Cloud DevOps"),
-//       targetLevel: Math.min(
-//         determinePracticeLevel(categoryScores, "Cloud DevOps") + 1,
-//         3
-//       ),
-//     },
-//     {
-//       id: "environment",
-//       name: "Environment and deployments",
-//       currentLevel: determinePracticeLevel(categoryScores, "Cloud DevOps"),
-//       targetLevel: Math.min(
-//         determinePracticeLevel(categoryScores, "Cloud DevOps") + 1,
-//         3
-//       ),
-//     },
-//     {
-//       id: "release",
-//       name: "Release management",
-//       currentLevel: determinePracticeLevel(categoryScores, "Cloud DevOps"),
-//       targetLevel: Math.min(
-//         determinePracticeLevel(categoryScores, "Cloud DevOps") + 1,
-//         3
-//       ),
-//     },
-//     {
-//       id: "testing",
-//       name: "Testing",
-//       currentLevel: Math.max(
-//         determinePracticeLevel(categoryScores, "Cloud DevOps") - 1,
-//         -1
-//       ),
-//       targetLevel: Math.min(
-//         determinePracticeLevel(categoryScores, "Cloud DevOps") + 1,
-//         3
-//       ),
-//     },
-//     {
-//       id: "dataManagement",
-//       name: "Data Management",
-//       currentLevel: determinePracticeLevel(categoryScores, "Cloud Strategy"),
-//       targetLevel: Math.min(
-//         determinePracticeLevel(categoryScores, "Cloud Strategy") + 1,
-//         3
-//       ),
-//     },
-//   ]
-// }
-
-// /**
-//  * Helper function to determine practice level
-//  */
-// function determinePracticeLevel(categoryScores, category) {
-//   const score = categoryScores[category]?.score || 3
-
-//   if (score < 2) return -1 // Regressive
-//   if (score < 3) return 0 // Repeatable
-//   if (score < 4) return 1 // Consistent
-//   if (score < 4.6) return 2 // Quantitatively managed
-//   return 3 // Optimizing
-// }
-
-// /**
-//  * Generate recommendations based on scores
-//  */
-// function generateRecommendations(categoryScores) {
-//   const recommendations = []
-
-//   // Cloud Cost recommendations
-//   if ((categoryScores["Cloud Cost"]?.score || 0) < 3.5) {
-//     recommendations.push({
-//       title: "Implement Automated Instance Scheduling",
-//       rationale:
-//         "Non-production resources are running 24/7, resulting in unnecessary costs during inactive hours.",
-//       impact: "15-20% reduction in compute costs",
-//       priority: "Critical",
-//     })
-
-//     recommendations.push({
-//       title: "Right-size Oversized Instances",
-//       rationale:
-//         "Analysis shows 35% of compute instances are significantly over-provisioned.",
-//       impact: "20-25% reduction in instance costs",
-//       priority:
-//         (categoryScores["Cloud Cost"]?.score || 0) < 3 ? "Critical" : "High",
-//     })
-//   }
-
-//   // Cloud Strategy recommendations
-//   if ((categoryScores["Cloud Strategy"]?.score || 0) < 4) {
-//     recommendations.push({
-//       title: "Standardize Resource Tagging",
-//       rationale:
-//         "Inconsistent tagging prevents accurate cost allocation and governance.",
-//       impact: "Improved cost visibility and governance",
-//       priority:
-//         (categoryScores["Cloud Strategy"]?.score || 0) < 3
-//           ? "Critical"
-//           : "High",
-//     })
-//   }
-
-//   // Cloud DevOps recommendations
-//   if ((categoryScores["Cloud DevOps"]?.score || 0) < 4) {
-//     recommendations.push({
-//       title: "Expand Infrastructure as Code Coverage",
-//       rationale:
-//         "Only 40% of infrastructure is currently managed as code, leading to configuration drift.",
-//       impact: "Reduced provisioning time and configuration errors",
-//       priority:
-//         (categoryScores["Cloud DevOps"]?.score || 0) < 3 ? "Critical" : "High",
-//     })
-//   }
-
-//   // Always provide at least one recommendation
-//   if (recommendations.length === 0) {
-//     recommendations.push({
-//       title: "Regular Review of Cloud Resources",
-//       rationale:
-//         "Maintain optimal cloud configuration through regular reviews.",
-//       impact: "Continued optimization and cost control",
-//       priority: "Medium",
-//     })
-//   }
-
-//   return recommendations
-// }
-
-// export default {
-//   processAssessmentData,
-// }
 // src/lib/assessmentUtils.js
-// This module processes assessment data for the dashboard
-
-// src/lib/assessmentUtils.js
-// This module processes assessment data for the dashboard
-
-// src/lib/assessmentUtils.js
-// This module processes assessment data for the dashboard
+// This module processes assessment data to generate the cloud maturity dashboard visuals
 
 const assessmentUtils = {
   /**
-   * Process assessment data for the dashboard
+   * Process assessment data for the cloud maturity dashboard
    * @param {Array} responseData - Assessment responses from the API
    * @param {Array} standardsData - Industry standards for comparison
    * @returns {Object} Processed data for the dashboard
    */
-  processAssessmentData: (responseData, standardsData) => {
-    console.log("Processing assessment data:", {
+  processAssessmentData: function (responseData, standardsData) {
+    console.log("Processing enhanced assessment data:", {
       responseCount: responseData?.length,
       standardsCount: standardsData?.length,
     })
@@ -374,7 +37,81 @@ const assessmentUtils = {
     const clientInfo = responseData.ClientInfo || {}
     console.log("Client info:", clientInfo)
 
-    // Get assessment responses (questionnaires 6-19)
+    // Define our maturity levels
+    const maturityLevels = [
+      {
+        level: 1,
+        name: "Initial",
+        description: "Ad-hoc practices with minimal formalization",
+      },
+      {
+        level: 2,
+        name: "Developing",
+        description: "Basic processes established but inconsistently applied",
+      },
+      {
+        level: 3,
+        name: "Defined",
+        description: "Standardized processes with consistent implementation",
+      },
+      {
+        level: 4,
+        name: "Managed",
+        description:
+          "Measured and controlled processes with quantitative goals",
+      },
+      {
+        level: 5,
+        name: "Optimizing",
+        description: "Continuous improvement with proactive optimization",
+      },
+    ]
+
+    // Define dimensions and their question mappings based on the Excel file
+    const dimensions = [
+      {
+        id: "strategic_alignment",
+        name: "Strategic Alignment",
+        questionIds: [4, 5],
+        description:
+          "How well cloud initiatives align with business goals and strategy",
+      },
+      {
+        id: "cost_visibility",
+        name: "Cost Visibility & Value Assessment",
+        questionIds: [6, 7, 8],
+        description: "Ability to track, manage, and optimize cloud spending",
+      },
+      {
+        id: "cloud_adoption",
+        name: "Cloud Adoption",
+        questionIds: [5, 6],
+        description: "Current cloud adoption level and migration progress",
+      },
+      {
+        id: "security_posture",
+        name: "Security Posture",
+        questionIds: [9, 10],
+        description:
+          "Effectiveness of cloud security policies, controls, and monitoring",
+      },
+      {
+        id: "operational_excellence",
+        name: "Operational Excellence",
+        questionIds: [11, 12, 13, 14, 15],
+        description:
+          "Effectiveness of cloud operations, automation and DevOps practices",
+      },
+      {
+        id: "organizational_enablement",
+        name: "Organizational Enablement",
+        questionIds: [16, 17],
+        description:
+          "Team structure, skills and training to support cloud operations",
+      },
+    ]
+
+    // Filter only assessment responses (questions 6-19)
     const assessmentResponses = responseData.filter(
       (response) =>
         response.QuestionID >= 6 &&
@@ -384,149 +121,187 @@ const assessmentUtils = {
 
     console.log(`Found ${assessmentResponses.length} assessment responses`)
 
-    // If no assessment responses, return null
     if (!assessmentResponses || assessmentResponses.length === 0) {
       console.warn("No assessment responses found (questions 6-19)")
       return null
     }
 
-    // Group responses by category
-    const responsesByCategory = {}
-    assessmentResponses.forEach((response) => {
-      const category = response.Category || "Uncategorized"
+    // Calculate scores for each dimension
+    const dimensionScores = dimensions.map((dimension) => {
+      // Get responses for this dimension
+      const dimensionResponses = assessmentResponses.filter((response) =>
+        dimension.questionIds.includes(response.QuestionID)
+      )
 
-      if (!responsesByCategory[category]) {
-        responsesByCategory[category] = []
+      // Special handling for client info questions (4-5)
+      // For questions 4-5, which are basic client info, we need to convert them to a score
+      const clientInfoResponses = dimension.questionIds.filter((id) => id <= 5)
+      let additionalScore = 0
+      let additionalCount = 0
+
+      // If this dimension includes client info questions, convert them to scores
+      if (clientInfoResponses.length > 0) {
+        // This approach assigns a default score of 3 (middle of the scale) for client info
+        // You might want to use a more sophisticated method based on your business logic
+        additionalScore = clientInfoResponses.length * 3
+        additionalCount = clientInfoResponses.length
       }
-      responsesByCategory[category].push(response)
-    })
 
-    console.log("Categories found:", Object.keys(responsesByCategory))
-
-    // Calculate scores by category
-    const categoryScores = {}
-    Object.entries(responsesByCategory).forEach(([category, responses]) => {
-      const scores = responses.map((r) => r.Score)
-      const averageScore = scores.reduce((a, b) => a + b, 0) / scores.length
-      categoryScores[category] = {
-        score: averageScore,
-        responses: responses.length,
-      }
-    })
-
-    // Calculate overall cloud maturity score
-    const overallScore =
-      Object.values(categoryScores).reduce(
-        (sum, category) => sum + category.score,
-        0
-      ) / Object.keys(categoryScores).length
-
-    // Determine current maturity level based on score
-    let currentLevel = ""
-    if (overallScore < 1.5) {
-      currentLevel = "Initial"
-    } else if (overallScore < 2.5) {
-      currentLevel = "Developing"
-    } else if (overallScore < 3.5) {
-      currentLevel = "Defined"
-    } else if (overallScore < 4.5) {
-      currentLevel = "Advanced"
-    } else {
-      currentLevel = "Optimized"
-    }
-
-    // Compare with industry standards if available
-    const standardsComparison = []
-
-    // If we have standards data, use it
-    if (standardsData && standardsData.length > 0) {
-      // Map standards to responses by QuestionID
-      const standardsMap = {}
-      standardsData.forEach((standard) => {
-        standardsMap[standard.QuestionID] = standard
-      })
-
-      // Compare each response with its standard
-      assessmentResponses.forEach((response) => {
-        const standard = standardsMap[response.QuestionID]
-        if (standard) {
-          standardsComparison.push({
-            QuestionID: response.QuestionID,
-            QuestionText: response.QuestionText,
-            Category: response.Category,
-            Score: response.Score,
-            StandardScore: standard.Score,
-            Difference: response.Score - standard.Score,
-          })
-        }
-      })
-    }
-    // If no standards data, create synthetic comparison data
-    else {
-      // Create synthetic standards with a default score of 3
-      assessmentResponses.forEach((response) => {
-        standardsComparison.push({
-          QuestionID: response.QuestionID,
-          QuestionText: response.QuestionText,
-          Category: response.Category,
-          Score: response.Score,
-          StandardScore: 3, // Default industry standard
-          Difference: response.Score - 3,
-        })
-      })
-    }
-
-    // Create dimensional scores for radar chart
-    const dimensions = {
-      "Cloud Strategy": [],
-      "Cloud Cost": [],
-      "Cloud Security": [],
-      "Cloud People": [],
-      "Cloud DevOps": [],
-    }
-
-    // Populate dimensions with scores
-    assessmentResponses.forEach((response) => {
-      const category = response.Category
-      if (dimensions[category]) {
-        dimensions[category].push(response.Score)
-      } else if (category) {
-        // If category doesn't match predefined dimensions but exists, add it
-        dimensions[category] = [response.Score]
-      }
-    })
-
-    // Calculate average score for each dimension
-    const dimensionalScores = Object.entries(dimensions)
-      .map(([dimension, scores]) => {
-        // Skip dimensions with no scores
-        if (!scores || scores.length === 0) return null
-
-        // Calculate average score
-        const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length
-
-        // Find matching standard score
-        let standardScore = 3 // Default standard score
-
-        if (standardsData && standardsData.length > 0) {
-          const matchingStandards = standardsData.filter(
-            (s) => s.Category === dimension
-          )
-
-          if (matchingStandards.length > 0) {
-            standardScore =
-              matchingStandards.reduce((a, b) => a + b.Score, 0) /
-              matchingStandards.length
-          }
-        }
-
+      // Skip if no responses for this dimension and no client info
+      if (!dimensionResponses.length && additionalCount === 0) {
         return {
-          dimension,
-          score: avgScore,
-          standardScore,
+          id: dimension.id,
+          name: dimension.name,
+          score: 0,
+          percentage: 0,
+          maturityLevel: 0,
+          maturityName: "N/A",
+          recommendations: [],
+          description: dimension.description,
         }
+      }
+
+      // Calculate average score for this dimension, including client info if applicable
+      const responseScore = dimensionResponses.reduce(
+        (sum, response) => sum + response.Score,
+        0
+      )
+      const totalScore = responseScore + additionalScore
+      const totalCount = dimensionResponses.length + additionalCount
+      const averageScore = totalScore / totalCount
+
+      // Convert score to percentage
+      const percentage = Math.round((averageScore / 5) * 100)
+
+      // Determine maturity level
+      let maturityLevel
+      if (averageScore < 1.5) maturityLevel = maturityLevels[0]
+      else if (averageScore < 2.5) maturityLevel = maturityLevels[1]
+      else if (averageScore < 3.5) maturityLevel = maturityLevels[2]
+      else if (averageScore < 4.5) maturityLevel = maturityLevels[3]
+      else maturityLevel = maturityLevels[4]
+
+      // Generate recommendations based on score
+      const recommendations = []
+
+      // If score is below standard (3.5), add recommendation
+      if (averageScore < 3.5) {
+        let priority = "Medium"
+        if (averageScore < 2) priority = "Critical"
+        else if (averageScore < 3) priority = "High"
+
+        recommendations.push({
+          title: `Improve ${dimension.name}`,
+          rationale: `Your organization scored below industry standard in ${dimension.name}.`,
+          impact: `Moving from ${maturityLevel.name} to ${
+            maturityLevels[Math.min(Math.ceil(averageScore), 4)].name
+          } maturity`,
+          priority: priority,
+        })
+      }
+
+      return {
+        id: dimension.id,
+        name: dimension.name,
+        score: parseFloat(averageScore.toFixed(1)),
+        percentage: percentage,
+        maturityLevel: maturityLevel.level,
+        maturityName: maturityLevel.name,
+        recommendations: recommendations,
+        description: dimension.description,
+        responses: dimensionResponses.length,
+      }
+    })
+
+    // Calculate overall score
+    const validDimensions = dimensionScores.filter((d) => d.score > 0)
+    const overallScore =
+      validDimensions.length > 0
+        ? parseFloat(
+            (
+              validDimensions.reduce((sum, dim) => sum + dim.score, 0) /
+              validDimensions.length
+            ).toFixed(1)
+          )
+        : 0
+
+    // Determine overall maturity level
+    let overallMaturityLevel
+    if (overallScore < 1.5) overallMaturityLevel = maturityLevels[0]
+    else if (overallScore < 2.5) overallMaturityLevel = maturityLevels[1]
+    else if (overallScore < 3.5) overallMaturityLevel = maturityLevels[2]
+    else if (overallScore < 4.5) overallMaturityLevel = maturityLevels[3]
+    else overallMaturityLevel = maturityLevels[4]
+
+    // Build radar chart data for dimensional comparison
+    const radarData = dimensionScores
+      .filter((dim) => dim.score > 0)
+      .map((dim) => ({
+        dimension: dim.name,
+        score: dim.score,
+        standardScore: 3.5, // Industry standard benchmark
+      }))
+
+    // Collect all recommendations and sort by priority
+    const allRecommendations = dimensionScores
+      .flatMap((dim) => dim.recommendations)
+      .sort((a, b) => {
+        const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 }
+        return priorityOrder[a.priority] - priorityOrder[b.priority]
       })
-      .filter(Boolean) // Remove null entries
+
+    // Create implementation roadmap (phased approach to improvements)
+    const implementationRoadmap = [
+      {
+        phase: "Immediate (0-30 days)",
+        actions: allRecommendations
+          .filter((rec) => rec.priority === "Critical")
+          .map((rec) => rec.title),
+      },
+      {
+        phase: "Short-term (1-3 months)",
+        actions: allRecommendations
+          .filter((rec) => rec.priority === "High")
+          .map((rec) => rec.title),
+      },
+      {
+        phase: "Medium-term (3-6 months)",
+        actions: allRecommendations
+          .filter((rec) => rec.priority === "Medium")
+          .map((rec) => rec.title),
+      },
+      {
+        phase: "Long-term (6-12 months)",
+        actions: [
+          "Implement continuous improvement processes",
+          "Advanced cloud optimization",
+          "Fully automated governance frameworks",
+          "Develop cloud center of excellence",
+        ],
+      },
+    ]
+
+    // Ensure each phase has at least some actions
+    implementationRoadmap.forEach((phase) => {
+      if (phase.actions.length === 0) {
+        phase.actions = ["Review and align with organization priorities"]
+      }
+    })
+
+    // Prepare cloud spend data (simulated)
+    const cloudSpend = {
+      byService: [
+        { name: "Compute", value: 40 },
+        { name: "Storage", value: 25 },
+        { name: "Database", value: 15 },
+        { name: "Network", value: 12 },
+        { name: "Other", value: 8 },
+      ],
+      potential: {
+        current: Math.round(1000 - 50 * overallScore),
+        optimized: Math.round(700 - 30 * overallScore),
+      },
+    }
 
     // Prepare report metadata
     const reportMetadata = {
@@ -539,22 +314,155 @@ const assessmentUtils = {
         month: "long",
         day: "numeric",
       }),
-      overallScore: overallScore.toFixed(1),
     }
 
-    // Return processed assessment data
+    // Calculate category scores for compatibility with existing code
+    const categoryScores = {}
+    dimensionScores.forEach((dimension) => {
+      // Map dimension names to the existing category names
+      let categoryName
+      if (dimension.id === "strategic_alignment")
+        categoryName = "Cloud Strategy"
+      else if (dimension.id === "cost_visibility") categoryName = "Cloud Cost"
+      else if (dimension.id === "security_posture")
+        categoryName = "Cloud Security"
+      else if (dimension.id === "organizational_enablement")
+        categoryName = "Cloud People"
+      else if (dimension.id === "operational_excellence")
+        categoryName = "Cloud DevOps"
+      else if (dimension.id === "cloud_adoption")
+        categoryName = "Cloud Adoption"
+      else categoryName = dimension.name
+
+      categoryScores[categoryName] = {
+        score: dimension.score,
+        responses: dimension.responses,
+      }
+    })
+
+    // Return the complete assessment object
     return {
+      // Include the original structure for backward compatibility
       cloudMaturityAssessment: {
         overallScore,
-        currentLevel,
-        dimensionalScores,
+        currentLevel: `${overallMaturityLevel.name}`,
+        dimensionalScores: radarData,
       },
       recommendations: {
+        keyRecommendations: allRecommendations,
         categoryScores,
-        responses: standardsComparison,
+        responses: assessmentResponses.map((response) => {
+          // Find matching standard from standardsData if available
+          const standard = standardsData?.find(
+            (s) => s.QuestionID === response.QuestionID
+          )
+
+          return {
+            QuestionID: response.QuestionID,
+            QuestionText:
+              response.QuestionText || `Question ${response.QuestionID}`,
+            Category: response.Category || "Uncategorized",
+            Score: response.Score,
+            StandardScore: standard?.Score || 3, // Default to 3 if no standard
+            StandardText:
+              standard?.StandardText || "Industry standard practice",
+            Difference: response.Score - (standard?.Score || 3),
+          }
+        }),
+        implementationRoadmap,
       },
+
+      // Enhanced structure with detailed dimensional analysis
       reportMetadata,
+      dimensions: dimensionScores,
+      cloudSpend,
+
+      // Additional data for advanced visualizations
+      overallMaturity: {
+        score: overallScore,
+        percentage: Math.round((overallScore / 5) * 100),
+        level: overallMaturityLevel.level,
+        name: overallMaturityLevel.name,
+        description: overallMaturityLevel.description,
+        maturityLevels,
+      },
+
+      // Include time-to-value data based on maturity score
+      timeToValue: {
+        current: [
+          {
+            name: "Initial Implementation",
+            value: 5 - Math.min(4, Math.round(overallScore)),
+          },
+          {
+            name: "Time to Market",
+            value: 6 - Math.min(5, Math.round(overallScore)),
+          },
+          {
+            name: "Deployment Frequency",
+            value: 4 - Math.min(3, Math.round(overallScore)),
+          },
+          {
+            name: "Change Failure Rate",
+            value: 5 - Math.min(4, Math.round(overallScore)),
+          },
+        ],
+        optimized: [
+          { name: "Initial Implementation", value: 1 },
+          { name: "Time to Market", value: 2 },
+          { name: "Deployment Frequency", value: 1 },
+          { name: "Change Failure Rate", value: 1.5 },
+        ],
+      },
+
+      // Standards comparison counts for visualization
+      standardsComparison: {
+        above: assessmentResponses.filter(
+          (r) =>
+            r.Score >
+            (standardsData?.find((s) => s.QuestionID === r.QuestionID)?.Score ||
+              3)
+        ).length,
+        meeting: assessmentResponses.filter(
+          (r) =>
+            r.Score ===
+            (standardsData?.find((s) => s.QuestionID === r.QuestionID)?.Score ||
+              3)
+        ).length,
+        below: assessmentResponses.filter(
+          (r) =>
+            r.Score <
+            (standardsData?.find((s) => s.QuestionID === r.QuestionID)?.Score ||
+              3)
+        ).length,
+      },
     }
+  },
+
+  /**
+   * Utility function to determine maturity level name from score
+   * @param {number} score - Maturity score (1-5)
+   * @returns {string} Maturity level name
+   */
+  getMaturityLevelName: function (score) {
+    if (score < 1.5) return "Initial"
+    if (score < 2.5) return "Developing"
+    if (score < 3.5) return "Defined"
+    if (score < 4.5) return "Managed"
+    return "Optimizing"
+  },
+
+  /**
+   * Get a color for visualization based on maturity score
+   * @param {number} score - Maturity score (1-5)
+   * @returns {string} Hex color code
+   */
+  getMaturityColor: function (score) {
+    if (score < 1.5) return "#ef4444" // Red
+    if (score < 2.5) return "#f59e0b" // Orange/Amber
+    if (score < 3.5) return "#3b82f6" // Blue
+    if (score < 4.5) return "#10b981" // Green
+    return "#059669" // Dark Green
   },
 }
 

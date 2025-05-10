@@ -25,6 +25,13 @@ import Link from "next/link"
 import ReportGenerator from "../../components/report/ReportGenerator"
 import GaugeMeter from "../../components/GaugeMeter"
 import FlowDiagram from "@/components/FlowDiagram"
+import CloudMaturityVisualizer from "../../components/CloudMaturityVisualizer"
+import CloudRadarChart from "../../components/CloudRadarChart"
+import CloudDimensionBars from "../../components/CloudDimensionBars"
+import CloudPillarCards from "../../components/CloudPillarCards"
+import CloudRadarDetailed from "../../components/CloudRadarDetailed"
+import CloudRadialGauges from "../../components/CloudRadialGauges"
+import CloudMaturityPillars from "@/components/CloudMaturityPillars"
 
 export default function Dashboard() {
   const [clients, setClients] = useState([])
@@ -737,214 +744,21 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
-
-                {/* New Time-to-Value Graph */}
+                {/* Radar Chart */}
                 <div className="bg-white p-6 rounded-lg shadow">
-                  <h2 className="text-lg font-bold text-gray-700 mb-4">
-                    Time-to-Value Analysis
-                  </h2>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart
-                      data={getTimeToValueData()}
-                      layout="vertical"
-                      margin={{ top: 5, right: 30, left: 50, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" unit=" weeks" />
-                      <YAxis type="category" dataKey="name" width={130} />
-                      <Tooltip
-                        formatter={(value) => [`${value} weeks`, null]}
-                      />
-                      <Legend />
-                      <Bar dataKey="current" name="Current" fill="#4F46E5" />
-                      <Bar
-                        dataKey="optimized"
-                        name="Optimized"
-                        fill="#10B981"
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <div className="mt-2 text-xs text-gray-500 text-center">
-                    Comparison of current vs. optimized time-to-value metrics
-                    based on assessment
-                  </div>
+                  <CloudMaturityPillars data={processedData} />
                 </div>
               </div>
 
-              {/* Enhanced Radar Chart */}
+              {/*  Charts */}
               <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  Cloud Dimensional Analysis
-                </h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart
-                    data={
-                      processedData.cloudMaturityAssessment.dimensionalScores
-                    }
-                    margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
-                  >
-                    <PolarGrid
-                      gridType="polygon"
-                      stroke="#ccc"
-                      strokeDasharray="3 3"
-                    />
-                    <PolarAngleAxis
-                      dataKey="dimension"
-                      tick={{
-                        fontSize: 12,
-                        fontWeight: "bold",
-                        fill: "#333",
-                      }}
-                      tickLine={false}
-                    />
-                    <PolarRadiusAxis
-                      angle={30}
-                      domain={[0, 5]}
-                      tick={{ fontSize: 10, fill: "#666" }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Radar
-                      name="Client Score"
-                      dataKey="score"
-                      stroke="#6366F1"
-                      strokeWidth={3}
-                      fill="#6366F1"
-                      fillOpacity={0.35}
-                      isAnimationActive={true}
-                      animationDuration={800}
-                    />
-                    <Radar
-                      name="Industry Standard"
-                      dataKey="standardScore"
-                      stroke="#10B981"
-                      strokeWidth={3}
-                      fill="#10B981"
-                      fillOpacity={0.25}
-                      isAnimationActive={true}
-                      animationDuration={800}
-                    />
-                    <Tooltip
-                      content={({ active, payload, label }) => {
-                        if (!active || !payload) return null
-                        return (
-                          <div className="bg-white p-3 rounded shadow text-sm text-gray-800">
-                            <div className="font-bold mb-1">{label}</div>
-                            <div>
-                              Client Score: {payload[0]?.value?.toFixed(1)}
-                            </div>
-                            <div>
-                              Standard Score: {payload[1]?.value?.toFixed(1)}
-                            </div>
-                          </div>
-                        )
-                      }}
-                    />
-                    <Legend
-                      wrapperStyle={{
-                        fontSize: "14px",
-                        marginTop: "10px",
-                      }}
-                    />
-                  </RadarChart>
-                </ResponsiveContainer>
+                <CloudRadarDetailed data={processedData} />
               </div>
-
-              {/* Added: Cost Optimization Potential */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Cost Optimization Potential */}
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h2 className="text-lg font-bold text-gray-700 mb-4">
-                    Cost Optimization Potential
-                  </h2>
-                  <div className="flex flex-col items-center">
-                    <div className="w-full max-w-md">
-                      <ResponsiveContainer width="100%" height={200}>
-                        <BarChart
-                          data={[calculatePotentialSavings()]}
-                          margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" hide={true} />
-                          <YAxis tickFormatter={(value) => `$${value}`} />
-                          <Tooltip formatter={(value) => [`$${value}`, null]} />
-                          <Legend verticalAlign="top" />
-                          <Bar
-                            dataKey="current"
-                            name="Current Spend"
-                            fill="#FF8A65"
-                          />
-                          <Bar
-                            dataKey="optimized"
-                            name="Optimized Spend"
-                            fill="#4DB6AC"
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="text-center mt-4">
-                      <div className="text-3xl font-bold text-green-600">
-                        $
-                        {calculatePotentialSavings().current -
-                          calculatePotentialSavings().optimized}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Potential monthly savings
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Category Scores Bar Chart */}
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h2 className="text-lg font-bold text-gray-700 mb-4">
-                    Category Performance
-                  </h2>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart
-                      data={Object.entries(
-                        processedData.recommendations.categoryScores
-                      ).map(([category, data]) => ({
-                        category: category,
-                        score: data.score,
-                        standardScore: 3.5, // Using a default standard score for visualization
-                      }))}
-                      margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="category" />
-                      <YAxis domain={[0, 5]} />
-                      <Tooltip
-                        formatter={(value, name) => {
-                          return [
-                            `${value.toFixed(1)}/5.0`,
-                            name === "score"
-                              ? "Your Score"
-                              : "Industry Benchmark",
-                          ]
-                        }}
-                      />
-                      <Legend />
-                      <Bar
-                        dataKey="score"
-                        name="Your Score"
-                        fill="#4F46E5"
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="standardScore"
-                        name="Industry Benchmark"
-                        fill="#10B981"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+              <div className="bg-white p-6 rounded-lg shadow mb-6">
+                <CloudDimensionBars data={processedData} />
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow mb-6">
+                <CloudPillarCards data={processedData} maxCards={6} />
               </div>
 
               {/* Dimension Details */}
@@ -1002,21 +816,16 @@ export default function Dashboard() {
                   </table>
                 </div>
               </div>
-
-              {/* Flow Diagram */}
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  How It Works!
-                </h2>
-                <div className="flex justify-center">
-                  <FlowDiagram />
-                </div>
-                <div className="text-center mt-2 text-sm text-gray-500">
-                  A visual representation of the assessment process
-                </div>
-              </div>
             </>
           )}
+
+          {/*Cloud Maturity Assessment*/}
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-gray-700 mb-4">
+              Cloud Maturity Assessment
+            </h2>
+            {processedData && <CloudMaturityVisualizer data={processedData} />}
+          </div>
 
           {!processedData &&
             !error &&

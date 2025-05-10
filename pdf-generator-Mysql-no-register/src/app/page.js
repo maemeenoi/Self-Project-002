@@ -6,6 +6,7 @@ import { useState } from "react"
 import { signIn } from "next-auth/react"
 import LoginModal from "../components/LoginModal"
 import GoogleSignInButton from "@/components/GoogleSignInButton"
+import FlowDiagram from "@/components/FlowDiagram"
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -265,105 +266,18 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Returning User Section */}
-      <div
-        id="returning-user-section"
-        className="bg-white py-10 border-t border-gray-100"
-      >
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Flow Diagram Section */}
+      <div className="bg-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Already Completed an Assessment?
+            <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">
+              How It Works
             </h2>
-            <p className="mt-2 text-lg text-gray-600">
-              Access your cloud maturity dashboard
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Simple Steps to Cloud Optimization
             </p>
           </div>
-
-          <div className="mt-8 bg-gray-50 p-6 rounded-lg shadow-sm">
-            {linkSent ? (
-              <div className="text-center py-4">
-                <svg
-                  className="mx-auto h-12 w-12 text-green-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                <h3 className="mt-2 text-lg font-medium text-gray-900">
-                  Magic Link Sent!
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Check your email inbox for a link to access your dashboard.
-                </p>
-                <button
-                  onClick={() => setLinkSent(false)}
-                  className="mt-4 text-sm text-blue-600 hover:text-blue-800"
-                >
-                  Send another link
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="flex flex-col md:flex-row md:space-x-6">
-                  {/* Google Sign-In Option */}
-                  <div className="flex-1 mb-6 md:mb-0">
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">
-                      Continue with Google
-                    </h3>
-                    <GoogleSignInButton
-                      text="Sign in with Google"
-                      callbackUrl="/dashboard"
-                    />
-                  </div>
-
-                  {/* Email Magic Link Option */}
-                  <div className="flex-1">
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">
-                      Get a Magic Link
-                    </h3>
-                    <form onSubmit={handleMagicLinkRequest}>
-                      <div className="flex">
-                        <input
-                          type="email"
-                          value={returnEmail}
-                          onChange={(e) => setReturnEmail(e.target.value)}
-                          placeholder="Enter your email"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          required
-                        />
-                        <button
-                          type="submit"
-                          disabled={isSendingLink}
-                          className={`px-4 py-2 border border-transparent rounded-r-md shadow-sm text-sm font-medium text-white ${
-                            isSendingLink
-                              ? "bg-gray-400"
-                              : "bg-blue-600 hover:bg-blue-700"
-                          }`}
-                        >
-                          {isSendingLink ? "Sending..." : "Send Link"}
-                        </button>
-                      </div>
-                    </form>
-                    {error && (
-                      <p className="mt-2 text-sm text-red-600">{error}</p>
-                    )}
-                  </div>
-                </div>
-
-                <p className="mt-6 text-xs text-gray-500 text-center">
-                  We'll send a secure link to your email that gives you instant
-                  access to your assessment results.
-                </p>
-              </>
-            )}
-          </div>
+          <FlowDiagram />
         </div>
       </div>
 
