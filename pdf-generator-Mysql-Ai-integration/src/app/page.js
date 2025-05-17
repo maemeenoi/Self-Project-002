@@ -1,64 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { useState } from "react"
-import { signIn } from "next-auth/react"
 import LoginModal from "../components/LoginModal"
-import GoogleSignInButton from "@/components/GoogleSignInButton"
 import FlowDiagram from "@/components/FlowDiagram"
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [returnEmail, setReturnEmail] = useState("")
-  const [isSendingLink, setIsSendingLink] = useState(false)
-  const [linkSent, setLinkSent] = useState(false)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
-  const [error, setError] = useState("")
-
-  const handleMagicLinkRequest = async (e) => {
-    e.preventDefault()
-
-    if (
-      !returnEmail ||
-      !returnEmail.includes("@") ||
-      !returnEmail.includes(".")
-    ) {
-      setError("Please enter a valid email address")
-      return
-    }
-
-    setIsSendingLink(true)
-    setError("")
-
-    try {
-      const response = await fetch("/api/auth/send-magic-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: returnEmail,
-          redirectUrl: "/dashboard",
-        }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to send magic link")
-      }
-
-      setLinkSent(true)
-      setReturnEmail("")
-    } catch (error) {
-      console.error("Error sending magic link:", error)
-      setError(error.message)
-    } finally {
-      setIsSendingLink(false)
-    }
-  }
-
-  const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" })
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">

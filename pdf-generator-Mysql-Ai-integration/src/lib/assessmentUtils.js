@@ -1,11 +1,10 @@
 // src/lib/assessmentUtils.js
-// This module processes assessment data to generate the cloud maturity dashboard visuals
 
 const assessmentUtils = {
   /**
    * Process assessment data for the cloud maturity dashboard
    * @param {Array} responseData - Assessment responses from the API
-   * @param {Array} standardsData - Industry standards for comparison
+   * @param {Array} standardsData - Industry standards for comparison (not used in new implementation)
    * @returns {Object} Processed data for the dashboard
    */
   processAssessmentData: function (responseData, standardsData) {
@@ -24,92 +23,99 @@ const assessmentUtils = {
       return null
     }
 
-    // Check if standardsData is valid
-    if (
-      !standardsData ||
-      !Array.isArray(standardsData) ||
-      standardsData.length === 0
-    ) {
-      console.warn("No standards data provided, will use default values")
-    }
-
-    // Extract client info
+    // Extract client info (Questions 1-5)
     const clientInfo = responseData.ClientInfo || {}
     console.log("Client info:", clientInfo)
 
-    // Define our maturity levels
-    const maturityLevels = [
-      {
-        level: 1,
-        name: "Initial",
-        description: "Ad-hoc practices with minimal formalization",
-      },
-      {
-        level: 2,
-        name: "Developing",
-        description: "Basic processes established but inconsistently applied",
-      },
-      {
-        level: 3,
-        name: "Defined",
-        description: "Standardized processes with consistent implementation",
-      },
-      {
-        level: 4,
-        name: "Managed",
-        description:
-          "Measured and controlled processes with quantitative goals",
-      },
-      {
-        level: 5,
-        name: "Optimizing",
-        description: "Continuous improvement with proactive optimization",
-      },
-    ]
-
-    // Define dimensions and their question mappings based on the Excel file
-    const dimensions = [
+    // Define FinOps Maturity Pillars with CORRECTED question mapping and max scores
+    const finOpsPillars = [
       {
         id: "strategic_alignment",
         name: "Strategic Alignment",
-        questionIds: [4, 5],
+        questionIds: [6, 7, 8], // 3 questions
+        maxScore: 15, // 3 questions × 5 points each
         description:
           "How well cloud initiatives align with business goals and strategy",
       },
       {
         id: "cost_visibility",
         name: "Cost Visibility & Value Assessment",
-        questionIds: [6, 7, 8],
+        questionIds: [9, 10, 11], // 3 questions
+        maxScore: 15, // 3 questions × 5 points each
         description: "Ability to track, manage, and optimize cloud spending",
-      },
-      {
-        id: "cloud_adoption",
-        name: "Cloud Adoption",
-        questionIds: [5, 6],
-        description: "Current cloud adoption level and migration progress",
       },
       {
         id: "security_posture",
         name: "Security Posture",
-        questionIds: [9, 10],
+        questionIds: [12, 13], // 2 questions
+        maxScore: 10, // 2 questions × 5 points each
         description:
           "Effectiveness of cloud security policies, controls, and monitoring",
       },
       {
+        id: "organizational_enablement",
+        name: "Organizational Enablement",
+        questionIds: [14, 15], // 2 questions
+        maxScore: 10, // 2 questions × 5 points each
+        description:
+          "Team structure, skills and training to support cloud operations",
+      },
+      {
         id: "operational_excellence",
         name: "Operational Excellence",
-        questionIds: [11, 12, 13, 14, 15],
+        questionIds: [16, 17, 18], // 3 questions
+        maxScore: 15, // 3 questions × 5 points each
         description:
           "Effectiveness of cloud operations, automation and DevOps practices",
       },
       {
-        id: "organizational_enablement",
-        name: "Organizational Enablement",
-        questionIds: [16, 17],
-        description:
-          "Team structure, skills and training to support cloud operations",
+        id: "cloud_adoption",
+        name: "Cloud Adoption",
+        questionIds: [19], // 1 question
+        maxScore: 5, // 1 question × 5 points each
+        description: "Current cloud adoption level and migration progress",
       },
     ]
+
+    // FinOps Maturity Descriptions from the provided matrix
+    const finOpsDescriptions = {
+      "Strategic Alignment": {
+        low: "Cloud strategy is fragmented and disconnected from business objectives. No clear alignment between technology investments and business outcomes.",
+        medium:
+          "Basic cloud strategy exists but lacks comprehensive business integration. Some alignment between technology initiatives and business goals.",
+        high: "Cloud strategy is fully integrated with business strategic objectives. Clear, measurable business outcomes tied to cloud investments.",
+      },
+      "Cost Visibility & Value Assessment": {
+        low: "Limited to no visibility into cloud spending. No systematic cost tracking or allocation. Reactive approach to cloud expenses.",
+        medium:
+          "Partial visibility into cloud costs. Basic cost allocation by department or project. Emerging understanding of cloud spending patterns.",
+        high: "Real-time, granular visibility into cloud spending. Sophisticated cost allocation across multiple dimensions. Proactive cost optimization strategies.",
+      },
+      "Security Posture": {
+        low: "Minimal cloud security controls. Reactive security approach. Limited understanding of cloud security risks. No consistent security policies.",
+        medium:
+          "Basic security controls in place. Emerging security governance. Partial implementation of security best practices. Some security automation.",
+        high: "Comprehensive, proactive security strategy. Advanced security automation. Continuous security monitoring and assessment.",
+      },
+      "Organizational Enablement": {
+        low: "Limited cloud training and skills development. No dedicated cloud competency center. High dependency on external consultants.",
+        medium:
+          "Basic cloud training programs. Emerging cloud competency center. Growing internal cloud expertise.",
+        high: "Comprehensive, continuous learning programs. Mature Cloud Center of Excellence. Strong internal cloud and FinOps expertise.",
+      },
+      "Operational Excellence": {
+        low: "Manual, inefficient operational processes. High incident rates and long recovery times. Limited monitoring and observability. Minimal automation.",
+        medium:
+          "Emerging DevOps practices. Partial automation of deployment and operations. Improving monitoring capabilities.",
+        high: "Advanced DevOps and SRE practices. Highly automated deployment and operations. Proactive monitoring and self-healing systems.",
+      },
+      "Cloud Adoption": {
+        low: "Minimal cloud adoption, primarily lift-and-shift approach. Limited cloud skills within the organization. Majority of workloads still on-premises.",
+        medium:
+          "Hybrid cloud environment with mixed adoption. Some cloud-native applications and services. Growing cloud skills and expertise.",
+        high: "Predominantly cloud-native architecture. Multi-cloud and hybrid cloud strategies. Advanced cloud skills across the organization.",
+      },
+    }
 
     // Filter only assessment responses (questions 6-19)
     const assessmentResponses = responseData.filter(
@@ -126,189 +132,223 @@ const assessmentUtils = {
       return null
     }
 
-    // Calculate scores for each dimension
-    const dimensionScores = dimensions.map((dimension) => {
-      // Get responses for this dimension
-      const dimensionResponses = assessmentResponses.filter((response) =>
-        dimension.questionIds.includes(response.QuestionID)
+    // Calculate scores for each FinOps pillar
+    const pillarScores = finOpsPillars.map((pillar) => {
+      // Get responses for this pillar
+      const pillarResponses = assessmentResponses.filter((response) =>
+        pillar.questionIds.includes(response.QuestionID)
       )
 
-      // Special handling for client info questions (4-5)
-      // For questions 4-5, which are basic client info, we need to convert them to a score
-      const clientInfoResponses = dimension.questionIds.filter((id) => id <= 5)
-      let additionalScore = 0
-      let additionalCount = 0
+      console.log(
+        `${pillar.name}: Found ${pillarResponses.length} responses out of ${pillar.questionIds.length} expected`
+      )
 
-      // If this dimension includes client info questions, convert them to scores
-      if (clientInfoResponses.length > 0) {
-        // This approach assigns a default score of 3 (middle of the scale) for client info
-        // You might want to use a more sophisticated method based on your business logic
-        additionalScore = clientInfoResponses.length * 3
-        additionalCount = clientInfoResponses.length
-      }
-
-      // Skip if no responses for this dimension and no client info
-      if (!dimensionResponses.length && additionalCount === 0) {
+      if (pillarResponses.length === 0) {
         return {
-          id: dimension.id,
-          name: dimension.name,
+          id: pillar.id,
+          name: pillar.name,
           score: 0,
           percentage: 0,
-          maturityLevel: 0,
-          maturityName: "N/A",
+          maturityLevel: "Low",
+          maturityDescription:
+            finOpsDescriptions[pillar.name]?.low ||
+            "Limited capabilities in this area",
           recommendations: [],
-          description: dimension.description,
+          description: pillar.description,
+          responses: 0,
+          maxScore: pillar.maxScore,
         }
       }
 
-      // Calculate average score for this dimension, including client info if applicable
-      const responseScore = dimensionResponses.reduce(
-        (sum, response) => sum + response.Score,
+      // Handle multiple responses per question by taking the highest score for each question ID
+      const highestScoresByQuestionId = new Map()
+
+      pillarResponses.forEach((response) => {
+        const questionId = response.QuestionID
+        const currentScore = response.Score || 0
+
+        // If we haven't seen this question before, or the current score is higher than previous
+        if (
+          !highestScoresByQuestionId.has(questionId) ||
+          currentScore > highestScoresByQuestionId.get(questionId).score
+        ) {
+          highestScoresByQuestionId.set(questionId, {
+            score: currentScore,
+            response: response,
+          })
+        }
+      })
+
+      // Get the unique question responses with highest scores
+      const uniqueResponses = Array.from(
+        highestScoresByQuestionId.values()
+      ).map((item) => item.response)
+
+      console.log(
+        `${pillar.name}: Using ${uniqueResponses.length} unique questions (after deduplication)`
+      )
+
+      // Calculate total score using only the highest score for each question
+      const totalScore = Array.from(highestScoresByQuestionId.values()).reduce(
+        (sum, item) => sum + item.score,
         0
       )
-      const totalScore = responseScore + additionalScore
-      const totalCount = dimensionResponses.length + additionalCount
-      const averageScore = totalScore / totalCount
 
-      // Convert score to percentage
-      const percentage = Math.round((averageScore / 5) * 100)
+      // Cap percentage at 100%
+      const percentage = Math.min(
+        100,
+        Math.round((totalScore / pillar.maxScore) * 100)
+      )
 
-      // Determine maturity level
-      let maturityLevel
-      if (averageScore < 1.5) maturityLevel = maturityLevels[0]
-      else if (averageScore < 2.5) maturityLevel = maturityLevels[1]
-      else if (averageScore < 3.5) maturityLevel = maturityLevels[2]
-      else if (averageScore < 4.5) maturityLevel = maturityLevels[3]
-      else maturityLevel = maturityLevels[4]
+      console.log(
+        `${pillar.name}: ${totalScore}/${pillar.maxScore} = ${percentage}%`
+      )
 
-      // Generate recommendations based on score
+      // Determine maturity level based on percentage
+      let maturityLevel, maturityDescription
+      if (percentage < 30) {
+        maturityLevel = "Low"
+        maturityDescription =
+          finOpsDescriptions[pillar.name]?.low ||
+          "Limited capabilities in this area"
+      } else if (percentage < 70) {
+        maturityLevel = "Medium"
+        maturityDescription =
+          finOpsDescriptions[pillar.name]?.medium ||
+          "Developing capabilities in this area"
+      } else {
+        maturityLevel = "High"
+        maturityDescription =
+          finOpsDescriptions[pillar.name]?.high ||
+          "Advanced capabilities in this area"
+      }
+
+      // Generate basic recommendations (these will be replaced with AI recommendations)
       const recommendations = []
-
-      // If score is below standard (3.5), add recommendation
-      if (averageScore < 3.5) {
-        let priority = "Medium"
-        if (averageScore < 2) priority = "Critical"
-        else if (averageScore < 3) priority = "High"
-
+      if (maturityLevel === "Low") {
         recommendations.push({
-          title: `Improve ${dimension.name}`,
-          rationale: `Your organization scored below industry standard in ${dimension.name}.`,
-          impact: `Moving from ${maturityLevel.name} to ${
-            maturityLevels[Math.min(Math.ceil(averageScore), 4)].name
-          } maturity`,
-          priority: priority,
+          title: `Immediate attention required for ${pillar.name}`,
+          rationale: `Your organization scored ${percentage}% (Low maturity) in ${pillar.name}.`,
+          impact: "Critical foundational issues need to be addressed",
+          priority: "Critical",
+        })
+      } else if (maturityLevel === "Medium") {
+        recommendations.push({
+          title: `Accelerate improvement in ${pillar.name}`,
+          rationale: `Your organization scored ${percentage}% (Medium maturity) in ${pillar.name}.`,
+          impact: "Good foundation exists, focus on optimization",
+          priority: "High",
         })
       }
 
+      // Return the pillar data
       return {
-        id: dimension.id,
-        name: dimension.name,
-        score: parseFloat(averageScore.toFixed(1)),
+        id: pillar.id,
+        name: pillar.name,
+        score: totalScore,
         percentage: percentage,
-        maturityLevel: maturityLevel.level,
-        maturityName: maturityLevel.name,
-        recommendations: recommendations,
-        description: dimension.description,
-        responses: dimensionResponses.length,
+        maturityLevel: maturityLevel,
+        maturityDescription: maturityDescription,
+        recommendations: recommendations, // These are placeholders that will be replaced
+        description: pillar.description,
+        responses: uniqueResponses.length,
+        maxScore: pillar.maxScore,
+        userAnswers: uniqueResponses.map((r) => ({
+          questionId: r.QuestionID,
+          questionText: r.QuestionText,
+          selectedAnswer: r.StandardText || `Score: ${r.Score}`,
+          score: r.Score,
+        })),
       }
     })
 
     // Calculate overall score
-    const validDimensions = dimensionScores.filter((d) => d.score > 0)
-    const overallScore =
-      validDimensions.length > 0
-        ? parseFloat(
-            (
-              validDimensions.reduce((sum, dim) => sum + dim.score, 0) /
-              validDimensions.length
-            ).toFixed(1)
-          )
-        : 0
+    const totalMaxScore = finOpsPillars.reduce(
+      (sum, pillar) => sum + pillar.maxScore,
+      0
+    )
+    const totalActualScore = pillarScores.reduce(
+      (sum, pillar) => sum + pillar.score,
+      0
+    )
+    // Cap overall percentage at 100%
+    const overallPercentage = Math.min(
+      100,
+      Math.round((totalActualScore / totalMaxScore) * 100)
+    )
+
+    console.log(
+      `Overall: ${totalActualScore}/${totalMaxScore} = ${overallPercentage}%`
+    )
 
     // Determine overall maturity level
     let overallMaturityLevel
-    if (overallScore < 1.5) overallMaturityLevel = maturityLevels[0]
-    else if (overallScore < 2.5) overallMaturityLevel = maturityLevels[1]
-    else if (overallScore < 3.5) overallMaturityLevel = maturityLevels[2]
-    else if (overallScore < 4.5) overallMaturityLevel = maturityLevels[3]
-    else overallMaturityLevel = maturityLevels[4]
+    if (overallPercentage < 30) {
+      overallMaturityLevel = "Low (Initial/Emerging)"
+    } else if (overallPercentage < 70) {
+      overallMaturityLevel = "Medium (Developing)"
+    } else {
+      overallMaturityLevel = "High (Advanced/Optimizing)"
+    }
 
     // Build radar chart data for dimensional comparison
-    const radarData = dimensionScores
-      .filter((dim) => dim.score > 0)
-      .map((dim) => ({
-        dimension: dim.name,
-        score: dim.score,
-        standardScore: 3.5, // Industry standard benchmark
+    const radarData = pillarScores
+      .filter((pillar) => pillar.score > 0)
+      .map((pillar) => ({
+        dimension: pillar.name,
+        score: pillar.percentage,
+        standardScore: 50, // 50% as middle benchmark
       }))
 
-    // Collect all recommendations and sort by priority
-    const allRecommendations = dimensionScores
-      .flatMap((dim) => dim.recommendations)
+    // Collect basic recommendations (these will be replaced with AI recommendations)
+    const allRecommendations = pillarScores
+      .flatMap((pillar) => pillar.recommendations)
       .sort((a, b) => {
         const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 }
         return priorityOrder[a.priority] - priorityOrder[b.priority]
       })
 
-    // Create implementation roadmap (phased approach to improvements)
+    // Create a default implementation roadmap (will be replaced with AI roadmap)
     const implementationRoadmap = [
       {
-        phase: "Immediate (0-30 days)",
+        phase: "First 30 Days",
         actions: allRecommendations
           .filter((rec) => rec.priority === "Critical")
           .map((rec) => rec.title),
       },
       {
-        phase: "Short-term (1-3 months)",
+        phase: "31-60 Days",
         actions: allRecommendations
           .filter((rec) => rec.priority === "High")
           .map((rec) => rec.title),
       },
       {
-        phase: "Medium-term (3-6 months)",
+        phase: "61-90 Days",
         actions: allRecommendations
           .filter((rec) => rec.priority === "Medium")
           .map((rec) => rec.title),
       },
       {
-        phase: "Long-term (6-12 months)",
-        actions: [
-          "Implement continuous improvement processes",
-          "Advanced cloud optimization",
-          "Fully automated governance frameworks",
-          "Develop cloud center of excellence",
-        ],
+        phase: "Beyond 90 Days",
+        actions: allRecommendations
+          .filter((rec) => rec.priority === "Low")
+          .map((rec) => rec.title),
       },
     ]
 
     // Ensure each phase has at least some actions
     implementationRoadmap.forEach((phase) => {
       if (phase.actions.length === 0) {
-        phase.actions = ["Review and align with organization priorities"]
+        phase.actions = ["Review and align with organizational priorities"]
       }
     })
-
-    // Prepare cloud spend data (simulated)
-    const cloudSpend = {
-      byService: [
-        { name: "Compute", value: 40 },
-        { name: "Storage", value: 25 },
-        { name: "Database", value: 15 },
-        { name: "Network", value: 12 },
-        { name: "Other", value: 8 },
-      ],
-      potential: {
-        current: Math.round(1000 - 50 * overallScore),
-        optimized: Math.round(700 - 30 * overallScore),
-      },
-    }
 
     // Prepare report metadata
     const reportMetadata = {
       clientName: clientInfo.ClientName || "Unknown",
       organizationName: clientInfo.OrganizationName || "Unknown Organization",
-      clientSize: clientInfo.CompanySize || "",
-      industryType: clientInfo.IndustryType || "",
+      clientSize: clientInfo.CompanySize || "Not specified",
+      industryType: clientInfo.IndustryType || "Not specified",
       reportDate: new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
@@ -316,153 +356,242 @@ const assessmentUtils = {
       }),
     }
 
-    // Calculate category scores for compatibility with existing code
+    // Create category scores for compatibility with existing visualizations
     const categoryScores = {}
-    dimensionScores.forEach((dimension) => {
-      // Map dimension names to the existing category names
-      let categoryName
-      if (dimension.id === "strategic_alignment")
-        categoryName = "Cloud Strategy"
-      else if (dimension.id === "cost_visibility") categoryName = "Cloud Cost"
-      else if (dimension.id === "security_posture")
-        categoryName = "Cloud Security"
-      else if (dimension.id === "organizational_enablement")
-        categoryName = "Cloud People"
-      else if (dimension.id === "operational_excellence")
-        categoryName = "Cloud DevOps"
-      else if (dimension.id === "cloud_adoption")
-        categoryName = "Cloud Adoption"
-      else categoryName = dimension.name
-
-      categoryScores[categoryName] = {
-        score: dimension.score,
-        responses: dimension.responses,
+    pillarScores.forEach((pillar) => {
+      categoryScores[pillar.name] = {
+        score: pillar.percentage / 20, // Convert percentage to 1-5 scale for compatibility
+        responses: pillar.responses,
       }
     })
 
-    // Return the complete assessment object
+    // Return the base assessment object without AI analysis integration
+    // The AI analysis will be fetched and merged separately
     return {
-      // Include the original structure for backward compatibility
       cloudMaturityAssessment: {
-        overallScore,
-        currentLevel: `${overallMaturityLevel.name}`,
+        overallScore: overallPercentage / 20,
+        currentLevel: overallMaturityLevel,
         dimensionalScores: radarData,
       },
       recommendations: {
         keyRecommendations: allRecommendations,
         categoryScores,
-        responses: assessmentResponses.map((response) => {
-          // Find matching standard from standardsData if available
-          const standard = standardsData?.find(
-            (s) => s.QuestionID === response.QuestionID
-          )
-
-          return {
-            QuestionID: response.QuestionID,
-            QuestionText:
-              response.QuestionText || `Question ${response.QuestionID}`,
-            Category: response.Category || "Uncategorized",
-            Score: response.Score,
-            StandardScore: standard?.Score || 3, // Default to 3 if no standard
-            StandardText:
-              standard?.StandardText || "Industry standard practice",
-            Difference: response.Score - (standard?.Score || 3),
-          }
-        }),
+        responses: assessmentResponses.map((response) => ({
+          QuestionID: response.QuestionID,
+          QuestionText:
+            response.QuestionText || `Question ${response.QuestionID}`,
+          Category: response.Category || "Uncategorized",
+          Score: response.Score,
+          StandardScore: 3, // Default benchmark
+          StandardText: response.StandardText || `Score: ${response.Score}`,
+          Difference: response.Score - 3,
+        })),
         implementationRoadmap,
       },
 
-      // Enhanced structure with detailed dimensional analysis
+      // New FinOps structure
       reportMetadata,
-      dimensions: dimensionScores,
-      cloudSpend,
-
-      // Additional data for advanced visualizations
-      overallMaturity: {
-        score: overallScore,
-        percentage: Math.round((overallScore / 5) * 100),
-        level: overallMaturityLevel.level,
-        name: overallMaturityLevel.name,
-        description: overallMaturityLevel.description,
-        maturityLevels,
+      finOpsPillars: pillarScores,
+      overallFinOpsMaturity: {
+        percentage: overallPercentage,
+        level: overallMaturityLevel,
+        totalScore: totalActualScore,
+        maxScore: totalMaxScore,
       },
 
-      // Include time-to-value data based on maturity score
-      timeToValue: {
-        current: [
-          {
-            name: "Initial Implementation",
-            value: 5 - Math.min(4, Math.round(overallScore)),
-          },
-          {
-            name: "Time to Market",
-            value: 6 - Math.min(5, Math.round(overallScore)),
-          },
-          {
-            name: "Deployment Frequency",
-            value: 4 - Math.min(3, Math.round(overallScore)),
-          },
-          {
-            name: "Change Failure Rate",
-            value: 5 - Math.min(4, Math.round(overallScore)),
-          },
-        ],
-        optimized: [
-          { name: "Initial Implementation", value: 1 },
-          { name: "Time to Market", value: 2 },
-          { name: "Deployment Frequency", value: 1 },
-          { name: "Change Failure Rate", value: 1.5 },
-        ],
-      },
+      // AI insights placeholder
+      executiveSummary: null,
+      overallFindings: null,
+      strengths: [],
+      improvementAreas: [],
+      // Note: recommendations are already included in the structure above
+      timelineSteps: null,
 
-      // Standards comparison counts for visualization
+      // Standards comparison based on FinOps benchmarks
       standardsComparison: {
-        above: assessmentResponses.filter(
-          (r) =>
-            r.Score >
-            (standardsData?.find((s) => s.QuestionID === r.QuestionID)?.Score ||
-              3)
+        above: pillarScores.filter((p) => p.percentage > 70).length,
+        meeting: pillarScores.filter(
+          (p) => p.percentage >= 30 && p.percentage <= 70
         ).length,
-        meeting: assessmentResponses.filter(
-          (r) =>
-            r.Score ===
-            (standardsData?.find((s) => s.QuestionID === r.QuestionID)?.Score ||
-              3)
-        ).length,
-        below: assessmentResponses.filter(
-          (r) =>
-            r.Score <
-            (standardsData?.find((s) => s.QuestionID === r.QuestionID)?.Score ||
-              3)
-        ).length,
+        below: pillarScores.filter((p) => p.percentage < 30).length,
       },
     }
   },
 
   /**
-   * Utility function to determine maturity level name from score
-   * @param {number} score - Maturity score (1-5)
-   * @returns {string} Maturity level name
+   * Fetch and integrate AI analysis data with assessment data
+   * @param {number} clientId - The client ID
+   * @param {Object} baseAssessmentData - The base assessment data without AI insights
+   * @returns {Object} Integrated assessment data with AI insights
    */
-  getMaturityLevelName: function (score) {
-    if (score < 1.5) return "Initial"
-    if (score < 2.5) return "Developing"
-    if (score < 3.5) return "Defined"
-    if (score < 4.5) return "Managed"
-    return "Optimizing"
+  integrateAIAnalysis: async function (clientId, baseAssessmentData) {
+    console.log(`Integrating AI analysis for client ${clientId}`)
+
+    if (!baseAssessmentData) {
+      console.warn("No base assessment data to integrate AI analysis with")
+      return null
+    }
+
+    try {
+      // Fetch AI analysis
+      const aiAnalysis = await this.getConsolidatedAnalysis(clientId)
+
+      if (!aiAnalysis) {
+        console.log("No AI analysis available, using base assessment data")
+        return baseAssessmentData
+      }
+
+      console.log(
+        "Successfully fetched AI analysis, integrating with assessment data"
+      )
+
+      // Create a deep copy of the base assessment data
+      const integratedData = JSON.parse(JSON.stringify(baseAssessmentData))
+
+      // If we have AI analysis, integrate it into the processedData directly
+      if (aiAnalysis.analysis) {
+        // Add the executive summary and findings at the top level
+        integratedData.executiveSummary =
+          aiAnalysis.analysis.executiveSummary || null
+        integratedData.overallFindings =
+          aiAnalysis.analysis.overallFindings || null
+        integratedData.strengths = aiAnalysis.analysis.strengths || []
+        integratedData.improvementAreas =
+          aiAnalysis.analysis.improvementAreas || []
+        integratedData.timelineSteps = aiAnalysis.analysis.timelineSteps || null
+
+        // Also add AI metadata for tracking
+        integratedData.aiMetadata = {
+          analysisId: aiAnalysis.analysisId,
+          modelVersion: aiAnalysis.modelVersion,
+          createdAt: aiAnalysis.createdAt,
+        }
+
+        // Replace the recommendations if available
+        if (
+          aiAnalysis.analysis.recommendations &&
+          aiAnalysis.analysis.recommendations.length > 0
+        ) {
+          integratedData.recommendations.keyRecommendations =
+            aiAnalysis.analysis.recommendations
+        }
+
+        // Replace the implementation roadmap with AI timeline
+        if (aiAnalysis.analysis.timelineSteps) {
+          // Transform the timeline steps into the format expected by the UI
+          const aiRoadmap = [
+            {
+              phase: "First 30 Days",
+              actions: aiAnalysis.analysis.timelineSteps["30day"] || [],
+            },
+            {
+              phase: "31-60 Days",
+              actions: aiAnalysis.analysis.timelineSteps["60day"] || [],
+            },
+            {
+              phase: "61-90 Days",
+              actions: aiAnalysis.analysis.timelineSteps["90day"] || [],
+            },
+            {
+              phase: "Beyond 90 Days",
+              actions:
+                aiAnalysis.analysis.timelineSteps["Beyond 90 Days"] || [],
+            },
+          ]
+
+          integratedData.recommendations.implementationRoadmap = aiRoadmap
+        }
+      }
+
+      return integratedData
+    } catch (error) {
+      console.error("Error integrating AI analysis:", error)
+      // Return the original data if there's an error
+      return baseAssessmentData
+    }
   },
 
   /**
-   * Get a color for visualization based on maturity score
-   * @param {number} score - Maturity score (1-5)
-   * @returns {string} Hex color code
+   * Get consolidated analysis for a client
+   * @param {number} clientId - The client ID
+   * @returns {Object|null} The analysis or null if not found
    */
-  getMaturityColor: function (score) {
-    if (score < 1.5) return "#ef4444" // Red
-    if (score < 2.5) return "#f59e0b" // Orange/Amber
-    if (score < 3.5) return "#3b82f6" // Blue
-    if (score < 4.5) return "#10b981" // Green
-    return "#059669" // Dark Green
+  getConsolidatedAnalysis: async function (clientId) {
+    try {
+      const response = await fetch(`/api/consolidated-analysis/${clientId}`)
+
+      if (!response.ok) {
+        console.warn(
+          `Failed to fetch consolidated analysis: ${response.status}`
+        )
+        return null
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error("Error getting consolidated analysis:", error)
+      return null
+    }
+  },
+
+  /**
+   * Generate consolidated AI analysis for a client
+   * @param {number} clientId - The client ID
+   * @param {Object} assessmentData - The assessment data to analyze
+   * @returns {Object|null} The generated analysis or null if generation failed
+   */
+  generateConsolidatedAnalysis: async function (clientId, assessmentData) {
+    try {
+      const response = await fetch(`/api/consolidated-analysis/${clientId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          assessmentData,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate analysis: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error("Error generating consolidated analysis:", error)
+      return null
+    }
+  },
+
+  /**
+   * Process assessment data and integrate AI analysis in one call
+   * @param {Array} responseData - Assessment responses from the API
+   * @param {Array} standardsData - Industry standards for comparison
+   * @param {number} clientId - The client ID
+   * @returns {Promise<Object>} Processed data with AI insights
+   */
+  processAssessmentWithAI: async function (
+    responseData,
+    standardsData,
+    clientId
+  ) {
+    // First process the basic assessment data
+    const baseData = this.processAssessmentData(responseData, standardsData)
+
+    if (!baseData) {
+      return null
+    }
+
+    // If no clientId provided, we can't fetch AI analysis
+    if (!clientId) {
+      console.log("No clientId provided, skipping AI analysis integration")
+      return baseData
+    }
+
+    // Then integrate AI analysis
+    return await this.integrateAIAnalysis(clientId, baseData)
   },
 }
 

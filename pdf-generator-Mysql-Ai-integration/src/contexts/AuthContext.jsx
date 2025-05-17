@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { signOut } from "next-auth/react" // Import Next-Auth signOut function
+import { signOut } from "next-auth/react"
 
 // Create context
 const AuthContext = createContext()

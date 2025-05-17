@@ -1,3 +1,4 @@
+// Modified ReportGenerator.jsx to use the AI insights directly
 import { useRef, useState } from "react"
 
 // Import report page components
@@ -5,6 +6,7 @@ import ReportCoverPage from "./ReportCoverPage"
 import ReportExecutiveSummary from "./ReportExecutiveSummary"
 import ReportMaturityAssessment from "./ReportMaturityAssessment"
 import ReportRecommendations from "./ReportRecommendations"
+import ReportDetailedResults from "./ReportDetailedResults"
 import ReportEndCoverPage from "./ReportEndPage"
 
 const ReportGenerator = ({
@@ -20,6 +22,15 @@ const ReportGenerator = ({
 
   // Log client data to help with debugging
   console.log("Client data being used for report:", clientData)
+
+  // Check if AI-enhanced data is available
+  const hasAIInsights = !!(
+    clientData.executiveSummary ||
+    clientData.strengths?.length > 0 ||
+    clientData.overallFindings
+  )
+
+  console.log("Report has AI insights:", hasAIInsights)
 
   const generatePDF = async () => {
     if (onGenerationStart) onGenerationStart()
@@ -102,6 +113,30 @@ const ReportGenerator = ({
     }
   }
 
+  // Create enhanced client data for reports that includes AI insights
+  const enhancedClientData = {
+    ...clientData,
+
+    // Add/enhance executive summary with AI data if available
+    executiveSummary: {
+      ...(clientData.executiveSummary || {}),
+      content:
+        clientData.executiveSummary || "Cloud maturity assessment results",
+      aiFindings: clientData.overallFindings,
+      aiStrengths: clientData.strengths || [],
+      aiImprovementAreas: clientData.improvementAreas || [],
+    },
+
+    // Enhance recommendations with AI data if available
+    recommendations: {
+      ...clientData.recommendations,
+      // Keep the existing recommendations if AI ones aren't available
+      aiKeyRecommendations: clientData.recommendations.keyRecommendations,
+      // Ensure implementationRoadmap is accessible
+      implementationRoadmap: clientData.recommendations.implementationRoadmap,
+    },
+  }
+
   return (
     <>
       {/* Report generation button */}
@@ -153,7 +188,7 @@ const ReportGenerator = ({
             >
               <path d="M5 13l4 4L19 7"></path>
             </svg>
-            PDF Report Ready!
+            {hasAIInsights ? "AI-Enhanced PDF Ready!" : "PDF Report Ready!"}
           </span>
         ) : (
           <span className="flex items-center">
@@ -170,7 +205,9 @@ const ReportGenerator = ({
                 d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            Generate PDF Report
+            {hasAIInsights
+              ? "Generate AI-Enhanced Report"
+              : "Generate PDF Report"}
           </span>
         )}
       </button>
@@ -193,16 +230,16 @@ const ReportGenerator = ({
           data-page-name="Cover Page"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportCoverPage clientData={clientData} />
+          <ReportCoverPage clientData={enhancedClientData} />
         </div>
 
         {/* Executive Summary - Page 1 */}
         <div
           className="page"
-          data-page-name="Executive Summary 1"
+          data-page-name="Executive Summary"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportExecutiveSummary clientData={clientData} />
+          <ReportExecutiveSummary clientData={enhancedClientData} />
         </div>
 
         {/* Cloud Maturity Assessment */}
@@ -211,7 +248,7 @@ const ReportGenerator = ({
           data-page-name="Maturity Assessment"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportMaturityAssessment clientData={clientData} />
+          <ReportMaturityAssessment clientData={enhancedClientData} />
         </div>
 
         {/* Recommendations & Action Plan */}
@@ -220,7 +257,16 @@ const ReportGenerator = ({
           data-page-name="Recommendations"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportRecommendations clientData={clientData} />
+          <ReportRecommendations clientData={enhancedClientData} />
+        </div>
+
+        {/* Detailed Results */}
+        <div
+          className="page"
+          data-page-name="Detailed Results"
+          style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
+        >
+          <ReportDetailedResults clientData={enhancedClientData} />
         </div>
 
         {/* End Cover Page */}
@@ -229,7 +275,7 @@ const ReportGenerator = ({
           data-page-name="End Page"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportEndCoverPage clientData={clientData} />
+          <ReportEndCoverPage clientData={enhancedClientData} />
         </div>
       </div>
     </>
