@@ -1,37 +1,20 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts"
 import Link from "next/link"
 import ReportGenerator from "../../components/report/ReportGenerator"
-import GaugeMeter from "../../components/GaugeMeter"
-import AIInsightsComponent from "@/components/AIInsightsComponent"
-import FinOpsPillarSummary from "@/components/FinOpsPillarSummary"
-import FinOpsPillarRadarChart from "@/components/FinOpsPillarRadarChart"
-import FinOpsPillarDetailCards from "@/components/FinOpsPillarDetailCards"
-import FinOpsPillarBarChart from "@/components/FinOpsPillarBarChart"
-import FinOpsKeyRecommendations from "@/components/FinOpsKeyRecommendations"
-import FinOpsImplementationRoadmap from "@/components/FinOpsImplementationRoadmap"
-import FinOpsPillarDetailsTable from "@/components/FinOpsPillarDetailsTable"
+import GaugeMeter from "../../components/dashboard/GaugeMeter"
+import AIInsightsComponent from "@/components/dashboard/AIInsightsComponent"
+import FinOpsPillarSummary from "@/components/dashboard/finops/FinOpsPillarSummary"
+import FinOpsPillarRadarChart from "@/components/dashboard/finops/FinOpsPillarRadarChart"
+import FinOpsPillarDetailCards from "@/components/dashboard/finops/FinOpsPillarDetailCards"
+import FinOpsPillarBarChart from "@/components/dashboard/finops/FinOpsPillarBarChart"
+import FinOpsKeyRecommendations from "@/components/dashboard/finops/FinOpsKeyRecommendations"
+import FinOpsImplementationRoadmap from "@/components/dashboard/finops/FinOpsImplementationRoadmap"
+import FinOpsPillarDetailsTable from "@/components/dashboard/finops/FinOpsPillarDetailsTable"
+import OrganizationOverviewCard from "@/components/dashboard/OrganizationOverviewCard"
 
 export default function Dashboard() {
   const [clients, setClients] = useState([])
@@ -521,150 +504,10 @@ export default function Dashboard() {
           )}
 
           {/* User Overview Card */}
-          <div className="bg-white p-6 rounded-lg shadow mb-6">
-            <h2 className="text-lg font-bold text-gray-700 mb-4">
-              Organization Overview
-            </h2>
-
-            <div className="flex flex-col md:flex-row">
-              {/* Left side - Basic Info */}
-              <div className="flex-1 pr-4">
-                <div className="mb-4">
-                  <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-2xl border border-blue-200 mx-auto md:mx-0">
-                    {processedData?.reportMetadata?.organizationName?.charAt(
-                      0
-                    ) ||
-                      user?.organizationName?.charAt(0) ||
-                      "O"}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">
-                      Contact Name
-                    </h3>
-                    <p className="font-semibold text-gray-800">
-                      {processedData?.reportMetadata?.clientName ||
-                        user?.clientName ||
-                        "Unknown"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">
-                      Organization
-                    </h3>
-                    <p className="font-semibold text-gray-800">
-                      {processedData?.reportMetadata?.organizationName ||
-                        "Unknown Organization"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                    <p className="font-semibold text-gray-800">
-                      {user?.email || "Not provided"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right side - FinOps Info */}
-              <div className="flex-1 pt-4 md:pt-0 md:pl-4 md:border-l border-gray-200">
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">
-                      Industry
-                    </h3>
-                    <p className="font-semibold text-gray-800">
-                      {processedData?.reportMetadata?.industryType ||
-                        "Not specified"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">
-                      Company Size
-                    </h3>
-                    <p className="font-semibold text-gray-800">
-                      {processedData?.reportMetadata?.clientSize ||
-                        "Not specified"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">
-                      Assessment Date
-                    </h3>
-                    <p className="font-semibold text-gray-800">
-                      {processedData?.reportMetadata?.reportDate || "Today"}
-                    </p>
-                  </div>
-
-                  {/* FinOps Maturity Score */}
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">
-                      FinOps Maturity Score
-                    </h3>
-                    <div className="flex items-center">
-                      <span className="font-bold text-xl text-blue-600 mr-2">
-                        {processedData?.overallFinOpsMaturity?.percentage ||
-                          "N/A"}
-                        %
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        ({processedData?.overallFinOpsMaturity?.level || "N/A"})
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* FinOps Maturity Badge */}
-            <div className="mt-5 pt-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">
-                    Current FinOps Maturity Level
-                  </h3>
-                  <div className="flex items-center">
-                    <div
-                      className={`px-4 py-1 rounded-full font-medium text-sm ${
-                        processedData?.overallFinOpsMaturity?.level?.includes(
-                          "High"
-                        )
-                          ? "bg-green-100 text-green-800"
-                          : processedData?.overallFinOpsMaturity?.level?.includes(
-                              "Medium"
-                            )
-                          ? "bg-orange-100 text-orange-800"
-                          : processedData?.overallFinOpsMaturity?.level?.includes(
-                              "Low"
-                            )
-                          ? "bg-red-100 text-red-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {processedData?.overallFinOpsMaturity?.level ||
-                        "Not Available"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">
-                    Total Points
-                  </h3>
-                  <p className="font-bold text-xl text-blue-600">
-                    {processedData?.overallFinOpsMaturity?.totalScore || 0}/
-                    {processedData?.overallFinOpsMaturity?.maxScore || 0}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <OrganizationOverviewCard
+            organizationData={processedData}
+            userData={user}
+          />
 
           {/* AI Insights Component */}
           {aiDataReady && (

@@ -14,7 +14,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts"
-import GaugeMeter from "../GaugeMeter"
+import GaugeMeter from "../dashboard/GaugeMeter"
 
 // Helper component for the maturity gauge
 const MaturityGauge = ({ score = 3.2, maxValue = 5 }) => {

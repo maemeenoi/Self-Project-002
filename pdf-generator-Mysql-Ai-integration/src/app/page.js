@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import LoginModal from "../components/LoginModal"
-import FlowDiagram from "@/components/FlowDiagram"
+import LoginModal from "@/components/auth/LoginModal"
+import FlowDiagram from "@/components/dashboard/FlowDiagram"
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
