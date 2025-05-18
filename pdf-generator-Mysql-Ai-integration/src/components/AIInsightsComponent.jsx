@@ -180,8 +180,8 @@ const AIInsightsComponent = ({ insights, isLoading }) => {
             <h3 className="font-semibold text-gray-800 mb-3">
               Implementation Timeline
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {["30day", "60day", "90day"].map(
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {["30day", "60day", "90day", "Beyond 90 Days"].map(
                 (timeframe, idx) =>
                   analysis.timelineSteps[timeframe] && (
                     <div key={idx} className="border rounded-lg p-3">
@@ -196,7 +196,9 @@ const AIInsightsComponent = ({ insights, isLoading }) => {
                             ? "31-60 Days"
                             : timeframe === "90day"
                             ? "61-90 Days"
-                            : timeframe === "Beyond 90 Days"}
+                            : timeframe === "Beyond 90 Days"
+                            ? "Beyond 90 Days"
+                            : ""}
                         </h4>
                       </div>
                       <ul className="space-y-1">

@@ -24,6 +24,14 @@ import {
 import Link from "next/link"
 import ReportGenerator from "../../components/report/ReportGenerator"
 import GaugeMeter from "../../components/GaugeMeter"
+import AIInsightsComponent from "@/components/AIInsightsComponent"
+import FinOpsPillarSummary from "@/components/FinOpsPillarSummary"
+import FinOpsPillarRadarChart from "@/components/FinOpsPillarRadarChart"
+import FinOpsPillarDetailCards from "@/components/FinOpsPillarDetailCards"
+import FinOpsPillarBarChart from "@/components/FinOpsPillarBarChart"
+import FinOpsKeyRecommendations from "@/components/FinOpsKeyRecommendations"
+import FinOpsImplementationRoadmap from "@/components/FinOpsImplementationRoadmap"
+import FinOpsPillarDetailsTable from "@/components/FinOpsPillarDetailsTable"
 
 export default function Dashboard() {
   const [clients, setClients] = useState([])
@@ -371,8 +379,6 @@ export default function Dashboard() {
         }
       }
     }
-
-    // Start generating the report with whatever data we have
     setIsGeneratingReport(true)
     setIsReportComplete(false)
   }
@@ -660,630 +666,78 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* AI Insights Section - Add this after the FinOps Pillars Detailed Cards section */}
-          <div className="bg-white p-6 rounded-lg shadow mb-6">
-            <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center">
-              <svg
-                className="w-5 h-5 mr-2 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
-              AI-Powered Insights
-            </h2>
-
-            {isLoadingInsights ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-              </div>
-            ) : aiInsights && Object.keys(aiInsights).length > 0 ? (
-              <div className="space-y-6">
-                {/* Executive Summary */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-blue-800 mb-2">
-                    Executive Summary
-                  </h3>
-                  <p className="text-gray-700">
-                    {aiInsights.analysis?.executiveSummary}
-                  </p>
-                </div>
-
-                {/* Strengths and Improvement Areas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Strengths */}
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                    <h3 className="font-semibold text-green-800 mb-2">
-                      Key Strengths
-                    </h3>
-                    <ul className="space-y-2">
-                      {aiInsights.analysis?.strengths?.map(
-                        (strength, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-green-500 mr-2">•</span>
-                            <span className="text-gray-700">{strength}</span>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-
-                  {/* Improvement Areas */}
-                  <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
-                    <h3 className="font-semibold text-amber-800 mb-2">
-                      Improvement Areas
-                    </h3>
-                    <ul className="space-y-2">
-                      {aiInsights.analysis?.improvementAreas?.map(
-                        (area, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-amber-500 mr-2">•</span>
-                            <span className="text-gray-700">{area}</span>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Strategic Recommendations */}
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-2">
-                    Strategic Recommendations
-                  </h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                    {aiInsights.analysis?.recommendations?.map((rec, index) => (
-                      <div
-                        key={index}
-                        className="border-l-4 border-blue-500 pl-4 py-3 bg-gray-50 rounded-r-lg"
-                      >
-                        <h4 className="font-medium text-gray-800">
-                          {rec.title}
-                        </h4>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {rec.description}
-                        </p>
-                        <div className="mt-2 flex justify-between items-center">
-                          <span className="text-xs text-gray-500">
-                            {rec.pillar || rec.timeline}
-                          </span>
-                          <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">
-                            {rec.priority || "Recommended"}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Implementation Timeline */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 mb-3">
-                    Implementation Timeline
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {["30day", "60day", "90day"].map((timeframe, idx) => (
-                      <div key={idx} className="border rounded-lg p-3">
-                        <div className="flex items-center mb-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 font-bold text-xs flex items-center justify-center mr-2">
-                            {idx + 1}
-                          </div>
-                          <h4 className="font-medium text-sm text-gray-800">
-                            {timeframe === "30day"
-                              ? "First 30 Days"
-                              : timeframe === "60day"
-                              ? "31-60 Days"
-                              : "61-90 Days"}
-                          </h4>
-                        </div>
-                        <ul className="space-y-1">
-                          {aiInsights.analysis?.timelineSteps?.[timeframe]?.map(
-                            (step, i) => (
-                              <li
-                                key={i}
-                                className="text-xs text-gray-600 flex items-start"
-                              >
-                                <span className="text-blue-500 mr-1">•</span>
-                                {step}
-                              </li>
-                            )
-                          )}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
-                <p className="mt-2">
-                  AI insights are being generated. Check back soon.
-                </p>
-              </div>
-            )}
-          </div>
+          {/* AI Insights Component */}
+          {aiDataReady && (
+            <AIInsightsComponent
+              insights={aiInsights}
+              isLoading={isLoadingInsights}
+              clientId={selectedClient?.ClientID}
+              clientName={selectedClient?.ClientName}
+              onInsightsReady={() => setAiDataReady(true)}
+            />
+          )}
 
           {!isLoading && processedData && (
             <>
               {/* FinOps Standards Compliance Summary */}
-              <div className="mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  FinOps Pillar Maturity Summary
-                </h2>
+              <FinOpsPillarSummary
+                countFinOpsStandards={countFinOpsStandards}
+                getFinOpsProgressPercentage={getFinOpsProgressPercentage}
+              />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* High Maturity (Above Standard) */}
-                  <div className="bg-white p-6 rounded-lg shadow border-t-4 border-green-500">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-gray-800">
-                        High Maturity
-                      </h3>
-                      <span className="text-green-600 text-2xl font-bold">
-                        {countFinOpsStandards("above")}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
-                      <div
-                        className="bg-green-500 h-2.5 rounded-full"
-                        style={{
-                          width: `${getFinOpsProgressPercentage("above")}%`,
-                        }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      FinOps areas with advanced capabilities - potential cost
-                      optimization leadership and best practices
-                    </p>
-                  </div>
-
-                  {/* Medium Maturity */}
-                  <div className="bg-white p-6 rounded-lg shadow border-t-4 border-orange-500">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-gray-800">
-                        Medium Maturity
-                      </h3>
-                      <span className="text-orange-600 text-2xl font-bold">
-                        {countFinOpsStandards("meet")}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
-                      <div
-                        className="bg-orange-500 h-2.5 rounded-full"
-                        style={{
-                          width: `${getFinOpsProgressPercentage("meet")}%`,
-                        }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      FinOps areas with solid foundation - ready for
-                      optimization and advanced implementation
-                    </p>
-                  </div>
-
-                  {/* Low Maturity (Below Standard) */}
-                  <div className="bg-white p-6 rounded-lg shadow border-t-4 border-red-500">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-gray-800">
-                        Low Maturity
-                      </h3>
-                      <span className="text-red-600 text-2xl font-bold">
-                        {countFinOpsStandards("below")}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
-                      <div
-                        className="bg-red-500 h-2.5 rounded-full"
-                        style={{
-                          width: `${getFinOpsProgressPercentage("below")}%`,
-                        }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      FinOps areas requiring immediate attention - highest
-                      potential for cost savings and operational improvements
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex mt-4 pt-2 border-t border-gray-100">
-                  <div className="text-sm text-gray-500">
-                    <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>{" "}
-                    High: Advanced capabilities (70%+ maturity)
-                  </div>
-                  <div className="text-sm text-gray-500 mx-4">
-                    <span className="inline-block w-3 h-3 bg-orange-500 rounded-full mr-1"></span>{" "}
-                    Medium: Developing capabilities (30-70% maturity)
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span>{" "}
-                    Low: Initial/emerging capabilities (&lt;30% maturity)
-                  </div>
-                </div>
-              </div>
-
-              {/* FinOps Pillar Overview - Enhanced Radar Chart */}
+              {/* FinOps Pillar Overview*/}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* FinOps Maturity Gauge */}
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h2 className="text-lg font-bold text-gray-700 mb-4">
-                    Overall FinOps Maturity
-                  </h2>
-                  <GaugeMeter
-                    value={
-                      processedData.overallFinOpsMaturity?.percentage / 20 || 0
-                    }
-                    maxValue={5}
-                  />
-                  <div className="mt-2 text-center">
-                    <p className="text-sm text-gray-600">
-                      FinOps maturity level:{" "}
-                      <span className="text-blue-600 font-bold">
-                        {processedData.overallFinOpsMaturity?.level ||
-                          "Not Available"}
-                      </span>
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Score:{" "}
-                      {processedData.overallFinOpsMaturity?.percentage || 0}% (
-                      {processedData.overallFinOpsMaturity?.totalScore || 0}/
-                      {processedData.overallFinOpsMaturity?.maxScore || 0}{" "}
-                      points)
-                    </p>
-                  </div>
-                </div>
+                <GaugeMeter
+                  value={
+                    processedData.overallFinOpsMaturity?.percentage / 10 || 0
+                  }
+                  maxValue={10}
+                  maturityLevel={
+                    processedData.overallFinOpsMaturity?.level ||
+                    "Not Available"
+                  }
+                  percentage={
+                    processedData.overallFinOpsMaturity?.percentage || 0
+                  }
+                  totalScore={
+                    processedData.overallFinOpsMaturity?.totalScore || 0
+                  }
+                  maxScore={processedData.overallFinOpsMaturity?.maxScore || 0}
+                />
 
                 {/* FinOps Pillars Radar Chart */}
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h2 className="text-lg font-bold text-gray-700 mb-4">
-                    FinOps Pillar Analysis
-                  </h2>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart data={getRadarData()}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="pillar" />
-                      <PolarRadiusAxis
-                        angle={30}
-                        domain={[0, 100]}
-                        tickCount={5}
-                      />
-                      <Radar
-                        name="Your Score"
-                        dataKey="score"
-                        stroke="#6366F1"
-                        strokeWidth={2}
-                        fill="#6366F1"
-                        fillOpacity={0.3}
-                      />
-                      <Radar
-                        name="Baseline (50%)"
-                        dataKey="benchmark"
-                        stroke="#10B981"
-                        strokeWidth={2}
-                        fill="#10B981"
-                        fillOpacity={0.1}
-                      />
-                      <Tooltip
-                        formatter={(value, name) => [`${value}%`, name]}
-                      />
-                      <Legend />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
+                <FinOpsPillarRadarChart data={getRadarData()} />
               </div>
 
               {/* FinOps Pillars Detailed Cards */}
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  FinOps Pillar Deep Dive
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {processedData.finOpsPillars?.map((pillar) => (
-                    <div
-                      key={pillar.id}
-                      className="border rounded-lg p-4"
-                      style={{
-                        borderLeft: `4px solid ${getMaturityColor(
-                          pillar.maturityLevel
-                        )}`,
-                      }}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-semibold text-gray-800 text-sm">
-                          {pillar.name}
-                        </h3>
-                        <div
-                          className="px-3 py-1 rounded-full text-xs font-medium text-white"
-                          style={{
-                            backgroundColor: getMaturityColor(
-                              pillar.maturityLevel
-                            ),
-                          }}
-                        >
-                          {pillar.percentage}%
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-500">
-                            Maturity Level
-                          </span>
-                          <span className="text-xs font-medium">
-                            {pillar.maturityLevel}
-                          </span>
-                        </div>
-
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="h-2 rounded-full"
-                            style={{
-                              width: `${pillar.percentage}%`,
-                              backgroundColor: getMaturityColor(
-                                pillar.maturityLevel
-                              ),
-                            }}
-                          ></div>
-                        </div>
-
-                        <p className="text-xs text-gray-600 mt-2">
-                          {pillar.maturityDescription}
-                        </p>
-
-                        {pillar.recommendations.length > 0 && (
-                          <div className="mt-3 pt-2 border-t border-gray-100">
-                            <p className="text-xs font-medium text-gray-700">
-                              Top Recommendation:
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              {pillar.recommendations[0].title}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <FinOpsPillarDetailCards
+                pillars={processedData.finOpsPillars}
+                getMaturityColor={getMaturityColor}
+              />
 
               {/* FinOps Pillars Bar Chart Comparison */}
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  FinOps Pillar Performance Comparison
-                </h2>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart
-                    data={processedData.finOpsPillars}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="name"
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                    />
-                    <YAxis
-                      domain={[0, 100]}
-                      label={{
-                        value: "Maturity %",
-                        angle: -90,
-                        position: "insideLeft",
-                      }}
-                    />
-                    <Tooltip
-                      formatter={(value, name) => [
-                        `${value}%`,
-                        "Maturity Score",
-                      ]}
-                      labelFormatter={(label, payload) => {
-                        if (payload && payload[0]) {
-                          const data = payload[0].payload
-                          return `${label} (${data.maturityLevel})`
-                        }
-                        return label
-                      }}
-                    />
-                    <Bar
-                      dataKey="percentage"
-                      fill="#6366F1"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <FinOpsPillarBarChart data={processedData.finOpsPillars} />
 
               {/* Implementation Roadmap */}
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  FinOps Implementation Roadmap
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {processedData.recommendations?.implementationRoadmap?.map(
-                    (phase, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="flex items-center mb-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold text-sm flex items-center justify-center mr-3">
-                            {index + 1}
-                          </div>
-                          <h3 className="font-semibold text-sm text-gray-800">
-                            {phase.phase}
-                          </h3>
-                        </div>
-                        <ul className="space-y-2">
-                          {phase.actions.map((action, actionIndex) => (
-                            <li
-                              key={actionIndex}
-                              className="text-xs text-gray-600 flex items-start"
-                            >
-                              <span className="text-blue-500 mr-1">•</span>
-                              {action}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
+              <FinOpsImplementationRoadmap
+                roadmap={
+                  processedData.recommendations?.implementationRoadmap || []
+                }
+              />
 
               {/* Detailed Recommendations */}
-              {processedData.recommendations?.keyRecommendations?.length >
-                0 && (
-                <div className="bg-white p-6 rounded-lg shadow mb-6">
-                  <h2 className="text-lg font-bold text-gray-700 mb-4">
-                    Key FinOps Recommendations
-                  </h2>
-                  <div className="space-y-4">
-                    {processedData.recommendations.keyRecommendations.map(
-                      (rec, index) => (
-                        <div
-                          key={index}
-                          className="border-l-4 border-blue-500 pl-4 py-3 bg-gray-50 rounded-r-lg"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-800 mb-1">
-                                {rec.title}
-                              </h3>
-                              <p className="text-sm text-gray-600 mb-2">
-                                {rec.rationale}
-                              </p>
-                              <p className="text-sm font-medium text-blue-600">
-                                Impact: {rec.impact}
-                              </p>
-                            </div>
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                rec.priority === "Critical"
-                                  ? "bg-red-100 text-red-800"
-                                  : rec.priority === "High"
-                                  ? "bg-orange-100 text-orange-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}
-                            >
-                              {rec.priority}
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Time to Value Analysis */}
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  FinOps Value Realization Timeline
-                </h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart
-                    data={processedData.timeToValue?.current || []}
-                    layout="vertical"
-                    margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" unit=" weeks" />
-                    <YAxis type="category" dataKey="name" width={120} />
-                    <Tooltip formatter={(value) => [`${value} weeks`, null]} />
-                    <Legend />
-                    <Bar dataKey="value" name="Current" fill="#EF4444" />
-                  </BarChart>
-                </ResponsiveContainer>
-                <p className="text-sm text-gray-600 mt-2">
-                  Based on your FinOps maturity level, these are the estimated
-                  timeframes for various value realization activities. Higher
-                  maturity typically leads to faster value realization.
-                </p>
-              </div>
+              <FinOpsKeyRecommendations
+                recommendations={
+                  processedData.recommendations?.keyRecommendations || []
+                }
+              />
 
               {/* FinOps Assessment Details Table */}
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-4">
-                  FinOps Pillar Details
-                </h2>
-                <div className="overflow-x-auto">
-                  <table className="table w-full">
-                    <thead>
-                      <tr>
-                        <th>FinOps Pillar</th>
-                        <th>Score</th>
-                        <th>Max Score</th>
-                        <th>Percentage</th>
-                        <th>Maturity Level</th>
-                        <th>Responses</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {processedData.finOpsPillars?.map((pillar, index) => (
-                        <tr key={index}>
-                          <td>
-                            <div>
-                              <div className="font-medium">{pillar.name}</div>
-                              <div className="text-sm text-gray-500">
-                                {pillar.description}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="font-medium">{pillar.score}</td>
-                          <td>{pillar.maxScore}</td>
-                          <td>
-                            <div className="flex items-center">
-                              <span className="font-medium mr-2">
-                                {pillar.percentage}%
-                              </span>
-                              <div className="w-16 bg-gray-200 rounded-full h-2">
-                                <div
-                                  className="h-2 rounded-full"
-                                  style={{
-                                    width: `${pillar.percentage}%`,
-                                    backgroundColor: getMaturityColor(
-                                      pillar.maturityLevel
-                                    ),
-                                  }}
-                                ></div>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                pillar.maturityLevel === "High"
-                                  ? "bg-green-100 text-green-800"
-                                  : pillar.maturityLevel === "Medium"
-                                  ? "bg-orange-100 text-orange-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {pillar.maturityLevel}
-                            </span>
-                          </td>
-                          <td>{pillar.responses}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <FinOpsPillarDetailsTable
+                pillars={processedData.finOpsPillars}
+                getMaturityColor={getMaturityColor}
+              />
             </>
           )}
 
