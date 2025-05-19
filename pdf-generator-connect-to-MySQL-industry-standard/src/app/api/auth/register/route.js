@@ -26,12 +26,12 @@ export async function POST(request) {
     }
 
     // Check if client already exists
-    const existingClients = await query(
-      "SELECT * FROM Clients WHERE ContactEmail = ?",
+    const existingClient = await query(
+      "SELECT * FROM Client WHERE ContactEmail = ?",
       [email]
     )
 
-    if (existingClients.length > 0) {
+    if (existingClient.length > 0) {
       return NextResponse.json(
         { message: "Email is already registered" },
         { status: 409 }
@@ -46,12 +46,12 @@ export async function POST(request) {
     await connection.beginTransaction()
 
     try {
-      // Insert directly into Clients table with all info
+      // Insert directly into Client table with all info
       // Note that:
       // - businessName goes into ClientName
       // - contactName goes into ContactName
       const [clientResult] = await connection.execute(
-        `INSERT INTO Clients 
+        `INSERT INTO Client 
          (ClientName, ContactName, ContactEmail, PasswordHash, AuthMethod, IndustryType, CompanySize, LastLoginDate) 
          VALUES (?, ?, ?, ?, 'password', ?, ?, NOW())`,
         [businessName, contactName, email, hashedPassword, industry, size]

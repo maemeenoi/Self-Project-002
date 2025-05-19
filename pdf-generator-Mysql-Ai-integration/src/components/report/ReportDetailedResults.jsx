@@ -4,20 +4,20 @@ const ReportDetailedResults = ({ clientData }) => {
   const { reportMetadata, recommendations } = clientData
 
   // Group responses by category
-  const getGroupedResponses = () => {
+  const getGroupedResponse = () => {
     if (!recommendations || !recommendations.responses) {
       return {}
     }
 
     // Filter to include only assessment questions (QuestionID >= 6)
-    const assessmentResponses = recommendations.responses.filter(
+    const assessmentResponse = recommendations.responses.filter(
       (response) => response.QuestionID >= 6
     )
 
     // Group by category
     const groupedByCategory = {}
 
-    assessmentResponses.forEach((response) => {
+    assessmentResponse.forEach((response) => {
       const categoryMatch = response.QuestionText.match(/\[(.*?)\]/)
       let category = "Uncategorized"
 
@@ -90,8 +90,8 @@ const ReportDetailedResults = ({ clientData }) => {
     return "text-green-600"
   }
 
-  const groupedResponses = getGroupedResponses()
-  const categories = Object.keys(groupedResponses)
+  const groupedResponse = getGroupedResponse()
+  const categories = Object.keys(groupedResponse)
 
   return (
     <div
@@ -168,7 +168,7 @@ const ReportDetailedResults = ({ clientData }) => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {groupedResponses[category].map((response, index) => (
+                        {groupedResponse[category].map((response, index) => (
                           <tr
                             key={index}
                             className={

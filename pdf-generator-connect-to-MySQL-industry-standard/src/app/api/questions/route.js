@@ -5,13 +5,13 @@ import { query } from "../../../lib/db"
 export async function GET() {
   try {
     // First, get all the distinct questions with their categories
-    const distinctQuestions = await query(`
+    const distinctQuestion = await query(`
       SELECT DISTINCT QuestionID, QuestionText, Category 
-      FROM Questions 
+      FROM Question 
       ORDER BY QuestionID
     `)
 
-    if (!distinctQuestions || distinctQuestions.length === 0) {
+    if (!distinctQuestion || distinctQuestion.length === 0) {
       console.warn("No questions found in the database")
       return NextResponse.json({})
     }
@@ -19,7 +19,7 @@ export async function GET() {
     // Group questions by category
     const questionsByCategory = {}
 
-    distinctQuestions.forEach((question) => {
+    distinctQuestion.forEach((question) => {
       const category = question.Category || "Uncategorized"
 
       if (!questionsByCategory[category]) {
@@ -35,7 +35,7 @@ export async function GET() {
     })
 
     console.log(
-      `Found ${distinctQuestions.length} questions across ${
+      `Found ${distinctQuestion.length} questions across ${
         Object.keys(questionsByCategory).length
       } categories`
     )

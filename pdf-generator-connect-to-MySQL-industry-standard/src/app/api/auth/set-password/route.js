@@ -39,7 +39,7 @@ export async function POST(request) {
     const hashedPassword = await bcrypt.hash(password, salt)
 
     // Update client record with password
-    await query("UPDATE Clients SET PasswordHash = ? WHERE ClientID = ?", [
+    await query("UPDATE Client SET PasswordHash = ? WHERE ClientID = ?", [
       hashedPassword,
       session.clientId,
     ])

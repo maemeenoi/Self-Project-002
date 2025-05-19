@@ -9,7 +9,7 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
   const [ratingOptions, setRatingOptions] = useState({})
 
   // Basic client information questions (1-5)
-  const clientInfoQuestions = [
+  const clientInfoQuestion = [
     {
       QuestionID: 1,
       QuestionText: "Your Name",
@@ -61,8 +61,8 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
   ]
 
   // Combine client info with provided questions
-  const allQuestions = {
-    "Client Information": clientInfoQuestions,
+  const allQuestion = {
+    "Client Information": clientInfoQuestion,
     ...questions,
   }
 
@@ -123,7 +123,7 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
 
   // Navigate to previous category
   const goToPreviousCategory = () => {
-    const categories = Object.keys(allQuestions)
+    const categories = Object.keys(allQuestion)
     const currentIndex = categories.indexOf(currentCategory)
 
     if (currentIndex > 0) {
@@ -139,8 +139,8 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
     // For Client Information category, check that required fields are filled
     if (currentCategory === "Client Information") {
       // Make sure questions 1-3 (name, business, email) have answers
-      const requiredQuestions = [1, 2, 3]
-      return requiredQuestions.every(
+      const requiredQuestion = [1, 2, 3]
+      return requiredQuestion.every(
         (qId) =>
           answers[qId] && answers[qId].text && answers[qId].text.trim() !== ""
       )
@@ -158,7 +158,7 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
       return
     }
 
-    const categories = Object.keys(allQuestions)
+    const categories = Object.keys(allQuestion)
     const currentIndex = categories.indexOf(currentCategory)
 
     if (currentIndex < categories.length - 1) {
@@ -200,7 +200,7 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
   }
 
   // If no questions or categories are loaded
-  if (!allQuestions || Object.keys(allQuestions).length === 0) {
+  if (!allQuestion || Object.keys(allQuestion).length === 0) {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -209,8 +209,8 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
     )
   }
 
-  const currentQuestions = allQuestions[currentCategory] || []
-  const categories = Object.keys(allQuestions)
+  const currentQuestion = allQuestion[currentCategory] || []
+  const categories = Object.keys(allQuestion)
   const currentCategoryIndex = categories.indexOf(currentCategory)
   const isLastCategory = currentCategoryIndex === categories.length - 1
 
@@ -234,9 +234,9 @@ export default function QuestionnaireForm({ questions, onSubmit, isLoading }) {
         </p>
       </div>
 
-      {/* Questions */}
+      {/* Question */}
       <div className="space-y-8">
-        {currentQuestions.map((question) => (
+        {currentQuestion.map((question) => (
           <div
             key={question.QuestionID}
             className="bg-white p-4 rounded-lg shadow-sm border border-gray-100"

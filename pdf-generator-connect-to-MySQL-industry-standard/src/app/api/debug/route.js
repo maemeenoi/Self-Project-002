@@ -25,7 +25,7 @@ export async function GET() {
     try {
       users = await query("SELECT UserID, Email FROM Users LIMIT 5")
       questions = await query(
-        "SELECT QuestionID, QuestionText, Category FROM Questions LIMIT 5"
+        "SELECT QuestionID, QuestionText, Category FROM Question LIMIT 5"
       )
       dbStatus = "connected"
     } catch (error) {
@@ -45,7 +45,7 @@ export async function GET() {
       ),
       dbStatus,
       sampleUsers: users.map((u) => ({ id: u.UserID, email: u.Email })),
-      sampleQuestions: questions,
+      sampleQuestion: questions,
     })
   } catch (error) {
     console.error("Debug API error:", error)

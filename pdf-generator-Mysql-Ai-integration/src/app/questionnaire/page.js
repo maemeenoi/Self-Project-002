@@ -9,7 +9,7 @@ import EmailStep from "../../components/questionnaire/EmailStep"
 
 export default function QuestionnairePage() {
   const [isLoading, setIsLoading] = useState(true)
-  const [questions, setQuestions] = useState({})
+  const [questions, setQuestion] = useState({})
   const [error, setError] = useState(null)
   const [debugInfo, setDebugInfo] = useState({})
   const [user, setUser] = useState(null)
@@ -58,12 +58,12 @@ export default function QuestionnairePage() {
             Object.keys(questionsData).length === 0)
         ) {
           setError("No questions available in the database")
-          setQuestions({})
+          setQuestion({})
           setIsLoading(false)
           return
         }
 
-        setQuestions(questionsData)
+        setQuestion(questionsData)
         setIsLoading(false)
       } catch (err) {
         console.error("Error fetching data:", err)
@@ -199,7 +199,7 @@ export default function QuestionnairePage() {
 
   // Check if questions were loaded successfully
   const questionCategories = Object.keys(questions)
-  const hasQuestions = questionCategories.length > 0
+  const hasQuestion = questionCategories.length > 0
 
   // Render either the questionnaire form or the email step
   return (

@@ -113,30 +113,6 @@ const ReportGenerator = ({
     }
   }
 
-  // Create enhanced client data for reports that includes AI insights
-  const enhancedClientData = {
-    ...clientData,
-
-    // Add/enhance executive summary with AI data if available
-    executiveSummary: {
-      ...(clientData.executiveSummary || {}),
-      content:
-        clientData.executiveSummary || "Cloud maturity assessment results",
-      aiFindings: clientData.overallFindings,
-      aiStrengths: clientData.strengths || [],
-      aiImprovementAreas: clientData.improvementAreas || [],
-    },
-
-    // Enhance recommendations with AI data if available
-    recommendations: {
-      ...clientData.recommendations,
-      // Keep the existing recommendations if AI ones aren't available
-      aiKeyRecommendations: clientData.recommendations.keyRecommendations,
-      // Ensure implementationRoadmap is accessible
-      implementationRoadmap: clientData.recommendations.implementationRoadmap,
-    },
-  }
-
   return (
     <>
       {/* Report generation button */}
@@ -230,52 +206,47 @@ const ReportGenerator = ({
           data-page-name="Cover Page"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportCoverPage clientData={enhancedClientData} />
+          <ReportCoverPage clientData={clientData} />
         </div>
 
-        {/* Executive Summary - Page 1 */}
         <div
           className="page"
           data-page-name="Executive Summary"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportExecutiveSummary clientData={enhancedClientData} />
+          <ReportExecutiveSummary clientData={clientData} />
         </div>
 
-        {/* Cloud Maturity Assessment */}
         <div
           className="page"
           data-page-name="Maturity Assessment"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportMaturityAssessment clientData={enhancedClientData} />
+          <ReportMaturityAssessment clientData={clientData} />
         </div>
 
-        {/* Recommendations & Action Plan */}
         <div
           className="page"
           data-page-name="Recommendations"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportRecommendations clientData={enhancedClientData} />
+          <ReportRecommendations clientData={clientData} />
         </div>
 
-        {/* Detailed Results */}
         <div
           className="page"
           data-page-name="Detailed Results"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportDetailedResults clientData={enhancedClientData} />
+          <ReportDetailedResults clientData={clientData} />
         </div>
 
-        {/* End Cover Page */}
         <div
           className="page"
           data-page-name="End Page"
           style={{ width: "297mm", height: "210mm", overflow: "hidden" }}
         >
-          <ReportEndCoverPage clientData={enhancedClientData} />
+          <ReportEndCoverPage clientData={clientData} />
         </div>
       </div>
     </>

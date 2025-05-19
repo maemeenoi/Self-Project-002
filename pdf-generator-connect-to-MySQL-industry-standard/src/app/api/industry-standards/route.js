@@ -7,7 +7,7 @@ export async function GET(request) {
       "Industry Standards API called - generating in-memory standards"
     )
 
-    // Since there's no IndustryStandards table, generate standards in-memory
+    // Since there's no IndustryStandard table, generate standards in-memory
     const defaultStandards = []
 
     // Create default standards for each category

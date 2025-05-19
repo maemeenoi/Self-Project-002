@@ -10,7 +10,7 @@ const openai = new OpenAI({
 })
 
 // Current model version - update this when you change prompt structure or model
-const CURRENT_MODEL_VERSION = "gpt-3.5-turbo"
+const CURRENT_MODEL_VERSION = "gpt-4o"
 
 /**
  * Generate a consolidated AI analysis for all pillars of a client's assessment
@@ -75,7 +75,7 @@ async function createConsolidatedAnalysis(clientId, assessmentData) {
     // Build a comprehensive prompt with all pillar data
     const prompt = `
 You are a FinOps and cloud maturity expert. Analyze this organization's complete cloud assessment and provide strategic recommendations.
-
+Use only the context provided. Do not guess.
 Organization Profile:
 - Name: ${reportMetadata.organizationName}
 - Industry: ${reportMetadata.industryType}
@@ -93,7 +93,7 @@ ${finOpsPillars
    - Description: ${pillar.maturityDescription}
    - Max Score: ${pillar.score}/${pillar.maxScore} points
    
-   User's Responses for ${pillar.name}:
+   User's Response for ${pillar.name}:
    ${
      pillar.userAnswers
        ? pillar.userAnswers

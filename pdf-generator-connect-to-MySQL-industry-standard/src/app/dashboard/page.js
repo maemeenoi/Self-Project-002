@@ -26,9 +26,9 @@ import GaugeMeter from "../../components/GaugeMeter"
 import FlowDiagram from "@/components/FlowDiagram"
 
 export default function Dashboard() {
-  const [clients, setClients] = useState([])
+  const [clients, setClient] = useState([])
   const [selectedClient, setSelectedClient] = useState(null)
-  const [industryStandards, setIndustryStandards] = useState([])
+  const [industryStandards, setIndustryStandard] = useState([])
   const [processedData, setProcessedData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -76,12 +76,12 @@ export default function Dashboard() {
 
   // Fetch clients list (only for admin users with no specific clientId)
   useEffect(() => {
-    async function fetchClients() {
+    async function fetchClient() {
       if (user && !user.clientId) {
         try {
           const response = await fetch("/api/clients")
           const data = await response.json()
-          setClients(data)
+          setClient(data)
         } catch (error) {
           setError("Failed to load clients.")
         }
@@ -89,13 +89,13 @@ export default function Dashboard() {
     }
 
     if (user) {
-      fetchClients()
+      fetchClient()
     }
   }, [user])
 
   // Fetch industry standards with debugging
   useEffect(() => {
-    async function fetchIndustryStandards() {
+    async function fetchIndustryStandard() {
       try {
         console.log("Fetching industry standards...")
         const response = await fetch("/api/industry-standards")
@@ -114,13 +114,13 @@ export default function Dashboard() {
           `Received ${data.length} industry standards:`,
           data.slice(0, 2)
         )
-        setIndustryStandards(data)
+        setIndustryStandard(data)
       } catch (error) {
         console.error("Error fetching industry standards:", error)
       }
     }
 
-    fetchIndustryStandards()
+    fetchIndustryStandard()
   }, [])
 
   // Fetch responses when a client is selected with enhanced debugging
@@ -135,7 +135,7 @@ export default function Dashboard() {
       return
     }
 
-    async function fetchResponses() {
+    async function fetchResponse() {
       setIsLoading(true)
       setError(null)
 
@@ -151,7 +151,7 @@ export default function Dashboard() {
         if (!response.ok) {
           const errorText = await response.text()
           console.error(
-            "Responses API returned error:",
+            "Response API returned error:",
             response.status,
             errorText
           )
@@ -163,7 +163,7 @@ export default function Dashboard() {
         }
 
         const data = await response.json()
-        console.log("Responses API returned data:", {
+        console.log("Response API returned data:", {
           clientInfo: data.clientInfo,
           responsesCount: data.responses?.length || 0,
         })
@@ -187,14 +187,14 @@ export default function Dashboard() {
         }
 
         // Check responses data structure
-        const assessmentQuestions = data.responses.filter(
+        const assessmentQuestion = data.responses.filter(
           (r) => r.QuestionID >= 6 && r.QuestionID <= 19
         )
         console.log(
-          `Found ${assessmentQuestions.length} assessment responses (questions 6-19)`
+          `Found ${assessmentQuestion.length} assessment responses (questions 6-19)`
         )
 
-        if (assessmentQuestions.length === 0) {
+        if (assessmentQuestion.length === 0) {
           console.error("No assessment questions found in responses")
           setError(
             "No assessment data found. Please complete the assessment questions."
@@ -254,7 +254,7 @@ export default function Dashboard() {
       }
     }
 
-    fetchResponses()
+    fetchResponse()
   }, [selectedClient, industryStandards])
 
   // Count how many standards are above/below/meeting

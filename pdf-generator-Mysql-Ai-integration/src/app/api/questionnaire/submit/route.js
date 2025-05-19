@@ -55,18 +55,18 @@ export async function POST(request) {
     let clientId = null
 
     if (email) {
-      const existingClients = await query(
-        "SELECT * FROM Clients WHERE ContactEmail = ?",
+      const existingClient = await query(
+        "SELECT * FROM Client WHERE ContactEmail = ?",
         [email]
       )
 
-      if (existingClients.length > 0) {
+      if (existingClient.length > 0) {
         // Use existing client but update details from the form
-        clientId = existingClients[0].ClientID
+        clientId = existingClient[0].ClientID
 
         // Build the update SQL with all the fields we want to update
         const updateSql = `
-          UPDATE Clients 
+          UPDATE Client 
           SET 
             ClientName = CASE WHEN ? != '' THEN ? ELSE ClientName END,
             OrganizationName = CASE WHEN ? != '' THEN ? ELSE OrganizationName END,
@@ -92,7 +92,7 @@ export async function POST(request) {
       } else if (email) {
         // Create a new client record with all details
         const insertSql = `
-          INSERT INTO Clients (
+          INSERT INTO Client (
             ClientName, 
             OrganizationName, 
             ContactEmail, 
@@ -153,7 +153,7 @@ export async function POST(request) {
         // Save client info questions directly - they use ResponseText
         try {
           await query(
-            `INSERT INTO Responses 
+            `INSERT INTO Response 
              (ClientID, QuestionID, ResponseText, ResponseDate) 
              VALUES (?, ?, ?, NOW())`,
             [clientId, questionId, responseText]
@@ -169,7 +169,7 @@ export async function POST(request) {
         // Save assessment responses with Score
         try {
           await query(
-            `INSERT INTO Responses 
+            `INSERT INTO Response 
              (ClientID, QuestionID, Score, ResponseDate) 
              VALUES (?, ?, ?, NOW())`,
             [clientId, questionId, score]
@@ -185,7 +185,7 @@ export async function POST(request) {
         // Save feedback response
         try {
           await query(
-            `INSERT INTO Responses 
+            `INSERT INTO Response 
              (ClientID, QuestionID, ResponseText, ResponseDate) 
              VALUES (?, ?, ?, NOW())`,
             [clientId, questionId, responseText]

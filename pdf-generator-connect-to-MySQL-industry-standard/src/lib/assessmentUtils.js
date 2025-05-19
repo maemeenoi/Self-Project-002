@@ -54,7 +54,7 @@
 //   })
 
 //   // Enrich responses with Standard Text and Question Text
-//   const enrichedResponses = responses
+//   const enrichedResponse = responses
 //     .filter((r) => r.QuestionID !== undefined)
 //     .map((r) => {
 //       const key = `${r.QuestionID}_${r.Score}`
@@ -175,7 +175,7 @@
 //     recommendations: {
 //       keyRecommendations: recommendations,
 //       categoryScores,
-//       responses: enrichedResponses,
+//       responses: enrichedResponse,
 //     },
 //   }
 // }
@@ -375,24 +375,24 @@ const assessmentUtils = {
     console.log("Client info:", clientInfo)
 
     // Get assessment responses (questionnaires 6-19)
-    const assessmentResponses = responseData.filter(
+    const assessmentResponse = responseData.filter(
       (response) =>
         response.QuestionID >= 6 &&
         response.QuestionID <= 19 &&
         response.Score !== null
     )
 
-    console.log(`Found ${assessmentResponses.length} assessment responses`)
+    console.log(`Found ${assessmentResponse.length} assessment responses`)
 
     // If no assessment responses, return null
-    if (!assessmentResponses || assessmentResponses.length === 0) {
+    if (!assessmentResponse || assessmentResponse.length === 0) {
       console.warn("No assessment responses found (questions 6-19)")
       return null
     }
 
     // Group responses by category
     const responsesByCategory = {}
-    assessmentResponses.forEach((response) => {
+    assessmentResponse.forEach((response) => {
       const category = response.Category || "Uncategorized"
 
       if (!responsesByCategory[category]) {
@@ -447,7 +447,7 @@ const assessmentUtils = {
       })
 
       // Compare each response with its standard
-      assessmentResponses.forEach((response) => {
+      assessmentResponse.forEach((response) => {
         const standard = standardsMap[response.QuestionID]
         if (standard) {
           standardsComparison.push({
@@ -464,7 +464,7 @@ const assessmentUtils = {
     // If no standards data, create synthetic comparison data
     else {
       // Create synthetic standards with a default score of 3
-      assessmentResponses.forEach((response) => {
+      assessmentResponse.forEach((response) => {
         standardsComparison.push({
           QuestionID: response.QuestionID,
           QuestionText: response.QuestionText,
@@ -486,7 +486,7 @@ const assessmentUtils = {
     }
 
     // Populate dimensions with scores
-    assessmentResponses.forEach((response) => {
+    assessmentResponse.forEach((response) => {
       const category = response.Category
       if (dimensions[category]) {
         dimensions[category].push(response.Score)

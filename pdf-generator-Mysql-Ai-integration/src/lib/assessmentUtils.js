@@ -23,7 +23,7 @@ const assessmentUtils = {
       return null
     }
 
-    // Extract client info (Questions 1-5)
+    // Extract client info (Question 1-5)
     const clientInfo = responseData.ClientInfo || {}
     console.log("Client info:", clientInfo)
 
@@ -118,16 +118,16 @@ const assessmentUtils = {
     }
 
     // Filter only assessment responses (questions 6-19)
-    const assessmentResponses = responseData.filter(
+    const assessmentResponse = responseData.filter(
       (response) =>
         response.QuestionID >= 6 &&
         response.QuestionID <= 19 &&
         response.Score !== null
     )
 
-    console.log(`Found ${assessmentResponses.length} assessment responses`)
+    console.log(`Found ${assessmentResponse.length} assessment responses`)
 
-    if (!assessmentResponses || assessmentResponses.length === 0) {
+    if (!assessmentResponse || assessmentResponse.length === 0) {
       console.warn("No assessment responses found (questions 6-19)")
       return null
     }
@@ -135,15 +135,15 @@ const assessmentUtils = {
     // Calculate scores for each FinOps pillar
     const pillarScores = finOpsPillars.map((pillar) => {
       // Get responses for this pillar
-      const pillarResponses = assessmentResponses.filter((response) =>
+      const pillarResponse = assessmentResponse.filter((response) =>
         pillar.questionIds.includes(response.QuestionID)
       )
 
       console.log(
-        `${pillar.name}: Found ${pillarResponses.length} responses out of ${pillar.questionIds.length} expected`
+        `${pillar.name}: Found ${pillarResponse.length} responses out of ${pillar.questionIds.length} expected`
       )
 
-      if (pillarResponses.length === 0) {
+      if (pillarResponse.length === 0) {
         return {
           id: pillar.id,
           name: pillar.name,
@@ -163,7 +163,7 @@ const assessmentUtils = {
       // Handle multiple responses per question by taking the highest score for each question ID
       const highestScoresByQuestionId = new Map()
 
-      pillarResponses.forEach((response) => {
+      pillarResponse.forEach((response) => {
         const questionId = response.QuestionID
         const currentScore = response.Score || 0
 
@@ -180,12 +180,12 @@ const assessmentUtils = {
       })
 
       // Get the unique question responses with highest scores
-      const uniqueResponses = Array.from(
-        highestScoresByQuestionId.values()
-      ).map((item) => item.response)
+      const uniqueResponse = Array.from(highestScoresByQuestionId.values()).map(
+        (item) => item.response
+      )
 
       console.log(
-        `${pillar.name}: Using ${uniqueResponses.length} unique questions (after deduplication)`
+        `${pillar.name}: Using ${uniqueResponse.length} unique questions (after deduplication)`
       )
 
       // Calculate total score using only the highest score for each question
@@ -251,9 +251,9 @@ const assessmentUtils = {
         maturityDescription: maturityDescription,
         recommendations: recommendations, // These are placeholders that will be replaced
         description: pillar.description,
-        responses: uniqueResponses.length,
+        responses: uniqueResponse.length,
         maxScore: pillar.maxScore,
-        userAnswers: uniqueResponses.map((r) => ({
+        userAnswers: uniqueResponse.map((r) => ({
           questionId: r.QuestionID,
           questionText: r.QuestionText,
           selectedAnswer: r.StandardText || `Score: ${r.Score}`,
@@ -376,7 +376,7 @@ const assessmentUtils = {
       recommendations: {
         keyRecommendations: allRecommendations,
         categoryScores,
-        responses: assessmentResponses.map((response) => ({
+        responses: assessmentResponse.map((response) => ({
           QuestionID: response.QuestionID,
           QuestionText:
             response.QuestionText || `Question ${response.QuestionID}`,

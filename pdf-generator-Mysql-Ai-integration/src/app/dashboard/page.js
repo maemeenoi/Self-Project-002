@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import ReportGenerator from "../../components/report/ReportGenerator"
-import GaugeMeter from "../../components/dashboard/GaugeMeter"
+import GaugeMeter from "../../components/dashboard/finops/GaugeMeter"
 import AIInsightsComponent from "@/components/dashboard/AIInsightsComponent"
 import FinOpsPillarSummary from "@/components/dashboard/finops/FinOpsPillarSummary"
 import FinOpsPillarRadarChart from "@/components/dashboard/finops/FinOpsPillarRadarChart"
@@ -16,8 +16,17 @@ import FinOpsImplementationRoadmap from "@/components/dashboard/finops/FinOpsImp
 import FinOpsPillarDetailsTable from "@/components/dashboard/finops/FinOpsPillarDetailsTable"
 import OrganizationOverviewCard from "@/components/dashboard/OrganizationOverviewCard"
 
+// Report Components Example
+import ReportCoverPage from "@/components/report/ReportCoverPage"
+import ReportExecutiveSummary from "@/components/report/ReportExecutiveSummary"
+import ReportMaturityAssessment from "@/components/report/ReportMaturityAssessment"
+import ReportRecommendations from "@/components/report/ReportRecommendations"
+import ReportDetailedResults from "@/components/report/ReportDetailedResults"
+import ReportCategoryBreakdown from "@/components/report/ReportCategoryBreakdown"
+import ReportEndPage from "@/components/report/ReportEndPage"
+
 export default function Dashboard() {
-  const [clients, setClients] = useState([])
+  const [clients, setClient] = useState([])
   const [selectedClient, setSelectedClient] = useState(null)
   const [industryStandards, setIndustryStandards] = useState([])
   const [processedData, setProcessedData] = useState(null)
@@ -31,6 +40,8 @@ export default function Dashboard() {
   const [aiInsights, setAiInsights] = useState([])
   const [isLoadingInsights, setIsLoadingInsights] = useState(false)
   const [aiDataReady, setAiDataReady] = useState(false)
+  const [aiError, setAiError] = useState(null)
+
   const router = useRouter()
 
   useEffect(() => {
@@ -123,12 +134,12 @@ export default function Dashboard() {
 
   // Fetch clients list (only for admin users with no specific clientId)
   useEffect(() => {
-    async function fetchClients() {
+    async function fetchClient() {
       if (user && !user.clientId) {
         try {
           const response = await fetch("/api/clients")
           const data = await response.json()
-          setClients(data)
+          setClient(data)
         } catch (error) {
           setError("Failed to load clients.")
         }
@@ -136,7 +147,7 @@ export default function Dashboard() {
     }
 
     if (user) {
-      fetchClients()
+      fetchClient()
     }
   }, [user])
 
@@ -185,12 +196,8 @@ export default function Dashboard() {
     async function fetchResponses() {
       setIsLoading(true)
       setError(null)
-      setAiDataReady(false) // Reset AI data readiness flag
 
       try {
-        console.log(
-          `Fetching responses for client ID: ${selectedClient.ClientID}`
-        )
         // Fetch responses with client info included
         const response = await fetch(
           `/api/responses/${selectedClient.ClientID}`
@@ -211,79 +218,30 @@ export default function Dashboard() {
         }
 
         const data = await response.json()
-        console.log("Responses API returned data:", {
-          clientInfo: data.clientInfo,
-          responsesCount: data.responses?.length || 0,
-        })
-
-        // Validation checks...
 
         // Prepare data for processing
         const responseData = data.responses
-
-        // Attach client info directly to responses array
         responseData.ClientInfo = data.clientInfo
 
-        console.log("Starting data processing...")
-
-        // Process the base assessment data first
+        // Process base assessment data
         const module = await import("../../lib/assessmentUtils")
-        const baseProcessedData = module.default.processAssessmentData(
+        const baseData = module.default.processAssessmentData(
           responseData,
           industryStandards
         )
 
-        if (!baseProcessedData) {
+        if (!baseData) {
           setError("Failed to process assessment data")
           setIsLoading(false)
           return
         }
 
-        // Set the base processed data first
-        setProcessedData(baseProcessedData)
+        // Set base data first so UI shows something quickly
+        setProcessedData(baseData)
         setIsLoading(false)
 
-        // Now fetch and integrate AI data separately
-        console.log("Fetching AI analysis data...")
-        setIsLoadingInsights(true)
-
-        try {
-          // Fetch AI analysis data
-          const aiResponse = await fetch(
-            `/api/consolidated-analysis/${selectedClient.ClientID}`
-          )
-
-          if (aiResponse.ok) {
-            const aiData = await aiResponse.json()
-            console.log("Successfully fetched AI data:", aiData)
-
-            // Integrate AI data with base processed data
-            const integratedData = await module.default.integrateAIAnalysis(
-              selectedClient.ClientID,
-              baseProcessedData
-            )
-
-            // Update processed data with AI-enhanced data
-            if (integratedData) {
-              console.log("Setting AI-enhanced data:", integratedData)
-              setProcessedData(integratedData)
-
-              // Set AI insights for component display
-              setAiInsights(aiData)
-
-              // Mark AI data as ready
-              setAiDataReady(true)
-            }
-          } else {
-            console.log(
-              "AI data not available, will generate without AI insights"
-            )
-          }
-        } catch (aiError) {
-          console.error("Error fetching AI data:", aiError)
-        } finally {
-          setIsLoadingInsights(false)
-        }
+        // Now fetch AI analysis
+        await fetchAndIntegrateAIAnalysis(selectedClient.ClientID, baseData)
       } catch (error) {
         console.error("Error fetching or processing data:", error)
         setError("Error: " + error.message)
@@ -417,6 +375,81 @@ export default function Dashboard() {
     }))
   }
 
+  const fetchAndIntegrateAIAnalysis = async (clientId, baseData) => {
+    if (!clientId || !baseData) return
+
+    setIsLoadingInsights(true)
+    setAiError(null)
+
+    try {
+      // Try to fetch existing AI analysis
+      console.log(`Fetching AI analysis for client ${clientId}`)
+      let analysisData
+
+      try {
+        const response = await fetch(`/api/consolidated-analysis/${clientId}`)
+
+        if (response.ok) {
+          analysisData = await response.json()
+          console.log("Successfully fetched existing AI analysis")
+        } else if (response.status === 404) {
+          console.log("No existing analysis found, will generate new one")
+
+          // Generate new analysis
+          const genResponse = await fetch(
+            `/api/consolidated-analysis/${clientId}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ assessmentData: baseData }),
+            }
+          )
+
+          if (genResponse.ok) {
+            analysisData = await genResponse.json()
+            console.log("Successfully generated new AI analysis")
+          } else {
+            console.error(
+              "Failed to generate analysis:",
+              await genResponse.text()
+            )
+            throw new Error("Failed to generate AI analysis")
+          }
+        } else {
+          console.error(
+            "Error fetching analysis:",
+            response.status,
+            await response.text()
+          )
+          throw new Error(`API returned status ${response.status}`)
+        }
+      } catch (fetchError) {
+        console.error("Error during API interaction:", fetchError)
+        setAiError("Failed to fetch or generate AI analysis")
+        throw fetchError
+      }
+
+      if (analysisData) {
+        // Integrate the AI analysis with the base data
+        const module = await import("../../lib/assessmentUtils")
+        const integratedData = await module.default.integrateAIAnalysis(
+          clientId,
+          baseData
+        )
+
+        if (integratedData) {
+          console.log("Setting integrated data with AI analysis")
+          setProcessedData(integratedData)
+        }
+      }
+    } catch (error) {
+      console.error("AI analysis integration error:", error)
+      setAiError(error.message)
+    } finally {
+      setIsLoadingInsights(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-base-200">
       {/* Fixed Header/Navigation */}
@@ -510,7 +543,7 @@ export default function Dashboard() {
           />
 
           {/* AI Insights Component */}
-          {aiDataReady && (
+          {!isLoading && processedData && (
             <AIInsightsComponent
               insights={aiInsights}
               isLoading={isLoadingInsights}
@@ -581,11 +614,20 @@ export default function Dashboard() {
                 pillars={processedData.finOpsPillars}
                 getMaturityColor={getMaturityColor}
               />
+
+              {/* Report Example */}
+              <ReportCoverPage clientData={processedData} />
+              <ReportExecutiveSummary clientData={processedData} />
+              <ReportMaturityAssessment clientData={processedData} />
+              <ReportRecommendations clientData={processedData} />
+              <ReportDetailedResults clientData={processedData} />
+              {/* <ReportCategoryBreakdown clientData={processedData} /> */}
+              <ReportEndPage clientData={processedData} />
             </>
           )}
 
           {!processedData &&
-            !error &&
+            error &&
             !isLoading &&
             (user?.clientId || selectedClient) && (
               <div className="bg-white p-6 rounded-lg shadow text-center">
@@ -599,6 +641,15 @@ export default function Dashboard() {
                 <Link href="/questionnaire" className="btn btn-primary mt-4">
                   Take FinOps Assessment Now
                 </Link>
+                <p className="text-gray-500 mt-2">
+                  Or reload the page
+                  <button
+                    className="btn btn-secondary ml-2"
+                    onClick={() => router.reload()}
+                  >
+                    Reload
+                  </button>
+                </p>
               </div>
             )}
         </main>

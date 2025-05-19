@@ -36,7 +36,7 @@ export async function GET(request) {
     if (clientId) {
       // Client exists, get their name
       const clients = await query(
-        "SELECT ClientName, OrganizationName FROM Clients WHERE ClientID = ?",
+        "SELECT ClientName, OrganizationName FROM Client WHERE ClientID = ?",
         [clientId]
       )
 
@@ -45,7 +45,7 @@ export async function GET(request) {
 
         // Update last login date
         await query(
-          "UPDATE Clients SET LastLoginDate = NOW() WHERE ClientID = ?",
+          "UPDATE Client SET LastLoginDate = NOW() WHERE ClientID = ?",
           [clientId]
         )
       } else {
@@ -60,7 +60,7 @@ export async function GET(request) {
       const organizationName = clientNameFromEmail // Default organization name
 
       const insertResult = await query(
-        "INSERT INTO Clients (ClientName, OrganizationName, ContactEmail, AuthMethod, LastLoginDate) VALUES (?, ?, ?, 'magic_link', NOW())",
+        "INSERT INTO Client (ClientName, OrganizationName, ContactEmail, AuthMethod, LastLoginDate) VALUES (?, ?, ?, 'magic_link', NOW())",
         [clientNameFromEmail, organizationName, email]
       )
 
@@ -69,7 +69,7 @@ export async function GET(request) {
 
       // Update the magic link record with the new client ID
       if (tokenData.TokenID) {
-        await query("UPDATE MagicLinks SET ClientID = ? WHERE TokenID = ?", [
+        await query("UPDATE MagicLink SET ClientID = ? WHERE TokenID = ?", [
           clientId,
           tokenData.TokenID,
         ])

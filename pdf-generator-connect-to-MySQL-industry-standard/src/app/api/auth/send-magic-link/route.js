@@ -14,7 +14,7 @@ export async function POST(request) {
 
     // Check if client exists
     const clients = await query(
-      "SELECT ClientID FROM Clients WHERE ContactEmail = ?",
+      "SELECT ClientID FROM Client WHERE ContactEmail = ?",
       [email]
     )
 

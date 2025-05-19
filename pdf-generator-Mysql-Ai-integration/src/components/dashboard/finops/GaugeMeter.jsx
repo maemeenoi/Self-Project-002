@@ -91,7 +91,7 @@ const GaugeMeter = ({
                   fill="none"
                   stroke={color}
                   strokeWidth="30"
-                  strokeLinecap="round"
+                  strokeLinecap="square"
                 />
               )
             })}
@@ -189,16 +189,6 @@ const GaugeMeter = ({
         <p className="text-xs text-gray-500">
           Note: The gauge represents the overall FinOps maturity level based on
           the provided score.
-        </p>
-        <p className="text-xs text-gray-500">
-          The score is calculated based on the total points achieved out of the
-          maximum possible points.
-        </p>
-        <p className="text-xs text-gray-500">
-          The maturity level is determined based on the overall score.
-        </p>
-        <p className="text-xs text-gray-500">
-          The gauge is a visual representation of the FinOps maturity level.
         </p>
       </div>
     </div>

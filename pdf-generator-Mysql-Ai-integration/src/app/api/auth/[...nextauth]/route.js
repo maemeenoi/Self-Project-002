@@ -18,32 +18,32 @@ export const authOptions = {
           console.log("Google sign-in for user:", profile.email)
 
           // Check if this Google account is already linked to a client
-          const existingClients = await query(
-            "SELECT * FROM Clients WHERE GoogleId = ? OR ContactEmail = ?",
+          const existingClient = await query(
+            "SELECT * FROM Client WHERE GoogleId = ? OR ContactEmail = ?",
             [profile.sub, profile.email]
           )
 
-          if (existingClients.length > 0) {
+          if (existingClient.length > 0) {
             // Update existing user
-            const client = existingClients[0]
+            const client = existingClient[0]
 
             // Update the Google ID if not set
             if (!client.GoogleId) {
               await query(
-                "UPDATE Clients SET GoogleId = ?, AuthMethod = 'google', LastLoginDate = NOW() WHERE ClientID = ?",
+                "UPDATE Client SET GoogleId = ?, AuthMethod = 'google', LastLoginDate = NOW() WHERE ClientID = ?",
                 [profile.sub, client.ClientID]
               )
             } else {
               // Just update login date
               await query(
-                "UPDATE Clients SET LastLoginDate = NOW() WHERE ClientID = ?",
+                "UPDATE Client SET LastLoginDate = NOW() WHERE ClientID = ?",
                 [client.ClientID]
               )
             }
           } else {
             // Create new user
             await query(
-              `INSERT INTO Clients 
+              `INSERT INTO Client 
                (ClientName, ContactEmail, GoogleId, AuthMethod, LastLoginDate, OrganizationName) 
                VALUES (?, ?, ?, 'google', NOW(), ?)`,
               [
@@ -67,7 +67,7 @@ export const authOptions = {
       if (session?.user?.email) {
         try {
           const clients = await query(
-            "SELECT ClientID, ClientName, OrganizationName FROM Clients WHERE ContactEmail = ?",
+            "SELECT ClientID, ClientName, OrganizationName FROM Client WHERE ContactEmail = ?",
             [session.user.email]
           )
 

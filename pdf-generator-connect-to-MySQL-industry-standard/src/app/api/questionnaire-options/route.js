@@ -15,7 +15,7 @@ export async function GET(request) {
 
     // Check table structure
     console.log("Checking table structure...")
-    const tableStructure = await directQuery("DESCRIBE Questions")
+    const tableStructure = await directQuery("DESCRIBE Question")
     console.log(
       "Table columns:",
       tableStructure.map((col) => col.Field)
@@ -25,7 +25,7 @@ export async function GET(request) {
     console.log("Attempting to get question options...")
     const results = await directQuery(`
       SELECT * 
-      FROM Questions 
+      FROM Question 
       WHERE Score IS NOT NULL
       ORDER BY QuestionID, Score
     `)

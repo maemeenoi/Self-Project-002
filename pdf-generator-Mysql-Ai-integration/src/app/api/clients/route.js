@@ -8,7 +8,7 @@ export async function GET() {
     const clients = await query(`
       SELECT ClientID, ClientName, OrganizationName, ContactEmail, 
              ContactPhone, IndustryType, CompanySize, LastLoginDate
-      FROM Clients
+      FROM Client
     `)
     return NextResponse.json(clients)
   } catch (error) {

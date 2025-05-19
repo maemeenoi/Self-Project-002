@@ -18,7 +18,7 @@ export async function GET(request, { params }) {
     console.log("Fetching client info...")
     const clientResults = await query(
       `SELECT ClientID, ClientName, OrganizationName, ContactEmail, CompanySize, IndustryType
-       FROM Clients WHERE ClientID = ?`,
+       FROM Client WHERE ClientID = ?`,
       [clientId]
     )
 
@@ -36,7 +36,7 @@ export async function GET(request, { params }) {
 
     // First check if there are any responses at all
     const responseCount = await query(
-      `SELECT COUNT(*) as count FROM Responses WHERE ClientID = ?`,
+      `SELECT COUNT(*) as count FROM Response WHERE ClientID = ?`,
       [clientId]
     )
 
@@ -49,12 +49,12 @@ export async function GET(request, { params }) {
       })
     }
 
-    // Now fetch the actual responses with a join to Questions
+    // Now fetch the actual responses with a join to Question
     const responseResults = await query(
       `SELECT r.ResponseID, r.ClientID, r.QuestionID, r.ResponseText, r.Score, r.ResponseDate,
               q.QuestionText, q.Category, q.StandardText
-       FROM Responses r
-       LEFT JOIN Questions q ON r.QuestionID = q.QuestionID
+       FROM Response r
+       LEFT JOIN Question q ON r.QuestionID = q.QuestionID
        WHERE r.ClientID = ?
        ORDER BY r.QuestionID`,
       [clientId]

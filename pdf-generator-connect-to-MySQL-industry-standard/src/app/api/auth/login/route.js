@@ -17,10 +17,9 @@ export async function POST(request) {
     }
 
     // Find client by email
-    const clients = await query(
-      "SELECT * FROM Clients WHERE ContactEmail = ?",
-      [email]
-    )
+    const clients = await query("SELECT * FROM Client WHERE ContactEmail = ?", [
+      email,
+    ])
 
     if (clients.length === 0) {
       return NextResponse.json(
@@ -50,7 +49,7 @@ export async function POST(request) {
     }
 
     // Update last login date
-    await query("UPDATE Clients SET LastLoginDate = NOW() WHERE ClientID = ?", [
+    await query("UPDATE Client SET LastLoginDate = NOW() WHERE ClientID = ?", [
       client.ClientID,
     ])
 

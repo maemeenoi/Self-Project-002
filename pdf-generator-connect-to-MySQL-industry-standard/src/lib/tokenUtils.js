@@ -22,7 +22,7 @@ export async function createMagicLinkToken(email, clientId = null) {
 
   // Store in database
   const sqlQuery = `
-    INSERT INTO MagicLinks (Token, Email, ClientID, ExpiresAt)
+    INSERT INTO MagicLink (Token, Email, ClientID, ExpiresAt)
     VALUES (?, ?, ?, ?)
   `
 
@@ -50,8 +50,8 @@ export async function validateToken(token) {
   const sqlQuery = `
     SELECT ml.TokenID, ml.Email, ml.ClientID, ml.Used, ml.ExpiresAt, 
            c.ClientName, c.ContactEmail
-    FROM MagicLinks ml
-    LEFT JOIN Clients c ON ml.ClientID = c.ClientID
+    FROM MagicLink ml
+    LEFT JOIN Client c ON ml.ClientID = c.ClientID
     WHERE ml.Token = ? AND ml.ExpiresAt > NOW() AND ml.Used = FALSE
   `
 
@@ -63,7 +63,7 @@ export async function validateToken(token) {
     )
 
     // Mark token as used
-    await dbQuery("UPDATE MagicLinks SET Used = TRUE WHERE TokenID = ?", [
+    await dbQuery("UPDATE MagicLink SET Used = TRUE WHERE TokenID = ?", [
       results[0].TokenID,
     ])
 

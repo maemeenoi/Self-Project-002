@@ -37,7 +37,7 @@ const FinOpsPillarDetailsTable = ({
               <th>Max Score</th>
               <th>Percentage</th>
               <th>Maturity Level</th>
-              <th>Responses</th>
+              <th>Response</th>
             </tr>
           </thead>
           <tbody>
