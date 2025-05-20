@@ -4,7 +4,6 @@ import {
   generateConsolidatedAnalysis,
   getConsolidatedAnalysis,
 } from "../../../../lib/aiUtils"
-import { query } from "../../../../lib/db"
 
 /**
  * GET handler to retrieve AI analysis for a client
@@ -14,7 +13,7 @@ import { query } from "../../../../lib/db"
  */
 export async function GET(request, { params }) {
   try {
-    const clientId = params.clientId
+    const { clientId } = await params
 
     if (!clientId) {
       return NextResponse.json(
@@ -53,7 +52,7 @@ export async function GET(request, { params }) {
  */
 export async function POST(request, { params }) {
   try {
-    const clientId = params.clientId
+    const { clientId } = await params
 
     if (!clientId) {
       return NextResponse.json(

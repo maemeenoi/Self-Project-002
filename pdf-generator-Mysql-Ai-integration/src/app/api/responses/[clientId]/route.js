@@ -4,7 +4,7 @@ import { query } from "../../../../lib/db"
 
 export async function GET(request, { params }) {
   try {
-    const clientId = params.clientId
+    const { clientId } = await params
     console.log("Fetching responses for client ID:", clientId)
 
     if (!clientId) {

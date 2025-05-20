@@ -1,16 +1,29 @@
-// src/lib/aiUtils.js - Modified for consolidated analysis
+// src/lib/aiUtils.js
 
-import OpenAI from "openai"
+import { AzureOpenAI } from "openai"
+import "@azure/openai/types"
 import crypto from "crypto"
 import { query } from "./db"
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// API configuration
+const apiKey = process.env.AZURE_OPENAI_API_KEY
+const apiVersion = process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview"
+const endpoint = process.env.AZURE_OPENAI_ENDPOINT
+const deployment = process.env.AZURE_OPENAI_DEPLOYMENT_ID
+const searchEndpoint = process.env.AZURE_AI_SEARCH_ENDPOINT
+const searchKey = process.env.AZURE_AI_SEARCH_KEY
+const searchIndex = process.env.AZURE_AI_SEARCH_INDEX
+
+// Initialize the Azure OpenAI client
+const client = new AzureOpenAI({
+  apiKey,
+  endpoint,
+  deployment,
+  apiVersion,
 })
 
 // Current model version - update this when you change prompt structure or model
-const CURRENT_MODEL_VERSION = "gpt-4o"
+const CURRENT_MODEL_VERSION = deployment
 
 /**
  * Generate a consolidated AI analysis for all pillars of a client's assessment
@@ -142,8 +155,7 @@ Format the response as JSON with this structure:
 `.trim()
 
     // Call OpenAI API
-    const response = await openai.chat.completions.create({
-      model: CURRENT_MODEL_VERSION,
+    const response = await client.chat.completions.create({
       messages: [
         {
           role: "system",
@@ -155,7 +167,23 @@ Format the response as JSON with this structure:
           content: prompt,
         },
       ],
+      data_sources: [
+        {
+          type: "azure_search",
+          parameters: {
+            endpoint: searchEndpoint,
+            key: searchKey,
+            index_name: searchIndex,
+            role_information:
+              "You are a FinOps and cloud maturity expert. Use the knowledge base to provide accurate recommendations based on FinOps Framework standards.",
+            strictness: 3,
+            top_n_documents: 5,
+          },
+        },
+      ],
       response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 2000,
     })
 
     // Extract and parse the JSON response
@@ -163,7 +191,17 @@ Format the response as JSON with this structure:
     let analysisJson
 
     try {
-      analysisJson = JSON.parse(analysisContent)
+      // Remove markdown code block formatting if present
+      let jsonStr = analysisContent
+
+      // Check if the response is wrapped in markdown code blocks
+      if (jsonStr.startsWith("```json") || jsonStr.startsWith("```")) {
+        // Extract the JSON part between markdown code blocks
+        jsonStr = jsonStr.replace(/^```json\s*|^```\s*/g, "")
+        jsonStr = jsonStr.replace(/\s*```$/g, "")
+      }
+
+      analysisJson = JSON.parse(jsonStr)
     } catch (parseError) {
       console.error("Failed to parse OpenAI response as JSON:", parseError)
       console.log("Raw response:", analysisContent)
@@ -262,16 +300,4 @@ export async function getConsolidatedAnalysis(clientId) {
     )
     return null
   }
-}
-
-// Delete this function or replace with the consolidated version
-export async function generateClientAnalyses(clientId, pillars, aiPrompts) {
-  console.log("DEPRECATED: Using generateConsolidatedAnalysis instead")
-  return []
-}
-
-// Delete this function or replace with the consolidated version
-export async function getClientAnalyses(clientId) {
-  console.log("DEPRECATED: Using getConsolidatedAnalysis instead")
-  return []
 }
