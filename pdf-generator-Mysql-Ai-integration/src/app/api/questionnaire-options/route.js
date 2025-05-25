@@ -1,6 +1,6 @@
-// src/app/api/questionnaire-options/route.js
+// src/app/api/questionnaire-options/route.js - AZURE SQL VERSION
 import { NextResponse } from "next/server"
-import { directQuery } from "../../../lib/db"
+import { directQuery } from "@/lib/db"
 
 export async function GET(request) {
   try {
@@ -9,13 +9,18 @@ export async function GET(request) {
 
     // Get database name and connection info
     const connInfo = await directQuery(
-      "SELECT database() AS db, user() AS user"
+      "SELECT DB_NAME() AS db, SYSTEM_USER AS [user]"
     )
     console.log("Connected to database:", connInfo[0])
 
     // Check table structure
     console.log("Checking table structure...")
-    const tableStructure = await directQuery("DESCRIBE Question")
+    const tableStructure = await directQuery(`
+      SELECT COLUMN_NAME AS Field, DATA_TYPE, IS_NULLABLE, COLUMN_DEFAULT
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_NAME = 'Question'
+      ORDER BY ORDINAL_POSITION
+    `)
     console.log(
       "Table columns:",
       tableStructure.map((col) => col.Field)

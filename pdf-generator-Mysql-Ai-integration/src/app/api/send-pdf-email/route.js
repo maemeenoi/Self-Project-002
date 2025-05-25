@@ -1,4 +1,4 @@
-// src/app/api/send-pdf-email/route.js
+// src/app/api/send-pdf-email/route.js - AZURE SQL VERSION
 import { NextResponse } from "next/server"
 import { query } from "@/lib/db"
 import { sendAssessmentReportEmail } from "@/lib/emailUtils"

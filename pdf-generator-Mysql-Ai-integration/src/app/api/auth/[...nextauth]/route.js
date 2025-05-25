@@ -1,7 +1,7 @@
-// app/api/auth/[...nextauth]/route.js
+// app/api/auth/[...nextauth]/route.js - AZURE SQL VERSION
 import NextAuth from "next-auth/next"
 import GoogleProvider from "next-auth/providers/google"
-import { query } from "../../../../lib/db"
+import { query } from "@/lib/db" // Updated to use Azure SQL
 
 export const authOptions = {
   providers: [
@@ -18,34 +18,38 @@ export const authOptions = {
           console.log("Google sign-in for user:", profile.email)
 
           // Check if this Google account is already linked to a client
-          const existingClient = await query(
+          // AZURE SQL: No changes needed for SELECT with parameters
+          const existingClients = await query(
             "SELECT * FROM Client WHERE GoogleId = ? OR ContactEmail = ?",
             [profile.sub, profile.email]
           )
 
-          if (existingClient.length > 0) {
+          if (existingClients.length > 0) {
             // Update existing user
-            const client = existingClient[0]
+            const client = existingClients[0]
 
             // Update the Google ID if not set
+            // AZURE SQL: Changed NOW() to GETDATE()
             if (!client.GoogleId) {
               await query(
-                "UPDATE Client SET GoogleId = ?, AuthMethod = 'google', LastLoginDate = NOW() WHERE ClientID = ?",
+                "UPDATE Client SET GoogleId = ?, AuthMethod = 'google', LastLoginDate = GETDATE() WHERE ClientID = ?",
                 [profile.sub, client.ClientID]
               )
             } else {
               // Just update login date
+              // AZURE SQL: Changed NOW() to GETDATE()
               await query(
-                "UPDATE Client SET LastLoginDate = NOW() WHERE ClientID = ?",
+                "UPDATE Client SET LastLoginDate = GETDATE() WHERE ClientID = ?",
                 [client.ClientID]
               )
             }
           } else {
             // Create new user
+            // AZURE SQL: Changed NOW() to GETDATE()
             await query(
               `INSERT INTO Client 
                (ClientName, ContactEmail, GoogleId, AuthMethod, LastLoginDate, OrganizationName) 
-               VALUES (?, ?, ?, 'google', NOW(), ?)`,
+               VALUES (?, ?, ?, 'google', GETDATE(), ?)`,
               [
                 profile.name || profile.email.split("@")[0],
                 profile.email,

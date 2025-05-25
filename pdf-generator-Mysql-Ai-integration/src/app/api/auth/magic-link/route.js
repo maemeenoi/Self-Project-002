@@ -1,8 +1,8 @@
-// src/app/api/auth/magic-link/route.js
+// src/app/api/auth/magic-link/route.js - AZURE SQL VERSION
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { validateToken } from "../../../../lib/tokenUtils"
-import { query } from "../../../../lib/db"
+import { validateToken } from "@/lib/tokenUtils"
+import { query } from "@/lib/db"
 
 export async function GET(request) {
   try {
@@ -13,7 +13,7 @@ export async function GET(request) {
 
     if (!token) {
       return NextResponse.redirect(
-        new URL("/questionnaire?error=missing_token", request.url)
+        new URL("/login?error=missing_token", request.url)
       )
     }
 
@@ -24,7 +24,7 @@ export async function GET(request) {
 
     if (!tokenData) {
       return NextResponse.redirect(
-        new URL("/questionnaire?error=invalid_token", request.url)
+        new URL("/login?error=invalid_token", request.url)
       )
     }
 
@@ -34,18 +34,25 @@ export async function GET(request) {
     let email = tokenData.Email
 
     if (clientId) {
-      // Client exists, get their name
+      // Client exists, get their name - only get columns that exist in the table
       const clients = await query(
-        "SELECT ClientName, OrganizationName FROM Client WHERE ClientID = ?",
+        "SELECT ClientName FROM Client WHERE ClientID = ?",
         [clientId]
       )
 
       if (clients.length > 0) {
         clientName = clients[0].ClientName
 
-        // Update last login date
+        // AZURE SQL: Changed NOW() to GETDATE()
+        // Update last login date and set auth method logic
         await query(
-          "UPDATE Client SET LastLoginDate = NOW() WHERE ClientID = ?",
+          `UPDATE Client 
+           SET LastLoginDate = GETDATE(), 
+               AuthMethod = CASE 
+                 WHEN PasswordHash IS NOT NULL THEN 'both' 
+                 ELSE 'magic_link' 
+               END 
+           WHERE ClientID = ?`,
           [clientId]
         )
       } else {
@@ -57,14 +64,17 @@ export async function GET(request) {
     // Create client if it doesn't exist
     if (!clientId) {
       const clientNameFromEmail = email.split("@")[0]
-      const organizationName = clientNameFromEmail // Default organization name
 
+      // AZURE SQL: Changed NOW() to GETDATE() and handle IDENTITY/AUTO_INCREMENT
       const insertResult = await query(
-        "INSERT INTO Client (ClientName, OrganizationName, ContactEmail, AuthMethod, LastLoginDate) VALUES (?, ?, ?, 'magic_link', NOW())",
-        [clientNameFromEmail, organizationName, email]
+        `INSERT INTO Client (ClientName, ContactEmail, AuthMethod, LastLoginDate) 
+         VALUES (?, ?, 'magic_link', GETDATE());
+         SELECT SCOPE_IDENTITY() AS insertId;`,
+        [clientNameFromEmail, email]
       )
 
-      clientId = insertResult.insertId
+      // AZURE SQL: SCOPE_IDENTITY() returns the inserted ID
+      clientId = insertResult[0].insertId
       clientName = clientNameFromEmail
 
       // Update the magic link record with the new client ID
@@ -97,12 +107,12 @@ export async function GET(request) {
       path: "/",
     })
 
-    // Redirect to dashboard
+    // Redirect to dashboard or specified redirect path
     return NextResponse.redirect(new URL(redirectPath, request.url))
   } catch (error) {
     console.error("Magic link authentication error:", error)
     return NextResponse.redirect(
-      new URL("/questionnaire?error=server_error", request.url)
+      new URL("/login?error=server_error", request.url)
     )
   }
 }

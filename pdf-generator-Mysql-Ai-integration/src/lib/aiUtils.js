@@ -1,4 +1,4 @@
-// src/lib/aiUtils.js
+// src/lib/aiUtils.js - AZURE SQL VERSION
 
 import { AzureOpenAI } from "openai"
 import "@azure/openai/types"
@@ -246,11 +246,12 @@ async function saveConsolidatedAnalysisToDb(
       [clientId]
     )
 
+    // AZURE SQL: Changed NOW() to GETDATE()
     // Insert the new analysis
     await query(
       `INSERT INTO AIAnalysis 
        (AnalysisID, ClientID, PillarID, PillarName, Content, ModelVersion, CreatedAt) 
-       VALUES (?, ?, 'consolidated', 'Consolidated Analysis', ?, ?, NOW())`,
+       VALUES (?, ?, 'consolidated', 'Consolidated Analysis', ?, ?, GETDATE())`,
       [
         analysisId,
         clientId,

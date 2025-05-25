@@ -1,10 +1,10 @@
-// src/app/api/consolidated-analysis/[clientId]/route.js
+// src/app/api/consolidated-analysis/[clientId]/route.js - AZURE SQL VERSION
 import { NextResponse } from "next/server"
 import {
   generateConsolidatedAnalysis,
   getConsolidatedAnalysis,
-} from "../../../../lib/aiUtils"
-import { query } from "../../../../lib/db"
+} from "@/lib/aiUtils"
+import { query } from "@/lib/db"
 
 export async function GET(request, { params }) {
   try {
@@ -76,7 +76,7 @@ export async function POST(request, { params }) {
       // Get Response
       const responseResults = await query(
         `SELECT r.ResponseID, r.ClientID, r.QuestionID, r.ResponseText, r.Score, r.ResponseDate,
-                q.QuestionText, q.Category, q.StandardText
+                CAST(q.QuestionText AS NVARCHAR(MAX)) AS QuestionText, q.Category, CAST(q.StandardText AS NVARCHAR(MAX)) AS StandardText
          FROM Response r
          LEFT JOIN Question q ON r.QuestionID = q.QuestionID
          WHERE r.ClientID = ?
@@ -92,7 +92,7 @@ export async function POST(request, { params }) {
       }
 
       // Process the data using assessmentUtils
-      const assessmentUtils = await import("../../../../lib/assessmentUtils")
+      const assessmentUtils = await import("@/lib/assessmentUtils")
       const processedData = assessmentUtils.default.processAssessmentData(
         responseResults.map((r) => ({ ...r, ClientInfo: clientInfo })),
         [] // industry standards not needed for AI generation

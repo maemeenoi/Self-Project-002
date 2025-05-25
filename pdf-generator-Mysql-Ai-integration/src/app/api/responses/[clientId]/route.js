@@ -1,6 +1,6 @@
-// src/app/api/responses/[clientId]/route.js
+// src/app/api/responses/[clientId]/route.js - AZURE SQL VERSION
 import { NextResponse } from "next/server"
-import { query } from "../../../../lib/db"
+import { query } from "@/lib/db"
 
 export async function GET(request, { params }) {
   try {
@@ -50,9 +50,10 @@ export async function GET(request, { params }) {
     }
 
     // Now fetch the actual responses with a join to Question
+    // AZURE SQL: Use CAST to convert ntext fields to nvarchar
     const responseResults = await query(
       `SELECT r.ResponseID, r.ClientID, r.QuestionID, r.ResponseText, r.Score, r.ResponseDate,
-              q.QuestionText, q.Category, q.StandardText
+              CAST(q.QuestionText AS NVARCHAR(MAX)) AS QuestionText, q.Category, CAST(q.StandardText AS NVARCHAR(MAX)) AS StandardText
        FROM Response r
        LEFT JOIN Question q ON r.QuestionID = q.QuestionID
        WHERE r.ClientID = ?

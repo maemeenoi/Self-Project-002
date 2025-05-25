@@ -1,11 +1,8 @@
-// src/app/api/questionnaire/submit/route.js
+// src/app/api/questionnaire/submit/route.js - AZURE SQL VERSION
 import { NextResponse } from "next/server"
-import { query, getConnection } from "../../../../lib/db"
-import { createMagicLinkToken } from "../../../../lib/tokenUtils"
-import {
-  sendMagicLinkEmail,
-  sendAssessmentReportEmail,
-} from "../../../../lib/emailUtils"
+import { query, getConnection } from "@/lib/db"
+import { createMagicLinkToken } from "@/lib/tokenUtils"
+import { sendMagicLinkEmail, sendAssessmentReportEmail } from "@/lib/emailUtils"
 
 export async function POST(request) {
   try {
@@ -75,7 +72,7 @@ export async function POST(request) {
           CompanySize = CASE WHEN ? != '' THEN ? ELSE CompanySize END,
           IndustryType = CASE WHEN ? != '' THEN ? ELSE IndustryType END,
           AuthMethod = CASE WHEN ? = 'google' THEN 'google' ELSE AuthMethod END,
-          LastLoginDate = NOW()
+          LastLoginDate = GETDATE()
         WHERE ClientID = ?
       `
       const updateParams = [
@@ -105,7 +102,7 @@ export async function POST(request) {
           AuthMethod,
           CreatedDate,
           LastLoginDate
-        ) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+        ) OUTPUT INSERTED.ClientID VALUES (?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())
       `
 
       // Use email username as fallback if name not provided
@@ -122,7 +119,7 @@ export async function POST(request) {
 
       console.log("Creating new client with name:", username)
       const insertResult = await query(insertSql, insertParams)
-      clientId = insertResult.insertId
+      clientId = insertResult[0].ClientID
     }
 
     console.log("Using client ID:", clientId)
@@ -152,7 +149,7 @@ export async function POST(request) {
           await query(
             `INSERT INTO Response 
              (ClientID, QuestionID, ResponseText, ResponseDate) 
-             VALUES (?, ?, ?, NOW())`,
+             VALUES (?, ?, ?, GETDATE())`,
             [clientId, questionId, responseText]
           )
           console.log("Saved client info response for question", questionId)
@@ -168,7 +165,7 @@ export async function POST(request) {
           await query(
             `INSERT INTO Response 
              (ClientID, QuestionID, Score, ResponseDate) 
-             VALUES (?, ?, ?, NOW())`,
+             VALUES (?, ?, ?, GETDATE())`,
             [clientId, questionId, score]
           )
           console.log("Saved assessment response for question", questionId)
@@ -184,7 +181,7 @@ export async function POST(request) {
           await query(
             `INSERT INTO Response 
              (ClientID, QuestionID, ResponseText, ResponseDate) 
-             VALUES (?, ?, ?, NOW())`,
+             VALUES (?, ?, ?, GETDATE())`,
             [clientId, questionId, responseText]
           )
           console.log("Saved feedback response for question", questionId)

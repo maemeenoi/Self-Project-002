@@ -1,4 +1,4 @@
-// src/app/api/auth/logout/route.js
+// src/app/api/auth/logout/route.js - AZURE SQL VERSION
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 

@@ -28,7 +28,7 @@ async function runDiagnostic() {
 
     // If connection works, try a simple query
     console.log("Testing query...")
-    const result = await pool.request().query("SELECT * FROM IndustryStandards")
+    const result = await pool.request().query("SELECT * FROM Question")
     console.log("Query result:", result.recordset)
 
     // Close connection

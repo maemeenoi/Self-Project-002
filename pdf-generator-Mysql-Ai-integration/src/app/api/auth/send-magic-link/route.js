@@ -1,8 +1,8 @@
-// src/app/api/auth/send-magic-link/route.js
+// src/app/api/auth/send-magic-link/route.js - AZURE SQL VERSION
 import { NextResponse } from "next/server"
-import { query } from "../../../../lib/db"
-import { createMagicLinkToken } from "../../../../lib/tokenUtils"
-import { sendMagicLinkEmail } from "../../../../lib/emailUtils"
+import { query } from "@/lib/db"
+import { createMagicLinkToken } from "@/lib/tokenUtils"
+import { sendMagicLinkEmail } from "@/lib/emailUtils"
 
 export async function POST(request) {
   try {
@@ -13,6 +13,7 @@ export async function POST(request) {
     }
 
     // Check if client exists
+    // AZURE SQL: No changes needed for basic SELECT
     const clients = await query(
       "SELECT ClientID FROM Client WHERE ContactEmail = ?",
       [email]

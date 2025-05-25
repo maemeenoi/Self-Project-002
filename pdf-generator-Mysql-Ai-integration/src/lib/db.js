@@ -1,16 +1,42 @@
-const mysql = require("mysql2/promise")
+const mssql = require("mssql")
 
-// Create connection pool - no password
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "127.0.0.1",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "assessment_dev",
-  port: process.env.DB_PORT || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-})
+// Azure SQL Database configuration
+const config = {
+  user: process.env.AZURE_SQL_USER,
+  password: process.env.AZURE_SQL_PASSWORD,
+  server: process.env.AZURE_SQL_SERVER,
+  database: process.env.AZURE_SQL_DATABASE,
+  port: 1433, // Default SQL Server port
+  options: {
+    encrypt: true, // For Azure SQL
+    trustServerCertificate: false, // Change to true for local dev / self-signed certs
+    enableArithAbort: true,
+  },
+}
+
+// Connection pool
+let pool = null
+
+// Initialize connection pool
+async function initializePool() {
+  try {
+    pool = await mssql.connect(config)
+    console.log("Connected to Azure SQL Database")
+    console.log("CONNECTION SUCCESSFUL!")
+    return pool
+  } catch (error) {
+    console.error("Database connection error:", error)
+    throw error
+  }
+}
+
+// Get the pool (create it if it doesn't exist)
+async function getPool() {
+  if (!pool) {
+    await initializePool()
+  }
+  return pool
+}
 
 // Sanitize parameters to replace undefined with null
 function sanitizeParams(params) {
@@ -22,11 +48,22 @@ function sanitizeParams(params) {
 // Query helper function
 async function query(sql, params = []) {
   try {
-    // Sanitize parameters before executing the query
-    const sanitizedParams = sanitizeParams(params)
+    const poolConnection = await getPool()
+    const request = poolConnection.request()
 
-    const [results] = await pool.execute(sql, sanitizedParams)
-    return results
+    // Add parameters to the request
+    params.forEach((param, index) => {
+      request.input(`param${index}`, sanitizeParams([param])[0])
+    })
+
+    // Replace ? placeholders with @paramX
+    let modifiedSql = sql
+    for (let i = 0; i < params.length; i++) {
+      modifiedSql = modifiedSql.replace("?", `@param${i}`)
+    }
+
+    const results = await request.query(modifiedSql)
+    return results.recordset
   } catch (error) {
     console.error("Database query error:", error)
     throw error
@@ -36,8 +73,9 @@ async function query(sql, params = []) {
 // Direct query function (for simple queries without parameters)
 async function directQuery(sqlQuery) {
   try {
-    const [results] = await pool.query(sqlQuery)
-    return results
+    const poolConnection = await getPool()
+    const results = await poolConnection.request().query(sqlQuery)
+    return results.recordset
   } catch (error) {
     console.error("Database direct query error:", error)
     throw error
@@ -47,12 +85,28 @@ async function directQuery(sqlQuery) {
 // Get connection from pool for transaction management
 async function getConnection() {
   try {
-    const connection = await pool.getConnection()
-    return connection
+    const poolConnection = await getPool()
+    const transaction = new mssql.Transaction(poolConnection)
+    await transaction.begin()
+    return {
+      transaction,
+      request: () => {
+        return new mssql.Request(transaction)
+      },
+      commit: async () => {
+        await transaction.commit()
+      },
+      rollback: async () => {
+        await transaction.rollback()
+      },
+    }
   } catch (error) {
     console.error("Database connection error:", error)
     throw error
   }
 }
 
-module.exports = { query, directQuery, getConnection, pool }
+// Initialize the pool
+initializePool().catch(console.error)
+
+module.exports = { query, directQuery, getConnection, getPool }

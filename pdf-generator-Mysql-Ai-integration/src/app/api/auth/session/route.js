@@ -17,7 +17,6 @@ export async function GET() {
           clientId: session.user.clientId,
           clientName: session.user.clientName || session.user.name,
           email: session.user.email,
-          // Add any other required fields
         },
       })
     }

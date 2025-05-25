@@ -1,12 +1,13 @@
-// src/app/api/questions/route.js
+// src/app/api/questions/route.js - AZURE SQL VERSION
 import { NextResponse } from "next/server"
-import { query } from "../../../lib/db"
+import { query } from "@/lib/db"
 
 export async function GET() {
   try {
     // First, get all the distinct questions with their categories
+    // AZURE SQL: Use CAST to convert ntext to nvarchar for DISTINCT to work
     const distinctQuestion = await query(`
-      SELECT DISTINCT QuestionID, QuestionText, Category 
+      SELECT DISTINCT QuestionID, CAST(QuestionText AS NVARCHAR(MAX)) AS QuestionText, Category 
       FROM Question 
       ORDER BY QuestionID
     `)
