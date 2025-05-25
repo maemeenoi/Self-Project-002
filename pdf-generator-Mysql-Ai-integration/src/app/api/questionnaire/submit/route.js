@@ -1,13 +1,23 @@
-// src/app/api/questionnaire/submit/route.js - Update the POST handler
+// src/app/api/questionnaire/submit/route.js
 import { NextResponse } from "next/server"
-import { query } from "../../../../lib/db"
+import { query, getConnection } from "../../../../lib/db"
 import { createMagicLinkToken } from "../../../../lib/tokenUtils"
-import { sendMagicLinkEmail } from "../../../../lib/emailUtils"
+import {
+  sendMagicLinkEmail,
+  sendAssessmentReportEmail,
+} from "../../../../lib/emailUtils"
 
 export async function POST(request) {
   try {
     const data = await request.json()
-    const { answers, email, organizationName, companySize, authMethod } = data
+    const {
+      answers,
+      email,
+      organizationName,
+      companySize,
+      authMethod = "magic_link",
+      generateReport = false,
+    } = data
 
     console.log("Submission data:", {
       answersCount: answers?.length,
@@ -15,17 +25,10 @@ export async function POST(request) {
       organizationName,
       companySize,
       authMethod,
+      generateReport,
     })
 
-    if (!answers) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      )
-    }
-
-    // If authMethod is 'google', email might come from the authenticated session
-    if (!email && authMethod !== "google") {
+    if (!answers || !email) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -52,86 +55,80 @@ export async function POST(request) {
     })
 
     // Check if this email already has a client record
-    let clientId = null
+    const existingClient = await query(
+      "SELECT * FROM Client WHERE ContactEmail = ?",
+      [email]
+    )
 
-    if (email) {
-      const existingClient = await query(
-        "SELECT * FROM Client WHERE ContactEmail = ?",
-        [email]
-      )
+    let clientId
 
-      if (existingClient.length > 0) {
-        // Use existing client but update details from the form
-        clientId = existingClient[0].ClientID
+    if (existingClient.length > 0) {
+      // Use existing client but update details from the form
+      clientId = existingClient[0].ClientID
 
-        // Build the update SQL with all the fields we want to update
-        const updateSql = `
-          UPDATE Client 
-          SET 
-            ClientName = CASE WHEN ? != '' THEN ? ELSE ClientName END,
-            OrganizationName = CASE WHEN ? != '' THEN ? ELSE OrganizationName END,
-            CompanySize = CASE WHEN ? != '' THEN ? ELSE CompanySize END,
-            IndustryType = CASE WHEN ? != '' THEN ? ELSE IndustryType END,
-            LastLoginDate = NOW()
-          WHERE ClientID = ?
-        `
-        const updateParams = [
-          clientName,
-          clientName,
-          clientOrgName,
-          clientOrgName,
-          clientCompanySize,
-          clientCompanySize,
-          industry,
-          industry,
-          clientId,
-        ]
+      // Build the update SQL with all the fields we want to update
+      const updateSql = `
+        UPDATE Client 
+        SET 
+          ClientName = CASE WHEN ? != '' THEN ? ELSE ClientName END,
+          OrganizationName = CASE WHEN ? != '' THEN ? ELSE OrganizationName END,
+          CompanySize = CASE WHEN ? != '' THEN ? ELSE CompanySize END,
+          IndustryType = CASE WHEN ? != '' THEN ? ELSE IndustryType END,
+          AuthMethod = CASE WHEN ? = 'google' THEN 'google' ELSE AuthMethod END,
+          LastLoginDate = NOW()
+        WHERE ClientID = ?
+      `
+      const updateParams = [
+        clientName,
+        clientName,
+        clientOrgName,
+        clientOrgName,
+        clientCompanySize,
+        clientCompanySize,
+        industry,
+        industry,
+        authMethod,
+        clientId,
+      ]
 
-        console.log("Updating client with ID:", clientId)
-        await query(updateSql, updateParams)
-      } else if (email) {
-        // Create a new client record with all details
-        const insertSql = `
-          INSERT INTO Client (
-            ClientName, 
-            OrganizationName, 
-            ContactEmail, 
-            CompanySize,
-            IndustryType, 
-            AuthMethod,
-            CreatedDate
-          ) VALUES (?, ?, ?, ?, ?, ?, NOW())
-        `
+      console.log("Updating client with ID:", clientId)
+      await query(updateSql, updateParams)
+    } else {
+      // Create a new client record with all details
+      const insertSql = `
+        INSERT INTO Client (
+          ClientName, 
+          OrganizationName, 
+          ContactEmail, 
+          CompanySize,
+          IndustryType, 
+          AuthMethod,
+          CreatedDate,
+          LastLoginDate
+        ) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+      `
 
-        // Use email username as fallback if name not provided
-        const username = clientName || email.split("@")[0]
-        const authMethodValue =
-          authMethod === "google" ? "google" : "magic_link"
+      // Use email username as fallback if name not provided
+      const username = clientName || email.split("@")[0]
 
-        const insertParams = [
-          username,
-          clientOrgName || username,
-          email,
-          clientCompanySize || null,
-          industry || null,
-          authMethodValue,
-        ]
+      const insertParams = [
+        username,
+        clientOrgName || username,
+        email,
+        clientCompanySize || null,
+        industry || null,
+        authMethod,
+      ]
 
-        console.log("Creating new client with name:", username)
-        const insertResult = await query(insertSql, insertParams)
-        clientId = insertResult.insertId
-      }
+      console.log("Creating new client with name:", username)
+      const insertResult = await query(insertSql, insertParams)
+      clientId = insertResult.insertId
     }
 
     console.log("Using client ID:", clientId)
 
-    // Only continue if we have a valid clientId
-    if (!clientId) {
-      return NextResponse.json(
-        { error: "Failed to find or create client record" },
-        { status: 500 }
-      )
-    }
+    // Delete existing responses for this client to avoid duplicates
+    await query("DELETE FROM Response WHERE ClientID = ?", [clientId])
 
     // Now we have a valid clientId, store responses
     for (const answer of answers) {
@@ -197,48 +194,137 @@ export async function POST(request) {
       }
     }
 
-    // If using Google auth, we don't need to send a magic link
-    if (authMethod === "google") {
+    // If this is a Google authentication flow with generateReport=true
+    if (authMethod === "google" && generateReport) {
+      console.log(
+        "Google auth flow - generating AI analysis and sending comprehensive report"
+      )
+
+      // Get the stored responses to build assessment data
+      const responseResults = await query(
+        `SELECT r.ResponseID, r.ClientID, r.QuestionID, r.ResponseText, r.Score, r.ResponseDate,
+                q.QuestionText, q.Category, q.StandardText
+         FROM Response r
+         LEFT JOIN Question q ON r.QuestionID = q.QuestionID
+         WHERE r.ClientID = ?
+         ORDER BY r.QuestionID`,
+        [clientId]
+      )
+
+      // Get updated client info
+      const clientResults = await query(
+        `SELECT ClientID, ClientName, OrganizationName, ContactEmail, CompanySize, IndustryType
+         FROM Client WHERE ClientID = ?`,
+        [clientId]
+      )
+
+      const clientInfo = clientResults[0]
+
+      // Try to generate AI analysis (don't fail if this doesn't work)
+      let aiAnalysis = null
+      try {
+        console.log("Attempting to generate AI analysis...")
+
+        // Trigger AI analysis generation
+        const aiResponse = await fetch(
+          `${
+            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+          }/api/consolidated-analysis/${clientId}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              triggerGeneration: true,
+              assessmentData: {
+                reportMetadata: {
+                  clientName: clientInfo.ClientName,
+                  organizationName: clientInfo.OrganizationName,
+                  industryType: clientInfo.IndustryType,
+                  Clientize: clientInfo.CompanySize,
+                },
+                responses: responseResults,
+              },
+            }),
+          }
+        )
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json()
+          aiAnalysis = aiData.analysis
+          console.log("AI analysis generated successfully")
+        } else {
+          console.log("AI analysis generation failed, continuing without it")
+        }
+      } catch (aiError) {
+        console.log("AI generation error (continuing):", aiError.message)
+      }
+
+      // Send comprehensive assessment report email
+      try {
+        console.log("Sending comprehensive assessment report...")
+        await sendAssessmentReportEmail({
+          email,
+          clientInfo,
+          responses: responseResults,
+          aiAnalysis,
+          dashboardLink: `${
+            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+          }/dashboard`,
+          includeReport: true,
+        })
+        console.log("Comprehensive assessment report sent successfully")
+      } catch (emailError) {
+        console.log("Email sending error (continuing):", emailError.message)
+      }
+
       return NextResponse.json({
         success: true,
-        message:
-          "Assessment submitted successfully with Google authentication.",
-      })
-    }
-
-    // Otherwise, generate a magic link token
-    const token = await createMagicLinkToken(email, clientId)
-
-    // Create the magic link URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-    const magicLink = `${baseUrl}/api/auth/magic-link?token=${token}`
-
-    console.log("Generated magic link for email:", email)
-
-    // Send the email with the magic link
-    const emailResult = await sendMagicLinkEmail(email, magicLink)
-
-    // Return appropriate response based on email sending success
-    if (emailResult && emailResult.success) {
-      return NextResponse.json({
-        success: true,
-        message:
-          "Assessment submitted successfully. Check your email for results.",
+        clientId: clientId,
+        message: "Assessment submitted and comprehensive report sent",
         emailSent: true,
+        hasAI: !!aiAnalysis,
       })
     } else {
-      console.error(
-        "Email sending failed:",
-        emailResult ? emailResult.error : "Unknown error"
-      )
-      // Return success for the submission but flag the email failure
-      return NextResponse.json({
-        success: true,
-        message:
-          "Assessment submitted successfully, but there was an issue sending the email.",
-        emailSent: false,
-        emailError: emailResult ? emailResult.error : "Unknown error",
-      })
+      // Traditional magic link flow
+      console.log("Traditional magic link flow")
+
+      // Generate a magic link token
+      const token = await createMagicLinkToken(email, clientId)
+
+      // Create the magic link URL
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+      const magicLink = `${baseUrl}/api/auth/magic-link?token=${token}`
+
+      console.log("Generated magic link for email:", email)
+
+      // Send the email with the magic link
+      const emailResult = await sendMagicLinkEmail(email, magicLink)
+
+      // Return appropriate response based on email sending success
+      if (emailResult && emailResult.success) {
+        return NextResponse.json({
+          success: true,
+          clientId: clientId,
+          message:
+            "Assessment submitted successfully. Check your email for results.",
+          emailSent: true,
+        })
+      } else {
+        console.error(
+          "Email sending failed:",
+          emailResult ? emailResult.error : "Unknown error"
+        )
+        // Return success for the submission but flag the email failure
+        return NextResponse.json({
+          success: true,
+          clientId: clientId,
+          message:
+            "Assessment submitted successfully, but there was an issue sending the email.",
+          emailSent: false,
+          emailError: emailResult ? emailResult.error : "Unknown error",
+        })
+      }
     }
   } catch (error) {
     console.error("Questionnaire submission error:", error)

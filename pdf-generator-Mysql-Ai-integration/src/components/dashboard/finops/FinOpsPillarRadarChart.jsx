@@ -32,14 +32,7 @@ const FinOpsPillarRadarChart = ({
             fill="#6366F1"
             fillOpacity={0.3}
           />
-          <Radar
-            name="Baseline (50%)"
-            dataKey="benchmark"
-            stroke="#10B981"
-            strokeWidth={2}
-            fill="#10B981"
-            fillOpacity={0.1}
-          />
+
           <Tooltip formatter={(value, name) => [`${value}%`, name]} />
           <Legend />
         </RadarChart>
@@ -47,8 +40,7 @@ const FinOpsPillarRadarChart = ({
       <div className="mt-4">
         <p className="text-sm text-gray-500">
           This chart visualizes your FinOps maturity across different pillars.
-          The blue area represents your score, while the green area indicates
-          the baseline (50%).
+          The blue area represents your score.
         </p>
       </div>
     </div>

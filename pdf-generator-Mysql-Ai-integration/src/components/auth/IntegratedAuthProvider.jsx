@@ -6,7 +6,7 @@ import { useEffect } from "react"
 import {
   AuthProvider as CustomAuthProvider,
   useAuth,
-} from "@/contexts/AuthContext"
+} from "@/providers/auth/AuthContext"
 
 // Synchronize Next-Auth session with your custom AuthContext
 function SessionSync({ children }) {

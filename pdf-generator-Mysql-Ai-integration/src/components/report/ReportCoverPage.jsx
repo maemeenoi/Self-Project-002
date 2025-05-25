@@ -1,57 +1,136 @@
 import React from "react"
 
 const ReportCoverPage = ({ clientData }) => {
-  const { reportMetadata } = clientData
+  const reportDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
 
   return (
     <div
-      className="report-page report-cover w-full h-full flex flex-col"
       style={{
+        width: "297mm",
+        height: "210mm",
+        display: "flex",
+        backgroundColor: "#ffffff",
         fontFamily: "Arial, sans-serif",
-        background: "#ffffff", // Plain white background for compatibility
+        position: "relative",
       }}
     >
-      {/* Top header */}
+      {/* Left Accent Bar */}
       <div
-        className="h-24 w-full"
         style={{
-          backgroundColor: "#1e40af", // Solid blue instead of gradient
+          backgroundColor: "#1e40af", // sky blue
+          width: "80mm",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "#ffffff",
+          padding: "20px",
         }}
       >
-        <div className="flex justify-center items-center h-full">
-          <div className="text-white text-2xl font-bold">MakeStuffGo</div>
-        </div>
+        <h1
+          style={{ fontSize: "48px", fontWeight: "bold", margin: "0 0 10px" }}
+        >
+          {clientData?.overallFinOpsMaturity?.percentage || 0}%
+        </h1>
+        <p style={{ fontSize: "14px", fontWeight: "500", margin: 0 }}>
+          FinOps Maturity
+        </p>
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            width: "80%",
+            height: "2px",
+            margin: "20px 0",
+          }}
+        ></div>
+        <h2 style={{ fontSize: "20px", fontWeight: "bold", margin: 0 }}>
+          {clientData?.overallFinOpsMaturity?.level || "Not Available"}
+        </h2>
       </div>
 
-      {/* Main content */}
-      <div className="flex-grow flex items-center justify-center p-8">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-blue-900 mb-10">
-            Cloud Maturity Assessment
+      {/* Right Section */}
+      <div style={{ flex: 1, padding: "40px 40px 30px 40px" }}>
+        {/* Logo and Date */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
+          <div>
+            <h1
+              style={{
+                fontSize: "22px",
+                fontWeight: "bold",
+                color: "#1e40af",
+                margin: 0,
+              }}
+            >
+              MakeStuffGo
+            </h1>
+            <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>
+              Cloud Optimization Platform
+            </p>
+          </div>
+          <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>
+            {reportDate}
+          </p>
+        </div>
+
+        {/* Title Block */}
+        <div style={{ marginTop: "60px" }}>
+          <h1
+            style={{
+              fontSize: "40px",
+              fontWeight: "bold",
+              color: "#111827",
+              margin: 0,
+              lineHeight: "1.1",
+            }}
+          >
+            Cloud Maturity <br /> Assessment Report
           </h1>
+        </div>
 
-          <div className="w-20 h-1 bg-blue-600 mx-auto mb-10"></div>
+        {/* Org Info */}
+        <div style={{ marginTop: "50px", fontSize: "14px", color: "#374151" }}>
+          <p>
+            <strong>Organization:</strong>{" "}
+            {clientData?.reportMetadata?.organizationName || "N/A"}
+          </p>
+          <p>
+            <strong>Industry:</strong>{" "}
+            {clientData?.reportMetadata?.industryType || "N/A"}
+          </p>
+          <p>
+            <strong>Company Size:</strong>{" "}
+            {clientData?.reportMetadata?.clientSize || "N/A"}
+          </p>
+          <p>
+            <strong>Assessment Date:</strong>{" "}
+            {clientData?.reportMetadata?.reportDate || reportDate}
+          </p>
+        </div>
 
-          <div className="mt-10">
-            <h2 className="text-3xl font-bold text-blue-800">
-              {reportMetadata.organizationName}
-            </h2>
-            <p className="text-xl text-blue-700 mt-3">
-              {reportMetadata.reportDate}
-            </p>
-          </div>
-
-          <div className="mt-16 text-gray-600">
-            <p className="text-lg">Prepared by</p>
-            <p className="text-2xl font-bold text-blue-700 mt-2">
-              MakeStuffGo Cloud Solutions
-            </p>
-          </div>
+        {/* Footer Disclaimer */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "20mm",
+            right: "40mm",
+            fontSize: "10px",
+            color: "#9ca3af",
+          }}
+        >
+          This report is confidential and intended for internal use only.
         </div>
       </div>
-
-      {/* Bottom border */}
-      <div className="h-6 w-full bg-blue-600"></div>
     </div>
   )
 }

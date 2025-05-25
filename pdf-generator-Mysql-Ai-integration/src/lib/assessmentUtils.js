@@ -349,11 +349,61 @@ const assessmentUtils = {
       organizationName: clientInfo.OrganizationName || "Unknown Organization",
       clientSize: clientInfo.CompanySize || "Not specified",
       industryType: clientInfo.IndustryType || "Not specified",
-      reportDate: new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
+
+      // Use the assessment submission date
+      reportDate: (() => {
+        // Look for the first response with a ResponseDate
+        if (Array.isArray(responseData)) {
+          // Find a response with question ID 20 (feedback question) as it's typically the last question
+          const lastResponse = responseData.find(
+            (r) => r.QuestionID === 20 && r.ResponseDate
+          )
+
+          // If found, use its date
+          if (lastResponse && lastResponse.ResponseDate) {
+            return new Date(lastResponse.ResponseDate).toLocaleDateString(
+              "en-US",
+              {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }
+            )
+          }
+
+          // Otherwise, just use the first response with a date
+          const anyResponse = responseData.find((r) => r.ResponseDate)
+          if (anyResponse && anyResponse.ResponseDate) {
+            return new Date(anyResponse.ResponseDate).toLocaleDateString(
+              "en-US",
+              {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }
+            )
+          }
+        }
+
+        // If no response dates found, use client's last login date if available
+        if (clientInfo && clientInfo.LastLoginDate) {
+          return new Date(clientInfo.LastLoginDate).toLocaleDateString(
+            "en-US",
+            {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }
+          )
+        }
+
+        // Only use current date as absolute last resort
+        return new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      })(),
     }
 
     // Create category scores for compatibility with existing visualizations

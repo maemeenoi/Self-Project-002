@@ -15,13 +15,13 @@ const ReportGenerator = ({
   onGenerationComplete,
   isGenerating,
   isComplete,
+  userEmail, // Add this prop to receive user's email
 }) => {
   const [generationProgress, setGenerationProgress] = useState(0)
   const [currentPage, setCurrentPage] = useState("")
   const reportRef = useRef(null)
-
-  // Log client data to help with debugging
-  console.log("Client data being used for report:", clientData)
+  const [sendToEmail, setSendToEmail] = useState(false) // Add state for email checkbox
+  const [emailSent, setEmailSent] = useState(false) // Track if email was sent
 
   // Check if AI-enhanced data is available
   const hasAIInsights = !!(
@@ -30,14 +30,13 @@ const ReportGenerator = ({
     clientData.overallFindings
   )
 
-  console.log("Report has AI insights:", hasAIInsights)
-
   const generatePDF = async () => {
     if (onGenerationStart) onGenerationStart()
 
     try {
       setGenerationProgress(0)
       setCurrentPage("Initializing...")
+      setEmailSent(false) // Reset email sent status
 
       // Import the jsPDF and html2canvas libraries
       const html2canvas = (await import("html2canvas-pro")).default
@@ -55,6 +54,9 @@ const ReportGenerator = ({
       const totalPages = pages.length
 
       console.log(`Found ${totalPages} pages to include in the PDF`)
+
+      // For storing the PDF data if sending via email
+      let pdfBase64Data = null
 
       // Capture each page separately
       for (let i = 0; i < totalPages; i++) {
@@ -93,7 +95,7 @@ const ReportGenerator = ({
       setGenerationProgress(100)
       setCurrentPage("Finalizing PDF...")
 
-      // Save the PDF with client organization name
+      // Get the organization name for the filename
       const safeFileName = clientData.reportMetadata?.organizationName
         ? clientData.reportMetadata.organizationName.replace(
             /[^a-zA-Z0-9]/g,
@@ -101,7 +103,35 @@ const ReportGenerator = ({
           )
         : "CloudAssessment"
 
+      // Save the PDF locally first
       pdf.save(`${safeFileName}_CloudAssessment.pdf`)
+
+      // If user checked "Send to Email" option, send the PDF via email
+      if (sendToEmail && userEmail) {
+        setCurrentPage("Sending to email...")
+
+        // Get PDF as base64 string
+        const pdfData = pdf.output("datauristring").split(",")[1]
+
+        // Send PDF to server for email delivery
+        const emailResponse = await fetch("/api/send-pdf-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: userEmail,
+            clientId: clientData.reportMetadata?.clientId,
+            pdfData: pdfData,
+            clientData: clientData,
+          }),
+        })
+
+        if (emailResponse.ok) {
+          setEmailSent(true)
+          console.log("PDF report emailed successfully!")
+        } else {
+          console.error("Failed to send email")
+        }
+      }
 
       // Wait a bit before completing to ensure PDF is saved
       setTimeout(() => {
@@ -114,7 +144,22 @@ const ReportGenerator = ({
   }
 
   return (
-    <>
+    <div className="flex flex-col items-end">
+      {/* Email option checkbox */}
+      <div className="mb-2 flex items-center">
+        <input
+          type="checkbox"
+          id="send-to-email"
+          checked={sendToEmail}
+          onChange={(e) => setSendToEmail(e.target.checked)}
+          className="mr-2 h-4 w-4 text-blue-600"
+          disabled={isGenerating}
+        />
+        <label htmlFor="send-to-email" className="text-sm text-gray-700">
+          Also send PDF to my email ({userEmail})
+        </label>
+      </div>
+
       {/* Report generation button */}
       <button
         onClick={generatePDF}
@@ -164,7 +209,11 @@ const ReportGenerator = ({
             >
               <path d="M5 13l4 4L19 7"></path>
             </svg>
-            {hasAIInsights ? "AI-Enhanced PDF Ready!" : "PDF Report Ready!"}
+            {emailSent
+              ? "PDF Ready & Email Sent!"
+              : hasAIInsights
+              ? "AI-Enhanced PDF Ready!"
+              : "PDF Report Ready!"}
           </span>
         ) : (
           <span className="flex items-center">
@@ -187,6 +236,13 @@ const ReportGenerator = ({
           </span>
         )}
       </button>
+
+      {/* Success message for email */}
+      {emailSent && (
+        <div className="mt-2 text-sm text-green-600">
+          ✓ PDF report also sent to {userEmail}
+        </div>
+      )}
 
       {/* Hidden container for the report pages */}
       <div
@@ -249,7 +305,7 @@ const ReportGenerator = ({
           <ReportEndCoverPage clientData={clientData} />
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

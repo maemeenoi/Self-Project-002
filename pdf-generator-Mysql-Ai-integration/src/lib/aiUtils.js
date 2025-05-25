@@ -135,7 +135,7 @@ Please provide a comprehensive analysis with:
 5. Strategic Recommendations (6 actionable items with description and timeline)
 6. Implementation Timeline (30/60/90 day priorities)
 
-Format the response as JSON with this structure:
+Format the response as JSON with this structure, "Return only raw JSON. Do not use markdown or wrap the output in any code blocks.":
 {
   "executiveSummary": "string",
   "overallFindings": "string",
@@ -195,10 +195,9 @@ Format the response as JSON with this structure:
       let jsonStr = analysisContent
 
       // Check if the response is wrapped in markdown code blocks
-      if (jsonStr.startsWith("```json") || jsonStr.startsWith("```")) {
-        // Extract the JSON part between markdown code blocks
-        jsonStr = jsonStr.replace(/^```json\s*|^```\s*/g, "")
-        jsonStr = jsonStr.replace(/\s*```$/g, "")
+      if (jsonStr.includes("```")) {
+        jsonStr = jsonStr.replace(/```json\s*([\s\S]*?)\s*```/, "$1").trim()
+        jsonStr = jsonStr.replace(/```\s*([\s\S]*?)\s*```/, "$1").trim() // fallback
       }
 
       analysisJson = JSON.parse(jsonStr)

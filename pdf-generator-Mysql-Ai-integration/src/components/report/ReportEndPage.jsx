@@ -5,66 +5,140 @@ const ReportEndPage = ({ clientData }) => {
 
   return (
     <div
-      className="report-page report-end-page w-full h-full"
       style={{
+        width: "297mm",
+        height: "210mm",
+        padding: "20mm",
+        backgroundColor: "#ffffff",
         fontFamily: "Arial, sans-serif",
-        background: "#ffffff", // Plain white background for compatibility
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
       }}
     >
-      {/* Top border */}
-      <div className="h-6 w-full bg-blue-600"></div>
+      {/* Top Border */}
+      <div
+        style={{ height: "6px", width: "100%", backgroundColor: "#2563eb" }}
+      />
 
-      {/* Content Container */}
-      <div className="flex flex-col items-center justify-center p-16 text-center">
-        <h1 className="text-4xl font-bold text-blue-800 mb-8">Thank You</h1>
+      {/* Main Content */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "36px",
+            color: "#1e40af",
+            fontWeight: "bold",
+            marginBottom: "20px",
+          }}
+        >
+          Thank You
+        </h1>
 
-        <div className="w-32 h-1 bg-blue-400 mx-auto mb-8"></div>
+        <div
+          style={{
+            width: "120px",
+            height: "4px",
+            backgroundColor: "#38bdf8",
+            marginBottom: "30px",
+          }}
+        />
 
-        <div className="mb-8">
-          <p className="text-xl text-gray-700">
-            This Cloud Maturity Assessment has been prepared for:
-          </p>
-          <h2 className="text-3xl font-bold text-blue-900 mt-2">
-            {reportMetadata.organizationName}
-          </h2>
-          <p className="text-lg text-gray-700 mt-1">
-            {reportMetadata.reportDate}
-          </p>
-        </div>
+        <p style={{ fontSize: "18px", color: "#374151" }}>
+          This Cloud Maturity Assessment has been prepared for:
+        </p>
+        <h2
+          style={{
+            fontSize: "28px",
+            color: "#1e3a8a",
+            fontWeight: "bold",
+            marginTop: "10px",
+          }}
+        >
+          {reportMetadata?.organizationName || "Organization Name"}
+        </h2>
+        <p style={{ fontSize: "16px", color: "#4b5563", marginTop: "5px" }}>
+          {reportMetadata?.reportDate || "Assessment Date"}
+        </p>
 
-        <div className="mb-12 max-w-lg">
-          <p className="text-lg text-gray-700 mb-6">
+        <div style={{ maxWidth: "500px", marginTop: "40px" }}>
+          <p
+            style={{ fontSize: "16px", color: "#374151", marginBottom: "30px" }}
+          >
             For more information or to schedule your implementation
             consultation, please contact your MakeStuffGo representative.
           </p>
 
-          <div className="grid grid-cols-2 gap-8 text-left mt-8">
-            <div>
-              <h3 className="font-semibold mb-1 text-blue-800">Contact Us</h3>
-              <p className="text-gray-700">support@makestuffgo.com</p>
-              <p className="text-gray-700">+1 (555) 123-4567</p>
+          <div
+            style={{ display: "flex", justifyContent: "center", gap: "80px" }}
+          >
+            <div style={{ textAlign: "left" }}>
+              <h3
+                style={{
+                  color: "#1e40af",
+                  fontWeight: "600",
+                  marginBottom: "6px",
+                }}
+              >
+                Contact Us
+              </h3>
+              <p style={{ fontSize: "14px", color: "#374151" }}>
+                support@makestuffgo.com
+              </p>
+              <p style={{ fontSize: "14px", color: "#374151" }}>
+                +1 (555) 123-4567
+              </p>
             </div>
-            <div>
-              <h3 className="font-semibold mb-1 text-blue-800">
+            <div style={{ textAlign: "left" }}>
+              <h3
+                style={{
+                  color: "#1e40af",
+                  fontWeight: "600",
+                  marginBottom: "6px",
+                }}
+              >
                 Visit Us Online
               </h3>
-              <p className="text-gray-700">www.makestuffgo.com</p>
-              <p className="text-gray-700">@MakeStuffGo</p>
+              <p style={{ fontSize: "14px", color: "#374151" }}>
+                www.makestuffgo.com
+              </p>
+              <p style={{ fontSize: "14px", color: "#374151" }}>@MakeStuffGo</p>
             </div>
           </div>
         </div>
 
-        <div className="mt-12">
-          <h2 className="text-3xl font-bold text-blue-800 mb-1">MakeStuffGo</h2>
-          <p className="text-lg italic text-gray-600">
+        <div style={{ marginTop: "50px" }}>
+          <h2
+            style={{
+              fontSize: "24px",
+              fontWeight: "bold",
+              color: "#1e40af",
+              marginBottom: "6px",
+            }}
+          >
+            MakeStuffGo
+          </h2>
+          <p
+            style={{ fontSize: "14px", fontStyle: "italic", color: "#6b7280" }}
+          >
             Ensuring every dollar you spend on the cloud is working as hard as
-            you
+            you.
           </p>
         </div>
       </div>
 
-      {/* Bottom border */}
-      <div className="h-6 w-full bg-blue-600"></div>
+      {/* Bottom Border */}
+      <div
+        style={{ height: "6px", width: "100%", backgroundColor: "#2563eb" }}
+      />
     </div>
   )
 }

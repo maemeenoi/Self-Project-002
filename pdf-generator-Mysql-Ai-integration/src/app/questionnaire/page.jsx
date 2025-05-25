@@ -3,13 +3,14 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { SessionProvider } from "next-auth/react"
 import Link from "next/link"
-import QuestionnaireForm from "../../components/questionnaire/QuestionnaireForm"
-import EmailStep from "../../components/questionnaire/EmailStep"
+import QuestionnaireForm from "@/components/form/QuestionnaireForm"
+import EmailStep from "@/components/form/EmailStep"
 
 export default function QuestionnairePage() {
   const [isLoading, setIsLoading] = useState(true)
-  const [questions, setQuestion] = useState({})
+  const [questions, setQuestions] = useState({}) // Fixed: was setQuestion in your code
   const [error, setError] = useState(null)
   const [debugInfo, setDebugInfo] = useState({})
   const [user, setUser] = useState(null)
@@ -58,12 +59,12 @@ export default function QuestionnairePage() {
             Object.keys(questionsData).length === 0)
         ) {
           setError("No questions available in the database")
-          setQuestion({})
+          setQuestions({}) // Fixed: was setQuestion in your code
           setIsLoading(false)
           return
         }
 
-        setQuestion(questionsData)
+        setQuestions(questionsData) // Fixed: was setQuestion in your code
         setIsLoading(false)
       } catch (err) {
         console.error("Error fetching data:", err)
@@ -94,11 +95,12 @@ export default function QuestionnairePage() {
     setAnswers(formAnswers)
     setShowEmailStep(true)
   }
+
   const handleEmailSubmit = async (email) => {
     setIsSubmitting(true)
 
     try {
-      // Combine answers with email
+      // Combine answers with email for traditional email submission
       const response = await fetch("/api/questionnaire/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -126,6 +128,17 @@ export default function QuestionnairePage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Handle Google submission (this happens automatically via Google sign-in)
+  const handleGoogleSubmit = () => {
+    // This function is called when user chooses Google sign-in
+    // The actual submission happens in the assessment-processing page
+    // We just need to make sure the answers are stored in sessionStorage
+    // which is handled in the EmailStep component
+    console.log(
+      "Google submission initiated - answers will be processed after authentication"
+    )
   }
 
   if (isLoading) {
@@ -199,60 +212,63 @@ export default function QuestionnairePage() {
 
   // Check if questions were loaded successfully
   const questionCategories = Object.keys(questions)
-  const hasQuestion = questionCategories.length > 0
+  const hasQuestions = questionCategories.length > 0 // Fixed: was hasQuestion in your code
 
   // Render either the questionnaire form or the email step
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      {/* Enhanced Header */}
-      <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center">
-              <span className="font-bold text-xl text-blue-600 hover:text-blue-800 transition-colors">
-                MakeStuffGo
-              </span>
-            </Link>
-            <div className="flex items-center space-x-6">
-              <Link
-                href="/"
-                className="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
-              >
-                Home
+    <SessionProvider>
+      <div className="min-h-screen bg-gray-50 py-12">
+        {/* Enhanced Header */}
+        <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <Link href="/" className="flex items-center">
+                <span className="font-bold text-xl text-blue-600 hover:text-blue-800 transition-colors">
+                  MakeStuffGo
+                </span>
               </Link>
+              <div className="flex items-center space-x-6">
+                <Link
+                  href="/"
+                  className="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
+                >
+                  Home
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
-      <div className="pt-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900">
-            Cloud Assessment Questionnaire
-          </h1>
-          <p className="mt-4 text-gray-500">
-            Help us understand your cloud infrastructure to provide personalized
-            recommendations.
-          </p>
-        </div>
+        </nav>
+        <div className="pt-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-extrabold text-gray-900">
+              FinOps Cloud Assessment Questionnaire
+            </h1>
+            <p className="mt-4 text-gray-500">
+              Help us understand your cloud infrastructure to provide
+              personalized recommendations and AI-powered insights.
+            </p>
+          </div>
 
-        <div className="bg-white shadow rounded-lg p-6">
-          {showEmailStep ? (
-            <EmailStep
-              onSubmit={handleEmailSubmit}
-              isSubmitting={isSubmitting}
-              answers={answers} // Make sure this prop is being passed
-            />
-          ) : (
-            <>
-              <QuestionnaireForm
-                questions={questions}
-                onSubmit={handleQuestionnaireSubmit}
-                isLoading={isLoading}
+          <div className="bg-white shadow rounded-lg p-6">
+            {showEmailStep ? (
+              <EmailStep
+                onSubmit={handleEmailSubmit}
+                onGoogleSubmit={handleGoogleSubmit}
+                isSubmitting={isSubmitting}
+                answers={answers} // Make sure this prop is being passed
               />
-            </>
-          )}
+            ) : (
+              <>
+                <QuestionnaireForm
+                  questions={questions}
+                  onSubmit={handleQuestionnaireSubmit}
+                  isLoading={isLoading}
+                />
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </SessionProvider>
   )
 }

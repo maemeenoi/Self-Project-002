@@ -1,255 +1,307 @@
+// ReportDetailedResults.jsx - Optimized for PDF
 import React from "react"
+import FinOpsPillarRadarChart from "@/components/dashboard/finops/FinOpsPillarRadarChart"
 
 const ReportDetailedResults = ({ clientData }) => {
-  const { reportMetadata, recommendations } = clientData
+  const pillars = clientData?.finOpsPillars || []
 
-  // Group responses by category
-  const getGroupedResponse = () => {
-    if (!recommendations || !recommendations.responses) {
-      return {}
-    }
-
-    // Filter to include only assessment questions (QuestionID >= 6)
-    const assessmentResponse = recommendations.responses.filter(
-      (response) => response.QuestionID >= 6
-    )
-
-    // Group by category
-    const groupedByCategory = {}
-
-    assessmentResponse.forEach((response) => {
-      const categoryMatch = response.QuestionText.match(/\[(.*?)\]/)
-      let category = "Uncategorized"
-
-      // Try to extract category from question text if it's in [Category] format
-      if (categoryMatch && categoryMatch[1]) {
-        category = categoryMatch[1]
-      } else {
-        // Fallback to using QuestionID ranges to determine category
-        if (response.QuestionID >= 6 && response.QuestionID <= 8) {
-          category = "Cloud Strategy"
-        } else if (response.QuestionID >= 9 && response.QuestionID <= 11) {
-          category = "Cloud Cost"
-        } else if (response.QuestionID >= 12 && response.QuestionID <= 13) {
-          category = "Cloud Security"
-        } else if (response.QuestionID >= 14 && response.QuestionID <= 15) {
-          category = "Cloud People"
-        } else if (response.QuestionID >= 16 && response.QuestionID <= 20) {
-          category = "Cloud DevOps"
-        }
-      }
-
-      // Initialize category array if it doesn't exist
-      if (!groupedByCategory[category]) {
-        groupedByCategory[category] = []
-      }
-
-      groupedByCategory[category].push(response)
-    })
-
-    return groupedByCategory
-  }
-
-  // Helper function to get status badge based on scores
-  const getStatusBadge = (response) => {
-    if (!response.Score || !response.StandardScore) {
-      return (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800">
-          No Data
-        </span>
-      )
-    }
-
-    if (response.Score > response.StandardScore) {
-      return (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
-          Above Standard
-        </span>
-      )
-    } else if (response.Score === response.StandardScore) {
-      return (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">
-          Meets Standard
-        </span>
-      )
-    } else {
-      return (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-800">
-          Below Standard
-        </span>
-      )
+  // Helper function to get color based on maturity level
+  const getMaturityColor = (level) => {
+    switch (level) {
+      case "High":
+        return "#22c55e"
+      case "Medium":
+        return "#f59e0b"
+      case "Low":
+        return "#ef4444"
+      default:
+        return "#6b7280"
     }
   }
 
-  // Helper function to get score color based on value
-  const getScoreColor = (score) => {
-    if (!score) return "text-gray-400"
-    if (score < 2) return "text-red-600"
-    if (score < 3) return "text-yellow-600"
-    if (score < 4) return "text-blue-600"
-    return "text-green-600"
-  }
+  // Prepare radar chart data from FinOps pillars
+  const getRadarData = () => {
+    if (!clientData?.finOpsPillars) return []
 
-  const groupedResponse = getGroupedResponse()
-  const categories = Object.keys(groupedResponse)
+    return clientData.finOpsPillars.map((pillar) => ({
+      pillar: pillar.name,
+      score: pillar.percentage,
+      benchmark: 50, // 50% as baseline
+      maxScore: 100,
+    }))
+  }
 
   return (
     <div
-      className="report-detailed-results w-full h-full"
-      style={{ fontFamily: "Arial, sans-serif" }}
+      style={{
+        width: "297mm",
+        height: "210mm",
+        padding: "20mm",
+        backgroundColor: "#ffffff",
+        fontFamily: "Arial, sans-serif",
+        display: "flex",
+        flexDirection: "column",
+      }}
     >
-      <div className="bg-white p-8 h-full flex flex-col">
-        {/* Page Header */}
-        <div className="flex items-center border-b border-gray-200 pb-4 mb-6">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-blue-800">
-              Detailed Assessment Results
-            </h1>
-            <p className="text-sm text-gray-500">
-              Complete question responses for {reportMetadata.organizationName}
-            </p>
-          </div>
-          <div className="text-right text-sm text-gray-500">
-            {reportMetadata.reportDate}
-          </div>
-        </div>
+      {/* Header */}
+      <div
+        style={{
+          borderBottom: "2px solid #1e40af",
+          paddingBottom: "12px",
+          marginBottom: "20px",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "24px",
+            fontWeight: "bold",
+            color: "#1e40af",
+            margin: "0",
+          }}
+        >
+          Detailed Assessment Results
+        </h1>
+        <p
+          style={{
+            fontSize: "12px",
+            color: "#6b7280",
+            margin: "4px 0 0 0",
+          }}
+        >
+          Complete FinOps Pillar Analysis and Scoring Details
+        </p>
+      </div>
 
-        {/* Main Content */}
-        <div className="flex-grow overflow-y-auto">
-          {categories.length > 0 ? (
-            <div className="space-y-6">
-              {categories.map((category) => (
-                <div key={category}>
-                  <h2 className="text-lg font-bold text-blue-700 mb-3 flex items-center">
-                    <svg
-                      className="h-5 w-5 mr-1 text-blue-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                    {category}
-                  </h2>
+      {/* Assessment Summary Table */}
+      <div style={{ marginBottom: "20px" }}>
+        <h2
+          style={{
+            fontSize: "14px",
+            fontWeight: "600",
+            color: "#374151",
+            margin: "0 0 10px 0",
+          }}
+        >
+          FinOps Pillar Summary
+        </h2>
 
-                  <div className="bg-gray-50 rounded-lg shadow overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Question
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20"
-                          >
-                            Score
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20"
-                          >
-                            Standard
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
-                          >
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {groupedResponse[category].map((response, index) => (
-                          <tr
-                            key={index}
-                            className={
-                              index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                            }
-                          >
-                            <td className="px-4 py-3 text-sm text-gray-800">
-                              {/* Remove category tag from question if present */}
-                              {response.QuestionText.replace(/\[.*?\]\s*/, "")}
-                            </td>
-                            <td
-                              className={`px-4 py-3 text-sm font-medium text-center ${getScoreColor(
-                                response.Score
-                              )}`}
-                            >
-                              {response.Score || "N/A"}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-center text-gray-600">
-                              {response.StandardScore || "N/A"}
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              {getStatusBadge(response)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20">
-              <svg
-                className="h-16 w-16 text-gray-300 mx-auto"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "10px",
+          }}
+        >
+          <thead>
+            <tr style={{ backgroundColor: "#f3f4f6" }}>
+              <th
+                style={{
+                  border: "1px solid #d1d5db",
+                  padding: "8px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-              <p className="mt-4 text-gray-500">
-                No detailed responses available
-              </p>
-            </div>
-          )}
-        </div>
+                FinOps Pillar
+              </th>
+              <th
+                style={{
+                  border: "1px solid #d1d5db",
+                  padding: "8px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                Score
+              </th>
+              <th
+                style={{
+                  border: "1px solid #d1d5db",
+                  padding: "8px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                Max
+              </th>
+              <th
+                style={{
+                  border: "1px solid #d1d5db",
+                  padding: "8px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                Percentage
+              </th>
+              <th
+                style={{
+                  border: "1px solid #d1d5db",
+                  padding: "8px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                Maturity Level
+              </th>
+              <th
+                style={{
+                  border: "1px solid #d1d5db",
+                  padding: "8px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                  color: "#374151",
+                }}
+              >
+                Key Focus Area
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {pillars.map((pillar, index) => (
+              <tr
+                key={index}
+                style={{
+                  backgroundColor: index % 2 === 0 ? "#ffffff" : "#f9fafb",
+                }}
+              >
+                <td
+                  style={{
+                    border: "1px solid #d1d5db",
+                    padding: "8px",
+                    fontWeight: "500",
+                  }}
+                >
+                  {pillar.name}
+                </td>
+                <td
+                  style={{
+                    border: "1px solid #d1d5db",
+                    padding: "8px",
+                    textAlign: "center",
+                    fontWeight: "600",
+                  }}
+                >
+                  {pillar.score}
+                </td>
+                <td
+                  style={{
+                    border: "1px solid #d1d5db",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  {pillar.maxScore}
+                </td>
+                <td
+                  style={{
+                    border: "1px solid #d1d5db",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <span style={{ marginRight: "6px", fontWeight: "600" }}>
+                      {pillar.percentage}%
+                    </span>
+                    <div
+                      style={{
+                        width: "30px",
+                        height: "6px",
+                        backgroundColor: "#e5e7eb",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${Math.min(pillar.percentage, 100)}%`,
+                          height: "100%",
+                          backgroundColor: getMaturityColor(
+                            pillar.maturityLevel
+                          ),
+                          borderRadius: "3px",
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  style={{
+                    border: "1px solid #d1d5db",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      backgroundColor: getMaturityColor(pillar.maturityLevel),
+                      color: "#ffffff",
+                      padding: "2px 6px",
+                      borderRadius: "10px",
+                      fontSize: "8px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {pillar.maturityLevel}
+                  </span>
+                </td>
+                <td
+                  style={{
+                    border: "1px solid #d1d5db",
+                    padding: "8px",
+                    fontSize: "9px",
+                    color: "#4b5563",
+                  }}
+                >
+                  {pillar.description?.substring(0, 60) + "..." ||
+                    "Financial management focus"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-        {/* Score Legend */}
-        <div className="mt-6 border-t border-gray-200 pt-3">
-          <div className="flex justify-between text-xs text-gray-600">
-            <div className="flex space-x-4">
-              <div className="flex items-center">
-                <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-1"></span>
-                <span>Score 1: Initial</span>
-              </div>
-              <div className="flex items-center">
-                <span className="inline-block w-3 h-3 rounded-full bg-yellow-500 mr-1"></span>
-                <span>Score 2-3: Developing</span>
-              </div>
-              <div className="flex items-center">
-                <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-1"></span>
-                <span>Score 4: Established</span>
-              </div>
-              <div className="flex items-center">
-                <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-1"></span>
-                <span>Score 5: Advanced</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Detailed Pillar Analysis */}
+      <div style={{ flex: "1" }}>
+        <FinOpsPillarRadarChart
+          data={getRadarData()}
+          width={170}
+          height={170}
+        />{" "}
+      </div>
 
-        {/* Page footer with page number */}
-        <div className="text-right text-xs text-gray-400 mt-1">
-          Page 6 | MakeStuffGo Cloud Assessment
-        </div>
+      {/* Footer */}
+      <div
+        style={{
+          borderTop: "1px solid #e5e7eb",
+          paddingTop: "12px",
+          marginTop: "12px",
+          textAlign: "center",
+        }}
+      >
+        <p
+          style={{
+            fontSize: "9px",
+            color: "#9ca3af",
+            margin: "0",
+          }}
+        >
+          Page 5 of 6 • Detailed Assessment Results •{" "}
+          {clientData?.reportMetadata?.organizationName || "Organization"}{" "}
+          FinOps Assessment
+        </p>
       </div>
     </div>
   )
