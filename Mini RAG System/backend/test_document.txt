@@ -1,0 +1,26 @@
+This is a test document for the RAG system.
+
+RAG (Retrieval-Augmented Generation) is a powerful AI technique that combines:
+1. Information retrieval from a knowledge base
+2. Text generation using large language models
+
+Key Components:
+- Vector Database: Stores document embeddings for similarity search
+- Text Splitter: Breaks documents into manageable chunks
+- Embedding Model: Converts text to numerical vectors
+- Language Model: Generates responses based on retrieved context
+
+Benefits of RAG:
+- Provides up-to-date information
+- Reduces hallucination in AI responses
+- Allows AI to work with domain-specific knowledge
+- Enables question-answering over private documents
+
+This Mini RAG System uses:
+- FAISS for vector storage
+- HuggingFace embeddings for text vectorization
+- Google Gemini for response generation
+- FastAPI for the backend API
+- React for the frontend interface
+
+The system can process PDF documents and answer questions based on their content.
