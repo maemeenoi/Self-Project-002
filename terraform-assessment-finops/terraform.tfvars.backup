@@ -1,0 +1,32 @@
+# Example Terraform Variables File
+# Copy this file to terraform.tfvars and update the values for your environment
+# Do not commit terraform.tfvars to version control as it may contain sensitive data
+
+# Basic Configuration
+prefix              = "cloud-assessment"
+location            = "Australia East"
+resource_group_name = "rg-terraform-001"
+
+# SQL Database Configuration
+sql_admin_username = "sqladmin"
+sql_admin_password = "YourSecurePassword123!"
+
+# Azure OpenAI Configuration
+openai_deployment_name = "gpt4-deploy-001"
+openai_model_name      = "gpt-4"
+openai_model_version   = "1106-preview"
+openai_api_key         = "your-openai-api-key-here"
+
+# Azure Active Directory Configuration
+tenant_id       = "your-azure-tenant-id-here"
+admin_object_id = "your-admin-user-object-id-here"
+
+# Resource Tags
+tags = {
+  project     = "cloud-assessment"
+  owner       = "your-name"
+  environment = "dev"
+  created_by  = "terraform"
+  cost_center = "engineering"
+}
+

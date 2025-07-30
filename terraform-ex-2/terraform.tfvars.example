@@ -1,0 +1,30 @@
+# Example Terraform Variables File for Basic Azure Resource Group
+# Copy this file to terraform.tfvars and update the values for your environment
+# This is a simple example for the basic Terraform configuration
+
+# Basic Azure Configuration
+# Uncomment and set these if you want to make the configuration more flexible
+
+# Example variables that could be added to make this more configurable:
+# resource_group_name = "rg-terraform-001"
+# location           = "Australia East"
+# 
+# tags = {
+#   project     = "terraform-learning"
+#   owner       = "your-name"
+#   environment = "dev"
+#   created_by  = "terraform"
+# }
+
+# Notes:
+# - Currently this terraform configuration uses hardcoded values
+# - Consider refactoring to use variables for better flexibility
+# - Add variables.tf file to make this configuration more reusable
+# 
+# Suggested improvements:
+# 1. Create variables.tf with:
+#    - resource_group_name variable
+#    - location variable  
+#    - tags variable
+# 2. Update main.tf to use var.resource_group_name instead of hardcoded name
+# 3. Apply consistent naming conventions (fix "terrform" typo to "terraform")

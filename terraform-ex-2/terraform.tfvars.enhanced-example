@@ -1,0 +1,43 @@
+# Enhanced Example - What this could look like with proper variable structure
+# This shows how the terraform-ex-2 project could be improved
+
+# Basic Configuration
+resource_group_name = "rg-terraform-001"
+location           = "Australia East"
+
+# Naming Convention
+environment = "dev"
+project     = "terraform-learning"
+
+# Resource Tags
+tags = {
+  project     = "terraform-learning"
+  owner       = "your-name"
+  environment = "dev"
+  created_by  = "terraform"
+  cost_center = "education"
+}
+
+# Alternative configurations for different environments:
+#
+# For Production:
+# environment = "prod"
+# resource_group_name = "rg-terraform-prod-001"
+# tags = {
+#   project     = "terraform-learning"
+#   owner       = "your-name"
+#   environment = "prod"
+#   created_by  = "terraform"
+#   cost_center = "education"
+# }
+#
+# For Testing:
+# environment = "test"
+# resource_group_name = "rg-terraform-test-001"
+# tags = {
+#   project     = "terraform-learning"
+#   owner       = "your-name"
+#   environment = "test"
+#   created_by  = "terraform"
+#   cost_center = "education"
+# }

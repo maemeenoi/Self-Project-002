@@ -1,0 +1,24 @@
+# Terraform state
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform/
+.terraform.lock.hcl
+
+# Sensitive variable files
+*.tfvars
+*.tfvars.json
+terraform.tfvars
+!terraform.tfvars.example
+!*.tfvars.example
+.env
+.env.*
+
+# Crash logs
+crash.log
+
+# IDE & system junk
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
