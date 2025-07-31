@@ -1,18 +1,18 @@
-# SQL Database
-output "sql_server_name" {
-  value       = module.sql_database.sql_server_name
-  description = "Name of the Azure SQL Server"
-}
+# # SQL Database
+# output "sql_server_name" {
+#   value       = module.sql_database.sql_server_name
+#   description = "Name of the Azure SQL Server"
+# }
 
-output "sql_database_name" {
-  value       = module.sql_database.sql_database_name
-  description = "Name of the Azure SQL Database"
-}
+# output "sql_database_name" {
+#   value       = module.sql_database.sql_database_name
+#   description = "Name of the Azure SQL Database"
+# }
 
-output "sql_server_fqdn" {
-  value       = module.sql_database.sql_server_fqdn
-  description = "Fully Qualified Domain Name of SQL Server"
-}
+# output "sql_server_fqdn" {
+#   value       = module.sql_database.sql_server_fqdn
+#   description = "Fully Qualified Domain Name of SQL Server"
+# }
 
 # # App Service
 # output "app_service_url" {

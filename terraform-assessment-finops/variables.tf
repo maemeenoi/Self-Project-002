@@ -11,6 +11,11 @@ variable "location" {
   default     = "Australia East"
 }
 
+variable "environment" {
+  description = "Environment for resource naming (e.g., dev, prod)"
+  type        = string
+}
+
 variable "resource_group_name" {
   description = "Name of the existing resource group"
   type        = string
