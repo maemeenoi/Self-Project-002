@@ -11,24 +11,25 @@ terraform {
 provider "azurerm" {
   features {}
   skip_provider_registration = true
+  subscription_id            = var.subscription_id
 }
 
 # Workspaces
 # dev, test, prod
 
-# Resource Group import
-module "resource_group_import" {
+# Resource Group
+module "resource_group" {
   source   = "./modules/resource_group"
-  name     = "rg-assessment-pilot"
+  name     = var.resource_group_name
   location = var.location
 }
 
-# Import Virtual Network 
-module "virtual_network_import" {
+#  Virtual Network 
+module "virtual_network" {
   source              = "./modules/virtual_network"
-  name                = "vnet-makestuffgo-001"
-  resource_group_name = module.resource_group_import.name
-  location            = module.resource_group_import.location
+  name                = var.virtual_network_name
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
   address_space       = ["10.69.69.0/24"]
 
   # Add subnets configuration
@@ -41,12 +42,12 @@ module "virtual_network_import" {
   tags = {}
 }
 
-# Import Storage Account
-module "storage_account_import" {
+# Storage Account
+module "storage_account" {
   source                          = "./modules/storage_account"
-  name                            = "rgassessmentpilot91c5"
-  resource_group_name             = module.resource_group_import.name
-  location                        = module.resource_group_import.location
+  name                            = var.storage_account_name
+  resource_group_name             = module.resource_group.name
+  location                        = module.resource_group.location
   account_tier                    = var.storage_account_tier
   account_replication_type        = var.storage_replication_type
   allow_nested_items_to_be_public = true
@@ -54,12 +55,12 @@ module "storage_account_import" {
   tags                            = {}
 }
 
-# Import SQL Server
-module "sql_server_import" {
+# SQL Server
+module "sql_server" {
   source                                   = "./modules/sql_server"
-  name                                     = "sql-makestuffgo-001"
-  resource_group_name                      = module.resource_group_import.name
-  location                                 = module.resource_group_import.location
+  name                                     = var.sql_server_name
+  resource_group_name                      = module.resource_group.name
+  location                                 = module.resource_group.location
   sql_version                              = "12.0"
   administrator_login                      = var.sql_administrator_login
   administrator_login_password             = var.sql_administrator_password
@@ -71,11 +72,11 @@ module "sql_server_import" {
   tags                                     = {}
 }
 
-# Import SQL Database
-module "sql_database_import" {
+# SQL Database
+module "sql_database" {
   source               = "./modules/sql_database"
-  name                 = "sqldb-assesment"
-  server_id            = module.sql_server_import.id
+  name                 = var.sql_database_name
+  server_id            = module.sql_server.id
   collation            = "SQL_Latin1_General_CP1_CI_AS"
   storage_account_type = "Local"
   max_size_gb          = 5
@@ -83,31 +84,31 @@ module "sql_database_import" {
   tags                 = {}
 }
 
-# Import Private DNS Zone 
+# Private DNS Zone
 module "private_dns_zone_database" {
   source                     = "./modules/private_dns_zone"
   name                       = "privatelink.database.windows.net"
   private_dns_zone_link_name = var.private_dns_zone_link_name
-  resource_group_name        = module.resource_group_import.name
-  virtual_network_id         = module.virtual_network_import.id
+  resource_group_name        = module.resource_group.name
+  virtual_network_id         = module.virtual_network.id
   tags                       = {}
 }
 
-# Import Private Endpoint for SQL
+# Private Endpoint for SQL
 module "private_endpoint_sql" {
   source                         = "./modules/private_endpoint"
-  name                           = "pe-sql-makestuffgo-001"
-  resource_group_name            = module.resource_group_import.name
-  location                       = module.resource_group_import.location
-  subnet_id                      = "/subscriptions/7c0e8c21-980c-4a6a-9f75-ef24d677baf8/resourceGroups/rg-assessment-pilot/providers/Microsoft.Network/virtualNetworks/vnet-makestuffgo-001/subnets/sql_ai"
-  private_connection_resource_id = module.sql_server_import.id
+  name                           = "pe-${var.sql_server_name}"
+  resource_group_name            = module.resource_group.name
+  location                       = module.resource_group.location
+  subnet_id                      = module.virtual_network.subnet_ids["sql_ai"]
+  private_connection_resource_id = module.sql_server.id
   subresource_names              = ["sqlServer"]
 
   private_dns_zone_group = {
     name                 = "default"
     private_dns_zone_ids = [module.private_dns_zone_database.id]
   }
-  custom_network_interface_name = "pe-sql-makestuffgo-001-nic"
+  custom_network_interface_name = "pe-${var.sql_server_name}-nic"
 
   tags = {}
 }

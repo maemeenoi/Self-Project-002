@@ -4,6 +4,41 @@ variable "location" {
   default     = "Australia East"
 }
 
+variable "subscription_id" {
+  description = "The Azure subscription ID where resources will be created"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+  default     = "rg-assessment-pilot"
+}
+
+variable "virtual_network_name" {
+  description = "The name of the virtual network"
+  type        = string
+  default     = "vnet-makestuffgo-002"
+}
+
+variable "storage_account_name" {
+  description = "The name of the storage account"
+  type        = string
+  default     = "rg-assessment-pilot-002"
+}
+
+variable "sql_server_name" {
+  description = "The name of the SQL server"
+  type        = string
+  default     = "sql-makestuffgo-002"
+}
+
+variable "sql_database_name" {
+  description = "The name of the SQL database"
+  type        = string
+  default     = "sqldb-assesment"
+}
+
 variable "sql_administrator_login" {
   description = "SQL Server administrator login username"
   type        = string

@@ -11,7 +11,6 @@ variable "resource_group_name" {
 variable "virtual_network_id" {
   description = "ID of the virtual network to link to"
   type        = string
-  default     = null
 }
 
 variable "registration_enabled" {

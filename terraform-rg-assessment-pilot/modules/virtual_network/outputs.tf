@@ -17,3 +17,9 @@ output "location" {
   description = "Location of the virtual network"
   value       = azurerm_virtual_network.this.location
 }
+
+output "subnet_ids" {
+  value = {
+    for name, subnet in azurerm_subnet.this : name => subnet.id
+  }
+}
