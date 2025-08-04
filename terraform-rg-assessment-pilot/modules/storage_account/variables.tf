@@ -42,3 +42,10 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "default_to_oauth_authentication" {
+  description = "Default to OAuth authentication for the storage account"
+  type        = bool
+  default     = true
+
+}

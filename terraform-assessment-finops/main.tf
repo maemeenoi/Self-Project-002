@@ -36,7 +36,7 @@ module "storage_import" {
 # Deployed Storage Account
 module "storage_deployed" {
   source              = "./modules/storage_account"
-  name                = "stdeployed001"
+  name                = "stdeployed-001"
   account_tier        = "Standard"
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location

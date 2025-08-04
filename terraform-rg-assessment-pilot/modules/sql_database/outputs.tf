@@ -1,17 +1,26 @@
-output "sql_server_name" {
-  description = "Name of the Azure SQL Server"
-  value       = azurerm_mssql_server.this.name
+output "id" {
+  description = "ID of the SQL database"
+  value       = azurerm_mssql_database.this.id
 }
 
-output "sql_database_name" {
-  description = "Name of the Azure SQL Database"
+output "name" {
+  description = "Name of the SQL database"
   value       = azurerm_mssql_database.this.name
 }
 
-output "sql_server_fqdn" {
-  description = "Fully Qualified Domain Name of the Azure SQL Server"
-  value       = azurerm_mssql_server.this.fully_qualified_domain_name
+output "server_id" {
+  description = "ID of the SQL server"
+  value       = azurerm_mssql_database.this.server_id
 }
 
+output "collation" {
+  description = "Collation of the database"
+  value       = azurerm_mssql_database.this.collation
+}
+
+output "max_size_gb" {
+  description = "Maximum size of the database in GB"
+  value       = azurerm_mssql_database.this.max_size_gb
+}
 
 
