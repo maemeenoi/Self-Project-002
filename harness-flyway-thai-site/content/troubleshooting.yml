@@ -1,0 +1,6 @@
+- symptom: Pipeline รันไม่ผ่านด้วยข้อผิดพลาดสิทธิ์
+  cause: บัญชี Service/Agent ไม่มีสิทธิ์บน DB หรือ Secret ไม่ถูกต้อง
+  fix: ตรวจสอบสิทธิ์/Secret ให้ถูกต้อง แล้วรันใหม่
+- symptom: Flyway validate ล้มเหลว
+  cause: ลำดับไฟล์สคริปต์หรือ checksum ไม่ตรง
+  fix: ตรวจสอบหมายเลขเวอร์ชัน/แก้ไขสคริปต์ และใช้ repair หากจำเป็น

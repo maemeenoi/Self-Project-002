@@ -1,0 +1,12 @@
+- task: Setup DB ทดสอบ (Postgres/SQL Server)
+  owner: กานต์
+  status: Done
+  due: 2025-08-15
+- task: Liquibase Pipeline (Native Harness)
+  owner: กานต์
+  status: In progress
+  due: 2025-08-18
+- task: Flyway CLI Pipeline
+  owner: กานต์
+  status: Not started
+  due: 2025-08-20

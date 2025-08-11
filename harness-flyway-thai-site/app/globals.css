@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+
+body { @apply bg-white text-gray-900 antialiased; }
+
+a:focus, button:focus, input:focus, textarea:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-indigo-500;
+}
+
+.prose h1, .prose h2, .prose h3 { @apply scroll-mt-24; }

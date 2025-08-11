@@ -1,0 +1,17 @@
+[
+  {
+    "name": "ตัวอย่าง Pipeline YAML (Liquibase)",
+    "description": "แม่แบบสำหรับ Harness Native DB DevOps",
+    "url": "#"
+  },
+  {
+    "name": "ตัวอย่าง Pipeline YAML (Flyway CLI)",
+    "description": "แม่แบบสำหรับ Harness + Flyway",
+    "url": "#"
+  },
+  {
+    "name": "แม่แบบโปรเจกต์ Flyway",
+    "description": "โครงโปรเจกต์พร้อมใช้งาน",
+    "url": "#"
+  }
+]
