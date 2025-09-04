@@ -1,0 +1,44 @@
+# Example terraform.tfvars file
+# Copy this to terraform.tfvars and customize for your environment
+
+# Basic Configuration
+environment = "dev"
+location    = "East US"
+project_name = "finops-portal"
+
+# SQL Server Configuration
+sql_server_admin_login    = "finopsadmin"
+sql_server_admin_password = "YourSecurePassword123!"  # Change this!
+
+# Resource SKUs (adjust based on environment)
+app_service_plan_sku = "B1"    # B1, S1, P1v2, etc.
+sql_database_sku     = "Basic" # Basic, S0, S1, P1, etc.
+
+# Network Security
+allowed_ip_addresses = [
+  "203.0.113.1",  # Your office IP
+  "198.51.100.1"  # Another allowed IP
+]
+
+# Optional: Custom Domains
+# frontend_custom_domain = "portal.yourdomain.com"
+# backend_custom_domain  = "api.yourdomain.com"
+
+# Monitoring
+enable_application_insights = true
+log_retention_days         = 30
+
+# Backup
+sql_backup_retention_days = 7
+
+# Security (for production)
+# enable_private_endpoints = true
+
+# Tags
+tags = {
+  Project     = "FinOps Portal"
+  Environment = "dev"
+  Owner       = "Platform Team"
+  CostCenter  = "IT"
+  CreatedBy   = "Terraform"
+}

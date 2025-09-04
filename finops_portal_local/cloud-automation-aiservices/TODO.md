@@ -1,0 +1,4 @@
+- [ ] Investigate cost anomaly detection models (e.g. Prophet, Holt-Winters) to surface unusual spend patterns
+- [ ] Prototype cost forecasting service using historical normalized cost data
+- [ ] Explore natural language query interface to ask questions like "What is my top spending service last month?"
+- [ ] Integrate GPT-based summarization for monthly cost reports

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install backend dependencies
+        working-directory: ../cloud-automation-backend
+        run: npm install
+      - name: Lint backend
+        working-directory: ../cloud-automation-backend
+        run: echo "No lint tasks defined"
+      - name: Install frontend dependencies
+        working-directory: ../cloud-automation-frontend
+        run: npm install
+      - name: Build frontend
+        working-directory: ../cloud-automation-frontend
+        run: npm run build
+      - name: Terraform Init
+        working-directory: .
+        run: terraform init -input=false
+      - name: Terraform Validate
+        working-directory: .
+        run: terraform validate
+      - name: Terraform Plan
+        working-directory: .
+        run: terraform plan -input=false
