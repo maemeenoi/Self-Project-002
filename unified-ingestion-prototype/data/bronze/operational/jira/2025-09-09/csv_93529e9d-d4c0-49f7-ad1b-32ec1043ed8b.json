@@ -1,0 +1,47 @@
+[
+  {
+    "Issue key": "PROJ-1",
+    "Issue id": "2001",
+    "Summary": "Investigate Server Downtime Incident",
+    "Status": "In Progress",
+    "Issue Type": "Bug",
+    "Priority": "High",
+    "Project name": "Feature Development",
+    "Reporter": "Anton Sitwat",
+    "Assignee": "Anton Sitwat",
+    "Issue URL": "https://example.atlassian.net/browse/PROJ-1",
+    "Created": "2025-08-01",
+    "Updated": "2025-08-10",
+    "Resolved": ""
+  },
+  {
+    "Issue key": "PROJ-2",
+    "Issue id": "2002",
+    "Summary": "Implement OAuth2 authentication flow",
+    "Status": "In Progress",
+    "Issue Type": "Task",
+    "Priority": "High",
+    "Project name": "Product Development",
+    "Reporter": "Daniyel Moshe",
+    "Assignee": "Yu Panya",
+    "Issue URL": "https://example.atlassian.net/browse/PROJ-2",
+    "Created": "2025-08-03",
+    "Updated": "2025-08-10",
+    "Resolved": ""
+  },
+  {
+    "Issue key": "PROJ-3",
+    "Issue id": "2003",
+    "Summary": "Implement Personalized Recommendation Engine",
+    "Status": "To Do",
+    "Issue Type": "Epic",
+    "Priority": "Low",
+    "Project name": "Feature Development",
+    "Reporter": "Radha Sanchez",
+    "Assignee": "Wirot Kobayashi",
+    "Issue URL": "https://example.atlassian.net/browse/PROJ-3",
+    "Created": "2025-08-05",
+    "Updated": "2025-08-10",
+    "Resolved": ""
+  }
+]

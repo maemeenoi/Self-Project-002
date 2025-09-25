@@ -1,0 +1,4 @@
+Issue key,Issue id,Summary,Status,Issue Type,Priority,Project name,Reporter,Assignee,Issue URL,Created,Updated,Resolved
+PROJ-1,2001,Investigate Server Downtime Incident,In Progress,Bug,High,Feature Development,Anton Sitwat,Anton Sitwat,https://example.atlassian.net/browse/PROJ-1,2025-08-01,2025-08-10,
+PROJ-2,2002,Implement OAuth2 authentication flow,In Progress,Task,High,Product Development,Daniyel Moshe,Yu Panya,https://example.atlassian.net/browse/PROJ-2,2025-08-03,2025-08-10,
+PROJ-3,2003,Implement Personalized Recommendation Engine,To Do,Epic,Low,Feature Development,Radha Sanchez,Wirot Kobayashi,https://example.atlassian.net/browse/PROJ-3,2025-08-05,2025-08-10,

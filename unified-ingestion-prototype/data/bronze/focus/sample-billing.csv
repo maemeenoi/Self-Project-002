@@ -1,0 +1,5 @@
+Provider,BillingPeriod,UsageStart,UsageEnd,ResourceId,SKU,Meter,Region,Currency,Quantity,Unit,PublicCost,EffectiveCost
+aws,2024-08,2024-08-01T00:00:00Z,2024-08-01T01:00:00Z,i-1234567890abcdef0,EC2-Instance,instance-hours,us-east-1,USD,1.0,hour,0.096,0.096
+aws,2024-08,2024-08-01T01:00:00Z,2024-08-01T02:00:00Z,i-1234567890abcdef0,EC2-Instance,instance-hours,us-east-1,USD,1.0,hour,0.096,0.096
+azure,2024-08,2024-08-01T00:00:00Z,2024-08-01T01:00:00Z,vm-sample-resource,Virtual-Machine,compute-hours,East-US,USD,1.0,hour,0.12,0.10
+gcp,2024-08,2024-08-01T00:00:00Z,2024-08-01T01:00:00Z,instance-123,compute-engine,n1-standard-1,us-central1,USD,1.0,hour,0.0475,0.0475
