@@ -79,43 +79,33 @@ CREATE TABLE FinancialFact (
     FinancialID      BIGINT IDENTITY(1,1) PRIMARY KEY,
     CompanyID        INT NOT NULL,
     BatchID          BIGINT NOT NULL,
-    -- Time grain (daily recommended)
-    UsageStart       DATETIME2 NOT NULL,
-    UsageEnd         DATETIME2 NOT NULL,
-    -- Money
-    CostAmount       DECIMAL(18,6) NOT NULL,
-    Currency         NVARCHAR(10)  NOT NULL,     -- e.g., 'USD', 'NZD'
-    -- FOCUS-like dims
-    Provider         NVARCHAR(20)  NULL,         -- 'azure' | 'aws' | 'gcp'
-    Service          NVARCHAR(100) NULL,         -- e.g., 'Compute', 'Storage'
-    ProductSKU       NVARCHAR(150) NULL,
-    AccountId        NVARCHAR(100) NULL,
-    Region           NVARCHAR(60)  NULL,
-    ResourceId       NVARCHAR(300) NULL,         -- normalized resource identifier
-    Unit             NVARCHAR(30)  NULL,         -- e.g., 'Hrs', 'GB-Mo'
-    UsageAmount      DECIMAL(18,6) NULL,
-    -- Flex fields
-    BusinessUnit     NVARCHAR(100) NULL,
-    Project          NVARCHAR(150) NULL,
-    Environment      NVARCHAR(50)  NULL,         -- 'dev','test','prod'
-    TagsJson         NVARCHAR(MAX) NULL,         -- flattened tags if needed
-    RawJson          NVARCHAR(MAX) NULL,         -- full provider row for traceability
+    -- FOCUS standard columns (matching your CSV file exactly)
+    BilledCost       DECIMAL(18,6) NOT NULL,
+    BillingAccountId NVARCHAR(100) NOT NULL,
+    BillingCurrency  NVARCHAR(10)  NOT NULL,
+    BillingPeriodEnd DATE NOT NULL,
+    BillingPeriodStart DATE NOT NULL,
+    ChargeCategory   NVARCHAR(50)  NULL,
+    ChargePeriodEnd  DATE NOT NULL,
+    ChargePeriodStart DATE NOT NULL,
+    EffectiveCost    DECIMAL(18,6) NULL,
+    InvoiceIssuer    NVARCHAR(50)  NULL,
+    ListCost         DECIMAL(18,6) NULL,
+    PricingCategory  NVARCHAR(50)  NULL,
+    Provider         NVARCHAR(50)  NULL,
+    Publisher        NVARCHAR(50)  NULL,
+    Region           NVARCHAR(100) NULL,
+    ResourceId       NVARCHAR(300) NULL,
+    ResourceLocation NVARCHAR(100) NULL,
+    ServiceName      NVARCHAR(100) NULL,
+    SubAccountId     NVARCHAR(100) NULL,
+    UnblendedCost    DECIMAL(18,6) NULL,
     FOREIGN KEY (CompanyID) REFERENCES Company(CompanyID),
     FOREIGN KEY (BatchID)  REFERENCES SyncBatch(BatchID)
 );
-CREATE INDEX IX_FinancialFact_ByCompanyDate ON FinancialFact(CompanyID, UsageStart, UsageEnd);
+CREATE INDEX IX_FinancialFact_ByCompanyDate ON FinancialFact(CompanyID, BillingPeriodStart, BillingPeriodEnd);
 CREATE INDEX IX_FinancialFact_ByCompanyBatch ON FinancialFact(CompanyID, BatchID);
 
--- Latest financial snapshot view (per company)
-CREATE VIEW v_FinancialFact_Latest AS
-SELECT f.*
-FROM FinancialFact f
-JOIN (
-    SELECT CompanyID, MAX(BatchID) AS LatestBatchID
-    FROM SyncBatch
-    WHERE SourceSystem = 'focus'
-    GROUP BY CompanyID
-) b ON f.CompanyID = b.CompanyID AND f.BatchID = b.LatestBatchID;
 
 -- =========
 -- Workflow facts (GitHub/Jira normalized)
@@ -139,20 +129,8 @@ CREATE TABLE WorkflowFact (
     Author           NVARCHAR(150) NULL,
     Assignee         NVARCHAR(150) NULL,
     Labels           NVARCHAR(500) NULL,          -- comma-separated or small JSON
-    RawJson          NVARCHAR(MAX) NULL,
     FOREIGN KEY (CompanyID) REFERENCES Company(CompanyID),
     FOREIGN KEY (BatchID)  REFERENCES SyncBatch(BatchID)
 );
 CREATE INDEX IX_WorkflowFact_ByCompanyDates ON WorkflowFact(CompanyID, CreatedAt, ClosedAt);
 CREATE INDEX IX_WorkflowFact_ByCompanyBatch ON WorkflowFact(CompanyID, BatchID);
-
--- Latest workflow snapshot view (per company, regardless of provider)
-CREATE VIEW v_WorkflowFact_Latest AS
-SELECT w.*
-FROM WorkflowFact w
-JOIN (
-    SELECT CompanyID, MAX(BatchID) AS LatestBatchID
-    FROM SyncBatch
-    WHERE SourceSystem IN ('github','jira')
-    GROUP BY CompanyID
-) b ON w.CompanyID = b.CompanyID AND w.BatchID = b.LatestBatchID;
