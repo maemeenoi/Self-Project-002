@@ -1,5 +1,21 @@
 .DS_Store
-cushla_playground-main 3
-cushla_playground/
+Backend-Cushla/
 Frontend-Sophia/
+cushla_playground1/
 *.sh
+.env
+venv/
+__pycache__/
+*.pyc
+.idea/
+.vscode/
+node_modules/
+dist/
+build/
+*.log
+*.sqlite3
+*.db
+*.bak
+*.swp
+*.swo
+*.iml

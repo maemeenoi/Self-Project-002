@@ -34,7 +34,9 @@ CREATE TABLE RolePermission (
 CREATE TABLE UserAccount (
     UserID           INT IDENTITY(1,1) PRIMARY KEY,
     CompanyID        INT NULL,                      -- NULL => SuperAdmin (cross-company)
-    FullName         NVARCHAR(150) NOT NULL,
+    FirstName         NVARCHAR(50) NOT NULL,
+    MiddleName         NVARCHAR(50) NULL,
+    LastName         NVARCHAR(50) NOT NULL,
     Email            NVARCHAR(200) NOT NULL,
     PasswordHash     NVARCHAR(255) NULL,           -- if using password auth later
     Phone            NVARCHAR(50)  NULL,
