@@ -11,6 +11,7 @@ import os
 from dotenv import load_dotenv
 
 # Import routers
+from routers.core import router as core_router
 from routers.widgetsService import router as widgets_router
 from routers.auth import router as auth_router
 from routers.admin import router as admin_router
@@ -59,9 +60,14 @@ async def startup_event():
         raise
 
 # Include routers
-app.include_router(widgets_router)
+app.include_router(core_router)         # Core CRUD endpoints (/companies, /users, etc.)
+app.include_router(widgets_router)      # Comprehensive widgets (/widgets/*)
 app.include_router(auth_router)
 app.include_router(admin_router)
+
+# Debug router (temporary)
+from routers.debug import router as debug_router
+app.include_router(debug_router)
 
 # Health check endpoint
 @app.get("/", tags=["Health"])

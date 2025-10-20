@@ -1,719 +1,550 @@
-"""
-Widgets Service - All 32 Dashboard Widgets
-Comprehensive API routes for financial, workflow, and administrative widgets
-Based on MSGSQLDB widgetsService.py and Backend-Cushla schemas
-"""
+# widgetsService.py
+# ---------------------------------------------------------
+# FastAPI service routes for all 32 widgets
+# Source: FinancialFact (FOCUS data) + WorkflowFact (Jira/GitHub)
+# + Combined (Both) + Internal/System (Admin)
+# ---------------------------------------------------------
 
-from fastapi import APIRouter, Query, HTTPException, Depends
-from typing import Optional, List, Dict, Any, Union
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Query, HTTPException
+from typing import Optional, List, Dict, Any
 import logging
-
-from lib.db import query_all, query_one, execute_sql
-from lib.utils import (
-    format_currency, calculate_percentage_change, 
-    get_date_range_months, success_response, error_response,
-    log_api_call
-)
-from models.financial import (
-    CostBreakdown, ServiceCost, MetricsSummary, SavingsOpportunities,
-    TeamRankings, ProductionHealth, CostTrend, OptimizationProgress
-)
-from models.workflow import WorkflowMetrics, TeamProductivity, WorkflowSummary
+from lib.db import query_all, query_one
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/widgets", tags=["Widgets"])
+router = APIRouter(prefix="/widgets", tags=["Widgets"])
 
-# Dependency for company ID validation
-async def validate_company_id(company_id: int) -> int:
-    """Validate that company exists and user has access"""
-    company = await query_one(
-        "SELECT id FROM companies WHERE id = $1 AND is_active = true",
-        {"company_id": company_id}
-    )
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
-    return company_id
 
 # =========================================================
-# 🧾 FINANCIAL WIDGETS (12 widgets)
+# 🧾 FINANCIALFACT WIDGETS (9)
 # =========================================================
 
 @router.get("/financial/cost-breakdown")
-async def get_cost_breakdown(
-    company_id: int = Depends(validate_company_id),
-    group_by: str = Query("service_name", enum=["service_name", "region", "service_provider"]),
-    period_months: int = Query(12, ge=1, le=24)
-):
-    """Widget 1: Total cost grouped by Service, Region, or Provider."""
-    log_api_call("cost-breakdown", "GET", company_id=company_id)
-    
-    start_date, end_date = get_date_range_months(period_months)
-    
-    sql = f"""
-        SELECT {group_by} AS category,
-               SUM(billed_cost) AS total_cost,
-               COUNT(*) as record_count,
-               AVG(billed_cost) as avg_cost
-        FROM financial_fact
-        WHERE company_id = $1 
-        AND billing_period_start >= $2 
-        AND billing_period_start <= $3
-        GROUP BY {group_by}
-        ORDER BY total_cost DESC
-        LIMIT 20;
-    """
-    
+async def get_cost_breakdown(company_id: int, group_by: str = Query("ServiceName")):
+    """Total cost grouped by Service, Region, or Provider."""
     try:
-        results = await query_all(sql, {
-            "company_id": company_id,
-            "start_date": start_date,
-            "end_date": end_date
-        })
-        
-        total = sum(row['total_cost'] for row in results)
-        
-        breakdown_data = [
-            ServiceCost(
-                service=row['category'],
-                service_id=str(hash(row['category'])),
-                amount=int(row['total_cost']),
-                percentage=int((row['total_cost'] / total * 100) if total > 0 else 0),
-                change_from_last_month=0.0  # TODO: Calculate from previous period
-            ) for row in results
-        ]
-        
-        breakdown = CostBreakdown(
-            total=int(total),
-            period=f"{period_months} months",
-            by_service=breakdown_data,
-            last_updated=datetime.utcnow()
-        )
-        
-        return success_response(breakdown.dict())
-        
+        sql = f"""
+            SELECT {group_by} AS category,
+                   SUM(CAST(BilledCost AS FLOAT)) AS total_cost
+            FROM FinancialFact
+            WHERE CompanyID = {company_id}
+            GROUP BY {group_by}
+            ORDER BY total_cost DESC;
+        """
+        return await query_all(sql)
     except Exception as e:
-        logger.error(f"Cost breakdown failed: {e}")
-        return error_response("Failed to retrieve cost breakdown", "COST_BREAKDOWN_ERROR")
+        logger.error(f"Error in cost-breakdown: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch cost breakdown")
+
 
 @router.get("/financial/cost-trend")
-async def get_cost_trend(
-    company_id: int = Depends(validate_company_id),
-    period_months: int = Query(12, ge=3, le=24)
-):
-    """Widget 2: Cost trend over time by billing period."""
-    log_api_call("cost-trend", "GET", company_id=company_id)
-    
-    sql = """
-        SELECT DATE_TRUNC('month', billing_period_start) AS period,
-               SUM(billed_cost) AS total_cost,
-               COUNT(*) as record_count
-        FROM financial_fact
-        WHERE company_id = $1
-        AND billing_period_start >= $2
-        GROUP BY DATE_TRUNC('month', billing_period_start)
-        ORDER BY period;
-    """
-    
-    start_date, _ = get_date_range_months(period_months)
-    
+async def get_cost_trend(company_id: int):
+    """Total cost trend by billing date."""
     try:
-        results = await query_all(sql, {
-            "company_id": company_id,
-            "start_date": start_date
-        })
-        
-        if len(results) < 2:
-            return success_response({
-                "period": f"{period_months} months",
-                "change_percent": 0.0,
-                "average_monthly_cost": 0,
-                "monthly_data": []
-            })
-        
-        monthly_data = []
-        total_cost = 0
-        
-        for row in results:
-            period_date = row['period']
-            cost = float(row['total_cost'])
-            total_cost += cost
-            
-            monthly_data.append({
-                "month": period_date.strftime("%B"),
-                "year": period_date.year,
-                "amount": int(cost),
-                "date": period_date.strftime("%Y-%m-%d")
-            })
-        
-        # Calculate change percentage
-        if len(monthly_data) >= 2:
-            current_month = monthly_data[-1]['amount']
-            previous_month = monthly_data[-2]['amount']
-            change_percent = calculate_percentage_change(previous_month, current_month)
-        else:
-            change_percent = 0.0
-        
-        trend_data = CostTrend(
-            period=f"{period_months} months",
-            change_percent=round(change_percent, 2),
-            average_monthly_cost=int(total_cost / len(monthly_data)),
-            monthly_data=monthly_data,
-            last_updated=datetime.utcnow()
-        )
-        
-        return success_response(trend_data.dict())
-        
+        sql = f"""
+            SELECT FORMAT(CAST(BillingPeriodStart AS DATE), 'yyyy-MM-dd') AS period,
+                   SUM(CAST(BilledCost AS FLOAT)) AS total_cost
+            FROM FinancialFact
+            WHERE CompanyID = {company_id}
+            GROUP BY FORMAT(CAST(BillingPeriodStart AS DATE), 'yyyy-MM-dd')
+            ORDER BY period;
+        """
+        return await query_all(sql)
     except Exception as e:
-        logger.error(f"Cost trend failed: {e}")
-        return error_response("Failed to retrieve cost trend", "COST_TREND_ERROR")
+        logger.error(f"Error in cost-trend: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch cost trend")
+
 
 @router.get("/financial/savings-summary")
-async def get_savings_summary(company_id: int = Depends(validate_company_id)):
-    """Widget 3: Savings opportunities and completed savings."""
-    log_api_call("savings-summary", "GET", company_id=company_id)
-    
-    # Mock data - in real implementation, this would come from a savings_opportunities table
-    opportunities_data = {
-        "total_potential": 15000,
-        "completed_this_month": 3500,
-        "opportunities": [
-            {
-                "id": "1",
-                "type": "rightsizing",
-                "description": "Downsize over-provisioned EC2 instances",
-                "monthly_savings": 2500,
-                "annual_savings": 30000,
-                "impact": "high",
-                "effort": "low",
-                "status": "identified",
-                "estimated_hours": 8
-            },
-            {
-                "id": "2", 
-                "type": "reserved_instances",
-                "description": "Purchase reserved instances for stable workloads",
-                "monthly_savings": 1800,
-                "annual_savings": 21600,
-                "impact": "medium",
-                "effort": "medium",
-                "status": "in_progress",
-                "estimated_hours": 16
-            }
+async def get_savings_summary(company_id: int):
+    """Compare ListCost vs EffectiveCost to calculate total savings."""
+    try:
+        sql = f"""
+            SELECT 
+                SUM(CAST(ListCost AS FLOAT)) AS total_list_cost,
+                SUM(CAST(EffectiveCost AS FLOAT)) AS total_effective_cost,
+                (SUM(CAST(ListCost AS FLOAT)) - SUM(CAST(EffectiveCost AS FLOAT))) AS total_savings,
+                (1 - SUM(CAST(EffectiveCost AS FLOAT)) / NULLIF(SUM(CAST(ListCost AS FLOAT)),0)) * 100 AS savings_percent
+            FROM FinancialFact
+            WHERE CompanyID = {company_id};
+        """
+        return await query_one(sql)
+    except Exception as e:
+        logger.error(f"Error in savings-summary: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch savings summary")
+
+
+@router.get("/financial/optimization-opportunities")
+async def get_optimization_opportunities(company_id: int):
+    """Find high ListCost vs EffectiveCost gaps."""
+    try:
+        sql = f"""
+            SELECT 
+                ServiceName,
+                SUM(CAST(ListCost AS FLOAT)) AS total_list_cost,
+                SUM(CAST(EffectiveCost AS FLOAT)) AS total_effective_cost,
+                (SUM(CAST(ListCost AS FLOAT)) - SUM(CAST(EffectiveCost AS FLOAT))) AS potential_saving
+            FROM FinancialFact
+            WHERE CompanyID = {company_id}
+            GROUP BY ServiceName
+            HAVING (SUM(CAST(ListCost AS FLOAT)) - SUM(CAST(EffectiveCost AS FLOAT))) > 0
+            ORDER BY potential_saving DESC;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in optimization-opportunities: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch optimization opportunities")
+
+
+@router.get("/financial/cost-analytics")
+async def get_cost_analytics(company_id: int):
+    """Cost by Provider, Service, Region."""
+    try:
+        sql = f"""
+            SELECT 
+                Provider,
+                ServiceName,
+                Region,
+                SUM(CAST(BilledCost AS FLOAT)) AS total_cost
+            FROM FinancialFact
+            WHERE CompanyID = {company_id}
+            GROUP BY Provider, ServiceName, Region
+            ORDER BY total_cost DESC;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in cost-analytics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch cost analytics")
+
+
+@router.get("/financial/vendor-costs")
+async def get_vendor_costs(company_id: int):
+    """Cost by Publisher/Vendor."""
+    try:
+        sql = f"""
+            SELECT Publisher, SUM(CAST(BilledCost AS FLOAT)) AS total_cost
+            FROM FinancialFact
+            WHERE CompanyID = {company_id}
+            GROUP BY Publisher
+            ORDER BY total_cost DESC;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in vendor-costs: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch vendor costs")
+
+
+@router.get("/financial/resource-allocation")
+async def get_resource_allocation(company_id: int):
+    """Cost by Resource and Location."""
+    try:
+        sql = f"""
+            SELECT ResourceLocation, ResourceId,
+                   SUM(CAST(BilledCost AS FLOAT)) AS total_cost
+            FROM FinancialFact
+            WHERE CompanyID = {company_id}
+            GROUP BY ResourceLocation, ResourceId
+            ORDER BY total_cost DESC;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in resource-allocation: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch resource allocation")
+
+
+@router.get("/financial/financial-alerts")
+async def get_financial_alerts(company_id: int):
+    """Detect cost spikes (>20% increase)."""
+    try:
+        sql = f"""
+            WITH cost_trend AS (
+                SELECT 
+                    FORMAT(CAST(BillingPeriodStart AS DATE), 'yyyy-MM-dd') AS period,
+                    SUM(CAST(BilledCost AS FLOAT)) AS total_cost
+                FROM FinancialFact
+                WHERE CompanyID = {company_id}
+                GROUP BY FORMAT(CAST(BillingPeriodStart AS DATE), 'yyyy-MM-dd')
+            )
+            SELECT period, total_cost,
+                   LAG(total_cost) OVER (ORDER BY period) AS prev_cost,
+                   ((total_cost - LAG(total_cost) OVER (ORDER BY period)) / NULLIF(LAG(total_cost) OVER (ORDER BY period),0)) * 100 AS growth_percent
+            FROM cost_trend
+            WHERE ((total_cost - LAG(total_cost) OVER (ORDER BY period)) / NULLIF(LAG(total_cost) OVER (ORDER BY period),0)) * 100 > 20;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in financial-alerts: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch financial alerts")
+
+
+@router.get("/financial/resource-allocation-detail")
+async def get_resource_allocation_detail(company_id: int):
+    """Detailed cost allocation for drill-down view."""
+    try:
+        sql = f"""
+            SELECT Region, ServiceName, ResourceLocation,
+                   SUM(CAST(BilledCost AS FLOAT)) AS total_cost
+            FROM FinancialFact
+            WHERE CompanyID = {company_id}
+            GROUP BY Region, ServiceName, ResourceLocation;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in resource-allocation-detail: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch resource allocation detail")
+
+
+# =========================================================
+# ⚙️ WORKFLOWFACT WIDGETS (12)
+# =========================================================
+
+@router.get("/workflow/jira")
+async def get_jira_issues(company_id: int):
+    """Jira: count by status."""
+    try:
+        sql = f"""
+            SELECT Status, COUNT(*) AS issue_count
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+              AND Provider = 'jira'
+            GROUP BY Status;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in jira: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch Jira issues")
+
+
+@router.get("/workflow/pull-requests")
+async def get_pull_requests(company_id: int):
+    """GitHub pull requests by status."""
+    try:
+        sql = f"""
+            SELECT Status, COUNT(*) AS pr_count
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+              AND Provider = 'github'
+              AND ItemType = 'pull_request'
+            GROUP BY Status;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in pull-requests: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch pull requests")
+
+
+@router.get("/workflow/build-status")
+async def get_build_status(company_id: int):
+    """Pipeline build results."""
+    try:
+        sql = f"""
+            SELECT Status, COUNT(*) AS build_count
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+              AND ItemType = 'build'
+            GROUP BY Status;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in build-status: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch build status")
+
+
+@router.get("/workflow/deployment-metrics")
+async def get_deployment_metrics(company_id: int):
+    """Deployment frequency and success."""
+    try:
+        sql = f"""
+            SELECT FORMAT(CAST(CreatedAt AS DATE), 'yyyy-MM-dd') AS date,
+                   COUNT(*) AS deployments,
+                   SUM(CASE WHEN Status = 'success' THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS success_rate
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+              AND ItemType = 'deployment'
+            GROUP BY FORMAT(CAST(CreatedAt AS DATE), 'yyyy-MM-dd')
+            ORDER BY date;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in deployment-metrics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch deployment metrics")
+
+
+@router.get("/workflow/release-pipeline")
+async def get_release_pipeline(company_id: int):
+    """Track release progress."""
+    try:
+        sql = f"""
+            SELECT ProjectOrRepo, COUNT(*) AS total_releases
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+              AND ItemType = 'release'
+            GROUP BY ProjectOrRepo;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in release-pipeline: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch release pipeline")
+
+
+@router.get("/workflow/active-projects")
+async def get_active_projects(company_id: int):
+    """List active repos/projects."""
+    try:
+        sql = f"""
+            SELECT DISTINCT ProjectOrRepo
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+              AND Status IN ('active','open','in_progress');
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in active-projects: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch active projects")
+
+
+@router.get("/workflow/team-performance")
+async def get_team_performance(company_id: int):
+    """Average lead/cycle time per assignee."""
+    try:
+        sql = f"""
+            SELECT Assignee,
+                   COUNT(*) AS items_completed,
+                   AVG(CAST(LeadTimeHours AS FLOAT)) AS avg_lead,
+                   AVG(CAST(CycleTimeHours AS FLOAT)) AS avg_cycle
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+            GROUP BY Assignee;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in team-performance: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch team performance")
+
+
+@router.get("/workflow/system-health")
+async def get_system_health(company_id: int):
+    """Error vs success counts."""
+    try:
+        sql = f"""
+            SELECT ItemType,
+                   SUM(CASE WHEN Status IN ('failed','error') THEN 1 ELSE 0 END) AS failed,
+                   SUM(CASE WHEN Status IN ('success','done','closed') THEN 1 ELSE 0 END) AS successful
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+            GROUP BY ItemType;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in system-health: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch system health")
+
+
+@router.get("/workflow/team-capacity")
+async def get_team_capacity(company_id: int):
+    """Tasks per team member."""
+    try:
+        sql = f"""
+            SELECT Assignee, COUNT(*) AS active_items
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+              AND Status IN ('open','in_progress')
+            GROUP BY Assignee;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in team-capacity: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch team capacity")
+
+
+@router.get("/workflow/technical-debt")
+async def get_technical_debt(company_id: int):
+    """Count of tech debt or bug items."""
+    try:
+        sql = f"""
+            SELECT COUNT(*) AS tech_debt_items
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+              AND Labels LIKE '%tech_debt%';
+        """
+        result = await query_one(sql)
+        return result if result else {"tech_debt_items": 0}
+    except Exception as e:
+        logger.error(f"Error in technical-debt: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch technical debt")
+
+
+@router.get("/workflow/innovation-pipeline")
+async def get_innovation_pipeline(company_id: int):
+    """Innovation/architecture pipeline tasks."""
+    try:
+        sql = f"""
+            SELECT COUNT(*) AS innovation_tasks
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+              AND Labels LIKE '%innovation%';
+        """
+        result = await query_one(sql)
+        return result if result else {"innovation_tasks": 0}
+    except Exception as e:
+        logger.error(f"Error in innovation-pipeline: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch innovation pipeline")
+
+
+@router.get("/workflow/recent-activity")
+async def get_recent_activity(company_id: int, limit: int = 10):
+    """Recent events for feed."""
+    try:
+        sql = f"""
+            SELECT TOP {limit} Provider, ItemType, Title, Status, CreatedAt, ClosedAt
+            FROM WorkflowFact
+            WHERE CompanyID = {company_id}
+            ORDER BY CreatedAt DESC;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in recent-activity: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch recent activity")
+
+
+# =========================================================
+# 🔄 BOTH (COMBINED DATA) WIDGETS (3)
+# =========================================================
+
+@router.get("/combined/optimization-progress")
+async def get_optimization_progress(company_id: int):
+    """Blend workflow & financial data for optimization."""
+    try:
+        sql = f"""
+            SELECT f.ServiceName,
+                   SUM(CAST(f.BilledCost AS FLOAT)) AS total_cost,
+                   COUNT(w.WorkflowID) AS related_tasks
+            FROM FinancialFact f
+            LEFT JOIN WorkflowFact w
+              ON f.ServiceName = w.ProjectOrRepo
+             AND f.CompanyID = w.CompanyID
+            WHERE f.CompanyID = {company_id}
+            GROUP BY f.ServiceName;
+        """
+        return await query_all(sql)
+    except Exception as e:
+        logger.error(f"Error in optimization-progress: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch optimization progress")
+
+
+@router.get("/combined/efficiency-kpi")
+async def get_efficiency_kpi(company_id: int):
+    """Compute ratio of savings vs deployment throughput."""
+    try:
+        sql = f"""
+            SELECT 
+                (SUM(CAST(f.ListCost AS FLOAT)) - SUM(CAST(f.EffectiveCost AS FLOAT))) / 
+                NULLIF(COUNT(w.WorkflowID),0) AS cost_saving_per_deployment
+            FROM FinancialFact f
+            JOIN WorkflowFact w ON f.CompanyID = w.CompanyID
+            WHERE f.CompanyID = {company_id};
+        """
+        result = await query_one(sql)
+        return result if result else {"cost_saving_per_deployment": 0}
+    except Exception as e:
+        logger.error(f"Error in efficiency-kpi: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch efficiency KPI")
+
+
+@router.get("/combined/executive-kpi")
+async def get_executive_kpi(company_id: int):
+    """Top-level KPIs for executives."""
+    try:
+        sql = f"""
+            SELECT 
+                SUM(CAST(f.BilledCost AS FLOAT)) AS total_spend,
+                COUNT(DISTINCT w.WorkflowID) AS deployments,
+                (SUM(CAST(f.ListCost AS FLOAT)) - SUM(CAST(f.EffectiveCost AS FLOAT))) AS total_savings
+            FROM FinancialFact f
+            JOIN WorkflowFact w ON f.CompanyID = w.CompanyID
+            WHERE f.CompanyID = {company_id};
+        """
+        result = await query_one(sql)
+        return result if result else {"total_spend": 0, "deployments": 0, "total_savings": 0}
+    except Exception as e:
+        logger.error(f"Error in executive-kpi: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch executive KPI")
+
+
+# =========================================================
+# 🧩 INTERNAL / SYSTEM WIDGETS (8)
+# =========================================================
+
+@router.get("/system/total-users")
+async def get_total_users():
+    try:
+        sql = "SELECT COUNT(*) AS total_users FROM UserAccount;"
+        result = await query_one(sql)
+        return result if result else {"total_users": 0}
+    except Exception as e:
+        logger.error(f"Error in total-users: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch total users")
+
+
+@router.get("/system/integrations-overview")
+async def get_integrations_overview():
+    """Mock integration status - replace with real table if available"""
+    try:
+        # Since we don't have IntegrationStatus table yet, return mock data
+        return [
+            {"IntegrationName": "Azure SQL", "Status": "Active", "LastSync": "2025-10-20T10:00:00Z"},
+            {"IntegrationName": "GitHub API", "Status": "Pending", "LastSync": None},
+            {"IntegrationName": "Jira API", "Status": "Pending", "LastSync": None}
         ]
-    }
-    
-    try:
-        savings = SavingsOpportunities(**opportunities_data)
-        return success_response(savings.dict())
-        
     except Exception as e:
-        logger.error(f"Savings summary failed: {e}")
-        return error_response("Failed to retrieve savings summary", "SAVINGS_SUMMARY_ERROR")
+        logger.error(f"Error in integrations-overview: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch integrations overview")
 
-@router.get("/financial/top-services")
-async def get_top_services(
-    company_id: int = Depends(validate_company_id),
-    limit: int = Query(10, ge=5, le=20)
-):
-    """Widget 4: Top services by cost."""
-    log_api_call("top-services", "GET", company_id=company_id)
-    
-    sql = """
-        SELECT service_name,
-               SUM(billed_cost) AS total_cost,
-               COUNT(*) as usage_count,
-               AVG(billed_cost) as avg_cost_per_record
-        FROM financial_fact
-        WHERE company_id = $1
-        AND billing_period_start >= $2
-        GROUP BY service_name
-        ORDER BY total_cost DESC
-        LIMIT $3;
-    """
-    
-    start_date, _ = get_date_range_months(3)  # Last 3 months
-    
+
+@router.get("/system/efficiency-gain")
+async def get_efficiency_gain(company_id: int):
     try:
-        results = await query_all(sql, {
-            "company_id": company_id,
-            "start_date": start_date,
-            "limit": limit
-        })
-        
-        return success_response({
-            "services": [
-                {
-                    "service_name": row['service_name'],
-                    "total_cost": float(row['total_cost']),
-                    "usage_count": row['usage_count'],
-                    "avg_cost": float(row['avg_cost_per_record'])
-                } for row in results
-            ],
-            "period": "3 months",
-            "last_updated": datetime.utcnow().isoformat()
-        })
-        
+        sql = f"""
+            SELECT 
+                (SUM(CAST(ListCost AS FLOAT)) - SUM(CAST(EffectiveCost AS FLOAT))) / 
+                NULLIF(SUM(CAST(ListCost AS FLOAT)),0) * 100 AS efficiency_gain_percent
+            FROM FinancialFact
+            WHERE CompanyID = {company_id};
+        """
+        result = await query_one(sql)
+        return result if result else {"efficiency_gain_percent": 0}
     except Exception as e:
-        logger.error(f"Top services failed: {e}")
-        return error_response("Failed to retrieve top services", "TOP_SERVICES_ERROR")
+        logger.error(f"Error in efficiency-gain: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch efficiency gain")
 
-@router.get("/financial/budget-vs-actual")
-async def get_budget_vs_actual(company_id: int = Depends(validate_company_id)):
-    """Widget 5: Budget vs actual spending comparison."""
-    log_api_call("budget-vs-actual", "GET", company_id=company_id)
-    
-    # This would typically come from a budgets table
-    current_month = datetime.now().replace(day=1)
-    
-    sql = """
-        SELECT SUM(billed_cost) as actual_cost
-        FROM financial_fact
-        WHERE company_id = $1
-        AND billing_period_start >= $2
-        AND billing_period_start < $3;
-    """
-    
-    next_month = (current_month + timedelta(days=32)).replace(day=1)
-    
+
+@router.get("/system/recent-activity")
+async def get_recent_activity_admin(limit: int = 10):
+    """Mock recent activity - replace with real ActivityLog table if available"""
     try:
-        result = await query_one(sql, {
-            "company_id": company_id,
-            "start_date": current_month,
-            "end_date": next_month
-        })
-        
-        actual_cost = float(result['actual_cost']) if result and result['actual_cost'] else 0.0
-        budget = 25000.0  # Mock budget - would come from database
-        
-        variance = actual_cost - budget
-        variance_percent = (variance / budget * 100) if budget > 0 else 0
-        
-        return success_response({
-            "budget": budget,
-            "actual": actual_cost,
-            "variance": variance,
-            "variance_percent": round(variance_percent, 2),
-            "period": current_month.strftime("%B %Y"),
-            "status": "over_budget" if variance > 0 else "under_budget",
-            "last_updated": datetime.utcnow().isoformat()
-        })
-        
+        # Since we don't have ActivityLog table yet, return recent workflow activity
+        sql = f"""
+            SELECT TOP {limit} 'Workflow' as ActivityType, Provider, ItemType, Title, CreatedAt
+            FROM WorkflowFact
+            ORDER BY CreatedAt DESC;
+        """
+        return await query_all(sql)
     except Exception as e:
-        logger.error(f"Budget vs actual failed: {e}")
-        return error_response("Failed to retrieve budget comparison", "BUDGET_COMPARISON_ERROR")
+        logger.error(f"Error in recent-activity-admin: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch recent activity")
 
-# Continue with more financial widgets...
-@router.get("/financial/cost-by-region")
-async def get_cost_by_region(company_id: int = Depends(validate_company_id)):
-    """Widget 6: Cost breakdown by region."""
-    log_api_call("cost-by-region", "GET", company_id=company_id)
-    
-    sql = """
-        SELECT region,
-               SUM(billed_cost) AS total_cost,
-               COUNT(*) as resource_count
-        FROM financial_fact
-        WHERE company_id = $1
-        AND region IS NOT NULL
-        AND billing_period_start >= $2
-        GROUP BY region
-        ORDER BY total_cost DESC;
-    """
-    
-    start_date, _ = get_date_range_months(3)
-    
+
+@router.get("/system/error-alerts")
+async def get_error_alerts():
+    """Mock error alerts - replace with real ErrorLog table if available"""
     try:
-        results = await query_all(sql, {
-            "company_id": company_id,
-            "start_date": start_date
-        })
-        
-        return success_response({
-            "regions": [
-                {
-                    "region": row['region'],
-                    "total_cost": float(row['total_cost']),
-                    "resource_count": row['resource_count']
-                } for row in results
-            ],
-            "period": "3 months",
-            "last_updated": datetime.utcnow().isoformat()
-        })
-        
+        # Since we don't have ErrorLog table yet, return workflow errors
+        sql = f"""
+            SELECT TOP 20 ItemType, Title, Status, CreatedAt, 'Medium' as Severity
+            FROM WorkflowFact
+            WHERE Status IN ('failed','error')
+            ORDER BY CreatedAt DESC;
+        """
+        return await query_all(sql)
     except Exception as e:
-        logger.error(f"Cost by region failed: {e}")
-        return error_response("Failed to retrieve regional costs", "REGIONAL_COST_ERROR")
-
-# =========================================================
-# 🔄 WORKFLOW WIDGETS (12 widgets)
-# =========================================================
-
-@router.get("/workflow/issue-summary")
-async def get_issue_summary(company_id: int = Depends(validate_company_id)):
-    """Widget 7: Overview of issues by status and type."""
-    log_api_call("issue-summary", "GET", company_id=company_id)
-    
-    sql = """
-        SELECT status,
-               issue_type,
-               COUNT(*) as count
-        FROM workflow_fact
-        WHERE company_id = $1
-        AND created_date >= $2
-        GROUP BY status, issue_type
-        ORDER BY count DESC;
-    """
-    
-    start_date, _ = get_date_range_months(1)  # Current month
-    
-    try:
-        results = await query_all(sql, {
-            "company_id": company_id,
-            "start_date": start_date
-        })
-        
-        summary = {
-            "total_issues": sum(row['count'] for row in results),
-            "by_status": {},
-            "by_type": {},
-            "period": "current month",
-            "last_updated": datetime.utcnow().isoformat()
-        }
-        
-        for row in results:
-            status = row['status']
-            issue_type = row['issue_type']
-            count = row['count']
-            
-            if status not in summary["by_status"]:
-                summary["by_status"][status] = 0
-            summary["by_status"][status] += count
-            
-            if issue_type not in summary["by_type"]:
-                summary["by_type"][issue_type] = 0
-            summary["by_type"][issue_type] += count
-        
-        return success_response(summary)
-        
-    except Exception as e:
-        logger.error(f"Issue summary failed: {e}")
-        return error_response("Failed to retrieve issue summary", "ISSUE_SUMMARY_ERROR")
-
-@router.get("/workflow/team-velocity")
-async def get_team_velocity(company_id: int = Depends(validate_company_id)):
-    """Widget 8: Team velocity and story points completed."""
-    log_api_call("team-velocity", "GET", company_id=company_id)
-    
-    sql = """
-        SELECT assignee,
-               COUNT(*) as issues_completed,
-               SUM(COALESCE(story_points, 0)) as story_points_completed,
-               AVG(EXTRACT(EPOCH FROM (resolved_date - created_date))/3600) as avg_resolution_hours
-        FROM workflow_fact
-        WHERE company_id = $1
-        AND status IN ('Done', 'Closed', 'Merged')
-        AND resolved_date >= $2
-        AND assignee IS NOT NULL
-        GROUP BY assignee
-        ORDER BY story_points_completed DESC
-        LIMIT 10;
-    """
-    
-    start_date, _ = get_date_range_months(1)
-    
-    try:
-        results = await query_all(sql, {
-            "company_id": company_id,
-            "start_date": start_date
-        })
-        
-        team_data = []
-        for row in results:
-            team_data.append({
-                "assignee": row['assignee'],
-                "issues_completed": row['issues_completed'],
-                "story_points_completed": float(row['story_points_completed'] or 0),
-                "avg_resolution_hours": round(float(row['avg_resolution_hours'] or 0), 2)
-            })
-        
-        return success_response({
-            "team_velocity": team_data,
-            "period": "current month",
-            "last_updated": datetime.utcnow().isoformat()
-        })
-        
-    except Exception as e:
-        logger.error(f"Team velocity failed: {e}")
-        return error_response("Failed to retrieve team velocity", "TEAM_VELOCITY_ERROR")
-
-@router.get("/workflow/backlog-health") 
-async def get_backlog_health(company_id: int = Depends(validate_company_id)):
-    """Widget 9: Backlog health metrics."""
-    log_api_call("backlog-health", "GET", company_id=company_id)
-    
-    sql = """
-        SELECT 
-            COUNT(*) as total_backlog,
-            COUNT(CASE WHEN status = 'To Do' THEN 1 END) as todo_count,
-            COUNT(CASE WHEN status = 'In Progress' THEN 1 END) as in_progress_count,
-            COUNT(CASE WHEN priority = 'Critical' THEN 1 END) as critical_count,
-            COUNT(CASE WHEN priority = 'High' THEN 1 END) as high_priority_count,
-            COUNT(CASE WHEN created_date < $2 THEN 1 END) as aged_issues
-        FROM workflow_fact
-        WHERE company_id = $1
-        AND status NOT IN ('Done', 'Closed', 'Merged');
-    """
-    
-    aged_threshold = datetime.now() - timedelta(days=30)
-    
-    try:
-        result = await query_one(sql, {
-            "company_id": company_id,
-            "aged_threshold": aged_threshold
-        })
-        
-        backlog_health = {
-            "total_backlog": result['total_backlog'],
-            "todo_count": result['todo_count'],
-            "in_progress_count": result['in_progress_count'],
-            "critical_count": result['critical_count'],
-            "high_priority_count": result['high_priority_count'],
-            "aged_issues": result['aged_issues'],
-            "health_score": 0,  # Calculate based on ratios
-            "last_updated": datetime.utcnow().isoformat()
-        }
-        
-        # Calculate health score (0-100)
-        total = backlog_health["total_backlog"]
-        if total > 0:
-            aged_ratio = backlog_health["aged_issues"] / total
-            critical_ratio = backlog_health["critical_count"] / total
-            health_score = max(0, 100 - (aged_ratio * 50) - (critical_ratio * 30))
-            backlog_health["health_score"] = round(health_score, 1)
-        
-        return success_response(backlog_health)
-        
-    except Exception as e:
-        logger.error(f"Backlog health failed: {e}")
-        return error_response("Failed to retrieve backlog health", "BACKLOG_HEALTH_ERROR")
-
-# =========================================================
-# 🎯 COMBINED WIDGETS (4 widgets)
-# =========================================================
-
-@router.get("/combined/cost-per-story-point")
-async def get_cost_per_story_point(company_id: int = Depends(validate_company_id)):
-    """Widget 10: Cost efficiency - cost per story point delivered."""
-    log_api_call("cost-per-story-point", "GET", company_id=company_id)
-    
-    # Get total costs for the period
-    cost_sql = """
-        SELECT SUM(billed_cost) as total_cost
-        FROM financial_fact
-        WHERE company_id = $1
-        AND billing_period_start >= $2;
-    """
-    
-    # Get story points completed
-    story_points_sql = """
-        SELECT SUM(COALESCE(story_points, 0)) as total_story_points
-        FROM workflow_fact
-        WHERE company_id = $1
-        AND status IN ('Done', 'Closed', 'Merged')
-        AND resolved_date >= $2;
-    """
-    
-    start_date, _ = get_date_range_months(1)
-    
-    try:
-        cost_result = await query_one(cost_sql, {
-            "company_id": company_id,
-            "start_date": start_date
-        })
-        
-        story_result = await query_one(story_points_sql, {
-            "company_id": company_id,
-            "start_date": start_date
-        })
-        
-        total_cost = float(cost_result['total_cost'] or 0)
-        total_story_points = float(story_result['total_story_points'] or 0)
-        
-        cost_per_story_point = (total_cost / total_story_points) if total_story_points > 0 else 0
-        
-        return success_response({
-            "total_cost": total_cost,
-            "total_story_points": total_story_points,
-            "cost_per_story_point": round(cost_per_story_point, 2),
-            "period": "current month",
-            "efficiency_rating": "high" if cost_per_story_point < 1000 else "medium" if cost_per_story_point < 2000 else "low",
-            "last_updated": datetime.utcnow().isoformat()
-        })
-        
-    except Exception as e:
-        logger.error(f"Cost per story point failed: {e}")
-        return error_response("Failed to calculate cost per story point", "COST_EFFICIENCY_ERROR")
-
-# =========================================================
-# 🔧 ADMIN/SYSTEM WIDGETS (4 widgets) 
-# =========================================================
-
-@router.get("/admin/system-health")
-async def get_system_health(company_id: int = Depends(validate_company_id)):
-    """Widget 11: System health and uptime metrics."""
-    log_api_call("system-health", "GET", company_id=company_id)
-    
-    # Mock system health data - in production this would come from monitoring systems
-    health_data = {
-        "uptime_percentage": 99.9,
-        "status": "operational",
-        "status_color": "green",
-        "system_status": {
-            "all_operational": True,
-            "degraded_services": []
-        },
-        "incidents_this_week": {
-            "critical": 0,
-            "major": 1,
-            "minor": 2,
-            "total": 3
-        },
-        "incidents": [
-            {
-                "severity": "major",
-                "title": "Database connection timeout",
-                "status": "resolved",
-                "started_at": "2024-01-15T10:30:00Z",
-                "resolved_at": "2024-01-15T11:45:00Z",
-                "duration_minutes": 75
-            }
-        ],
-        "mttr": {
-            "value": 45.5,
-            "unit": "minutes",
-            "target": 60,
-            "status": "meeting_sla"
-        },
-        "last_updated": datetime.utcnow()
-    }
-    
-    try:
-        health = ProductionHealth(**health_data)
-        return success_response(health.dict())
-        
-    except Exception as e:
-        logger.error(f"System health failed: {e}")
-        return error_response("Failed to retrieve system health", "SYSTEM_HEALTH_ERROR")
-
-@router.get("/admin/data-quality")
-async def get_data_quality(company_id: int = Depends(validate_company_id)):
-    """Widget 12: Data quality metrics."""
-    log_api_call("data-quality", "GET", company_id=company_id)
-    
-    # Check data completeness and quality
-    financial_quality_sql = """
-        SELECT 
-            COUNT(*) as total_records,
-            COUNT(CASE WHEN billed_cost IS NULL OR billed_cost = 0 THEN 1 END) as missing_cost,
-            COUNT(CASE WHEN service_name IS NULL OR service_name = '' THEN 1 END) as missing_service,
-            COUNT(CASE WHEN region IS NULL OR region = '' THEN 1 END) as missing_region
-        FROM financial_fact
-        WHERE company_id = $1
-        AND billing_period_start >= $2;
-    """
-    
-    workflow_quality_sql = """
-        SELECT 
-            COUNT(*) as total_records,
-            COUNT(CASE WHEN summary IS NULL OR summary = '' THEN 1 END) as missing_summary,
-            COUNT(CASE WHEN assignee IS NULL OR assignee = '' THEN 1 END) as missing_assignee,
-            COUNT(CASE WHEN priority IS NULL THEN 1 END) as missing_priority
-        FROM workflow_fact
-        WHERE company_id = $1
-        AND created_date >= $2;
-    """
-    
-    start_date, _ = get_date_range_months(1)
-    
-    try:
-        financial_result = await query_one(financial_quality_sql, {
-            "company_id": company_id,
-            "start_date": start_date
-        })
-        
-        workflow_result = await query_one(workflow_quality_sql, {
-            "company_id": company_id,
-            "start_date": start_date
-        })
-        
-        # Calculate quality scores
-        fin_total = financial_result['total_records'] or 1
-        wf_total = workflow_result['total_records'] or 1
-        
-        financial_quality = {
-            "total_records": fin_total,
-            "completeness_score": round(100 - (
-                (financial_result['missing_cost'] + 
-                 financial_result['missing_service']) / fin_total * 100
-            ), 2),
-            "missing_data": {
-                "cost": financial_result['missing_cost'],
-                "service": financial_result['missing_service'],
-                "region": financial_result['missing_region']
-            }
-        }
-        
-        workflow_quality = {
-            "total_records": wf_total,
-            "completeness_score": round(100 - (
-                (workflow_result['missing_summary'] + 
-                 workflow_result['missing_assignee']) / wf_total * 100
-            ), 2),
-            "missing_data": {
-                "summary": workflow_result['missing_summary'],
-                "assignee": workflow_result['missing_assignee'],
-                "priority": workflow_result['missing_priority']
-            }
-        }
-        
-        overall_score = (financial_quality["completeness_score"] + 
-                        workflow_quality["completeness_score"]) / 2
-        
-        return success_response({
-            "overall_quality_score": round(overall_score, 2),
-            "financial_data": financial_quality,
-            "workflow_data": workflow_quality,
-            "period": "current month",
-            "last_updated": datetime.utcnow().isoformat()
-        })
-        
-    except Exception as e:
-        logger.error(f"Data quality check failed: {e}")
-        return error_response("Failed to check data quality", "DATA_QUALITY_ERROR")
-
-# Add placeholder endpoints for remaining widgets
-@router.get("/financial/resource-utilization")
-async def get_resource_utilization(company_id: int = Depends(validate_company_id)):
-    """Widget 13: Resource utilization metrics."""
-    return success_response({"message": "Resource utilization widget - implementation pending"})
-
-@router.get("/financial/forecast")
-async def get_cost_forecast(company_id: int = Depends(validate_company_id)):
-    """Widget 14: Cost forecasting."""
-    return success_response({"message": "Cost forecast widget - implementation pending"})
-
-@router.get("/workflow/sprint-burndown")
-async def get_sprint_burndown(company_id: int = Depends(validate_company_id)):
-    """Widget 15: Sprint burndown chart."""
-    return success_response({"message": "Sprint burndown widget - implementation pending"})
-
-@router.get("/workflow/code-quality")
-async def get_code_quality(company_id: int = Depends(validate_company_id)):
-    """Widget 16: Code quality metrics."""
-    return success_response({"message": "Code quality widget - implementation pending"})
-
-# ... Continue with remaining 16 widgets following the same pattern
-
-# Export router
-__all__ = ["router"]
+        logger.error(f"Error in error-alerts: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch error alerts")

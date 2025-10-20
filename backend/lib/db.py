@@ -214,6 +214,25 @@ async def create_tables():
     logger.info("Skipping table creation - using existing Azure SQL Database schema")
     return True
 
+async def init_database():
+    """Initialize database connection and verify schema"""
+    try:
+        logger.info("Initializing database connection...")
+        
+        # Test connection
+        health = await health_check()
+        if health["status"] != "healthy":
+            raise Exception(f"Database health check failed: {health}")
+        
+        logger.info("Database initialization completed successfully")
+        logger.info(f"Connected to: {DB_CONFIG['server']}/{DB_CONFIG['database']}")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        raise
+
 # Health check function
 async def health_check() -> Dict[str, Any]:
     """Check database health"""

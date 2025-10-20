@@ -3,7 +3,8 @@ Backend-Cushla/
 Frontend-Sophia/
 cushla_playground1/
 *.sh
-.env
+*.env
+.env.*
 venv/
 __pycache__/
 *.pyc
@@ -19,3 +20,4 @@ build/
 *.swp
 *.swo
 *.iml
+.next/
