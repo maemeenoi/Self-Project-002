@@ -2,7 +2,10 @@
 -- Enhanced Mock Data for FinOps Database
 -- Generated on: 2025-10-16
 -- Realistic data for comprehensive testing
+-- Data-only version (run after DropAndRecreate.sql)
 -- =========================================
+
+PRINT 'Starting fresh data insertion...';
 
 -- =========
 -- Company Data (Diverse NZ/Global Companies)
@@ -27,20 +30,12 @@ SET IDENTITY_INSERT Company OFF;
 SET IDENTITY_INSERT Role ON;
 INSERT INTO Role (RoleID, Name, IsSystemRole) VALUES
 (1, 'SuperAdmin', 1),
-(2, 'CEO', 0),
-(3, 'CFO', 0),
-(4, 'CTO', 0),
-(5, 'Product Manager', 0),
-(6, 'Engineering Manager', 0),
-(7, 'DevOps Engineer', 0),
-(8, 'Finance Analyst', 0),
-(9, 'Project Manager', 0),
-(10, 'Developer', 0),
-(11, 'Client Admin', 0),
-(12, 'Data Analyst', 0),
-(13, 'Security Specialist', 0),
-(14, 'QA Engineer', 0),
-(15, 'Business Analyst', 0);
+(2, 'Client Admin', 0),
+(3, 'CEO', 0),
+(4, 'CFO', 0),
+(5, 'CTO', 0),
+(6, 'Product Owner', 0),
+(7, 'Engineer', 0);
 SET IDENTITY_INSERT Role OFF;
 
 -- =========
@@ -69,169 +64,161 @@ INSERT INTO Permission (PermissionID, Code, Description) VALUES
 SET IDENTITY_INSERT Permission OFF;
 
 -- =========
--- Enhanced Role-Permission Mapping
+-- Enhanced Role-Permission Mapping (Updated for 7-Role Hierarchy)
 -- =========
 INSERT INTO RolePermission (RoleID, PermissionID) VALUES
--- SuperAdmin - all permissions
+-- SuperAdmin (Role 1) - all permissions
 (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15), (1, 16), (1, 17), (1, 18),
--- CEO - strategic and oversight permissions
-(2, 1), (2, 3), (2, 5), (2, 7), (2, 9), (2, 14), (2, 16), (2, 17), (2, 18),
--- CFO - financial and reporting focus
-(3, 1), (3, 2), (3, 7), (3, 8), (3, 9), (3, 12), (3, 13), (3, 14), (3, 16),
--- CTO - technical and system oversight
-(4, 1), (4, 3), (4, 4), (4, 7), (4, 9), (4, 10), (4, 14), (4, 15), (4, 17), (4, 18),
--- Product Manager - product and project focus
-(5, 1), (5, 3), (5, 7), (5, 9), (5, 14), (5, 17), (5, 18),
--- Engineering Manager - team and technical management
-(6, 1), (6, 3), (6, 4), (6, 7), (6, 9), (6, 17), (6, 18),
--- DevOps Engineer - infrastructure and integrations
-(7, 1), (7, 3), (7, 7), (7, 10), (7, 15),
--- Finance Analyst - financial analysis and reporting
-(8, 1), (8, 2), (8, 7), (8, 8), (8, 12), (8, 13), (8, 14),
--- Project Manager - project and workflow management
-(9, 1), (9, 3), (9, 7), (9, 9), (9, 17), (9, 18),
--- Developer - basic access and workflow
-(10, 3), (10, 7), (10, 9),
--- Client Admin - company management
-(11, 5), (11, 6), (11, 7), (11, 9), (11, 16), (11, 17),
--- Data Analyst - analytics and reporting
-(12, 1), (12, 3), (12, 7), (12, 8), (12, 12), (12, 14),
--- Security Specialist - security and audit
-(13, 7), (13, 9), (13, 15), (13, 16),
--- QA Engineer - quality and testing focus
-(14, 3), (14, 7), (14, 9), (14, 18),
--- Business Analyst - analysis and reporting
-(15, 1), (15, 3), (15, 7), (15, 8), (15, 9), (15, 14), (15, 17), (15, 18);
+
+-- Client Admin (Role 2) - company management permissions
+(2, 5), (2, 6), (2, 7), (2, 9), (2, 16), (2, 17),
+
+-- CEO (Role 3) - strategic and oversight permissions
+(3, 1), (3, 3), (3, 5), (3, 7), (3, 9), (3, 14), (3, 16), (3, 17), (3, 18),
+
+-- CFO (Role 4) - financial and reporting focus
+(4, 1), (4, 2), (4, 7), (4, 8), (4, 9), (4, 12), (4, 13), (4, 14), (4, 16),
+
+-- CTO (Role 5) - technical and system oversight
+(5, 1), (5, 3), (5, 4), (5, 7), (5, 9), (5, 10), (5, 14), (5, 15), (5, 17), (5, 18),
+
+-- Product Owner (Role 6) - product and project focus
+(6, 1), (6, 3), (6, 7), (6, 9), (6, 14), (6, 17), (6, 18),
+
+-- Engineer (Role 7) - basic access and workflow
+(7, 3), (7, 7), (7, 9), (7, 10), (7, 15);
 
 -- =========
 -- Enhanced User Account Data (Matching Schema: FirstName, MiddleName, LastName)
 -- =========
 SET IDENTITY_INSERT UserAccount ON;
-INSERT INTO UserAccount (UserID, CompanyID, FirstName, MiddleName, LastName, Email, PasswordHash, Phone, IsSuperAdmin, CreatedAt) VALUES
+INSERT INTO UserAccount (UserID, CompanyID, FirstName, MiddleName, LastName, Email, PasswordHash, Phone, Department, Location, IsSuperAdmin, IsActive, CreatedAt, UpdatedAt, LastSignInAt) VALUES
 -- SuperAdmin accounts
-(1, NULL, 'System', NULL, 'Administrator', 'admin@finopsplatform.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-123-4567', 1, '2024-01-01T00:00:00.000'),
-(2, NULL, 'Jade', NULL, 'Sainui', 'jade@makestuffgo.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '02041286964', 1, '2024-01-01T01:00:00.000'),
+(1, NULL, 'System', NULL, 'Administrator', 'admin@finopsplatform.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-123-4567', 'IT Administration', 'Auckland, NZ', 1, 1, '2024-01-01T00:00:00.000', '2024-01-01T00:00:00.000', '2024-10-20T09:00:00.000'),
+(2, NULL, 'Jade', NULL, 'Sainui', 'jade@makestuffgo.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '02041286964', 'IT Administration', 'Auckland, NZ', 1, 1, '2024-01-01T01:00:00.000', '2024-01-01T01:00:00.000', '2024-10-21T14:30:00.000'),
 
 -- TechFlow Solutions Ltd (Company 1) - Software Development
-(3, 1, 'Sarah', 'Jane', 'Mitchell', 'sarah.mitchell@techflow.co.nz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-234-5678', 0, '2024-01-15T10:00:00.000'),
-(4, 1, 'James', 'Robert', 'Thompson', 'james.thompson@techflow.co.nz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-345-6789', 0, '2024-01-15T10:30:00.000'),
-(5, 1, 'Emma', 'Marie', 'Rodriguez', 'emma.rodriguez@techflow.co.nz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-456-7890', 0, '2024-01-16T09:15:00.000'),
-(6, 1, 'Michael', 'David', 'Chen', 'michael.chen@techflow.co.nz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-567-8901', 0, '2024-01-18T14:20:00.000'),
-(7, 1, 'Priya', NULL, 'Patel', 'priya.patel@techflow.co.nz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-678-9123', 0, '2024-01-20T11:45:00.000'),
+(3, 1, 'Sarah', 'Jane', 'Mitchell', 'sarah.mitchell@techflow.co.nz', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-234-5678', 'Executive', 'Wellington, NZ', 0, 1, '2024-01-15T10:00:00.000', '2024-01-15T10:00:00.000', '2024-10-21T08:15:00.000'),
+(4, 1, 'James', 'Robert', 'Thompson', 'james.thompson@techflow.co.nz', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-345-6789', 'Finance', 'Wellington, NZ', 0, 1, '2024-01-15T10:30:00.000', '2024-01-15T10:30:00.000', '2024-10-20T16:45:00.000'),
+(5, 1, 'Emma', 'Marie', 'Rodriguez', 'emma.rodriguez@techflow.co.nz', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-456-7890', 'Engineering', 'Wellington, NZ', 0, 1, '2024-01-16T09:15:00.000', '2024-01-16T09:15:00.000', '2024-10-21T07:30:00.000'),
+(6, 1, 'Michael', 'David', 'Chen', 'michael.chen@techflow.co.nz', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-567-8901', 'Product', 'Remote', 0, 1, '2024-01-18T14:20:00.000', '2024-01-18T14:20:00.000', '2024-10-19T11:20:00.000'),
+(7, 1, 'Priya', NULL, 'Patel', 'priya.patel@techflow.co.nz', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-678-9123', 'Engineering', 'Remote', 0, 1, '2024-01-20T11:45:00.000', '2024-01-20T11:45:00.000', '2024-10-21T13:10:00.000'),
+(39, 1, 'Johny', 'Avon', 'Ivy', 'johny.ivy@techflow.co.nz', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-987-6543', 'Administration', 'Wellington, NZ', 0, 1, '2024-01-25T16:30:00.000', '2024-01-25T16:30:00.000', '2024-10-21T10:00:00.000'),
 
 -- CloudFirst Innovations (Company 2) - Cloud Services
-(8, 2, 'Lisa', 'Margaret', 'Anderson', 'lisa.anderson@cloudfirst.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-678-9012', 0, '2024-02-20T15:00:00.000'),
-(9, 2, 'David', 'Kumar', 'Singh', 'david.kumar@cloudfirst.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-789-0123', 0, '2024-02-21T11:30:00.000'),
-(10, 2, 'Rachel', 'Elizabeth', 'Green', 'rachel.green@cloudfirst.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-890-1234', 0, '2024-02-22T13:45:00.000'),
-(11, 2, 'Aaron', 'James', 'Kim', 'aaron.kim@cloudfirst.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-901-2456', 0, '2024-02-25T09:20:00.000'),
+(8, 2, 'Lisa', 'Margaret', 'Anderson', 'lisa.anderson@cloudfirst.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-678-9012', 'Executive', 'Auckland, NZ', 0, 1, '2024-02-20T15:00:00.000', '2024-02-20T15:00:00.000', '2024-10-20T12:30:00.000'),
+(9, 2, 'David', 'Kumar', 'Singh', 'david.kumar@cloudfirst.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-789-0123', 'Product', 'Auckland, NZ', 0, 1, '2024-02-21T11:30:00.000', '2024-02-21T11:30:00.000', '2024-10-21T09:45:00.000'),
+(10, 2, 'Rachel', 'Elizabeth', 'Green', 'rachel.green@cloudfirst.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-890-1234', 'Engineering', 'Remote', 0, 1, '2024-02-22T13:45:00.000', '2024-02-22T13:45:00.000', '2024-10-19T15:20:00.000'),
+(11, 2, 'Aaron', 'James', 'Kim', 'aaron.kim@cloudfirst.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-901-2456', 'Engineering', 'Auckland, NZ', 0, 1, '2024-02-25T09:20:00.000', '2024-02-25T09:20:00.000', '2024-10-21T11:00:00.000'),
 
 -- Digital Transformation Corp (Company 3) - Enterprise Solutions
-(12, 3, 'Robert', 'John', 'Wilson', 'robert.wilson@digitaltrans.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-901-2345', 0, '2024-03-10T12:00:00.000'),
-(13, 3, 'Jennifer', 'Susan', 'Lee', 'jennifer.lee@digitaltrans.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-012-3456', 0, '2024-03-11T10:15:00.000'),
-(14, 3, 'Mark', 'Anthony', 'Johnson', 'mark.johnson@digitaltrans.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-123-4567', 0, '2024-03-12T16:30:00.000'),
-(15, 3, 'Nina', 'Grace', 'Taylor', 'nina.taylor@digitaltrans.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-234-5789', 0, '2024-03-15T08:45:00.000'),
-(16, 3, 'Carlos', 'Miguel', 'Santos', 'carlos.santos@digitaltrans.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-345-6890', 0, '2024-03-18T14:10:00.000'),
+(12, 3, 'Robert', 'John', 'Wilson', 'robert.wilson@digitaltrans.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-901-2345', 'Executive', 'Sydney, AU', 0, 1, '2024-03-10T12:00:00.000', '2024-03-10T12:00:00.000', '2024-10-20T18:00:00.000'),
+(13, 3, 'Jennifer', 'Susan', 'Lee', 'jennifer.lee@digitaltrans.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-012-3456', 'Engineering', 'Sydney, AU', 0, 1, '2024-03-11T10:15:00.000', '2024-03-11T10:15:00.000', '2024-10-21T06:30:00.000'),
+(14, 3, 'Mark', 'Anthony', 'Johnson', 'mark.johnson@digitaltrans.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-123-4567', 'Engineering', 'Remote', 0, 1, '2024-03-12T16:30:00.000', '2024-03-12T16:30:00.000', '2024-10-18T14:15:00.000'),
+(15, 3, 'Nina', 'Grace', 'Taylor', 'nina.taylor@digitaltrans.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-234-5789', 'Product', 'Sydney, AU', 0, 1, '2024-03-15T08:45:00.000', '2024-03-15T08:45:00.000', '2024-10-21T04:00:00.000'),
+(16, 3, 'Carlos', 'Miguel', 'Santos', 'carlos.santos@digitaltrans.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-345-6890', 'Engineering', 'Remote', 0, 1, '2024-03-18T14:10:00.000', '2024-03-18T14:10:00.000', '2024-10-20T22:45:00.000'),
 
 -- StartupVenture Inc (Company 4) - Startup
-(17, 4, 'Alex', 'Cameron', 'Taylor', 'alex.taylor@startupventure.io', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-234-5678', 0, '2024-04-05T17:00:00.000'),
-(18, 4, 'Sophie', 'Rose', 'Brown', 'sophie.brown@startupventure.io', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-345-6789', 0, '2024-04-06T09:30:00.000'),
-(19, 4, 'Ryan', 'Patrick', 'O''Connor', 'ryan.oconnor@startupventure.io', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-456-7901', 0, '2024-04-10T11:15:00.000'),
+(17, 4, 'Alex', 'Cameron', 'Taylor', 'alex.taylor@startupventure.io', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-234-5678', 'Executive', 'San Francisco, US', 0, 1, '2024-04-05T17:00:00.000', '2024-04-05T17:00:00.000', '2024-10-21T02:30:00.000'),
+(18, 4, 'Sophie', 'Rose', 'Brown', 'sophie.brown@startupventure.io', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-345-6789', 'Engineering', 'Remote', 0, 1, '2024-04-06T09:30:00.000', '2024-04-06T09:30:00.000', '2024-10-20T19:15:00.000'),
+(19, 4, 'Ryan', 'Patrick', 'O''Connor', 'ryan.oconnor@startupventure.io', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-456-7901', 'Engineering', 'Remote', 0, 1, '2024-04-10T11:15:00.000', '2024-04-10T11:15:00.000', '2024-10-19T21:00:00.000'),
 
 -- Enterprise Solutions Group (Company 5) - Large Enterprise
-(20, 5, 'Thomas', 'Carlos', 'Martinez', 'thomas.martinez@enterprise.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-456-7890', 0, '2024-05-12T08:30:00.000'),
-(21, 5, 'Maria', 'Isabella', 'Garcia', 'maria.garcia@enterprise.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-567-8901', 0, '2024-05-13T14:45:00.000'),
-(22, 5, 'Kevin', 'William', 'Zhang', 'kevin.zhang@enterprise.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-678-9012', 0, '2024-05-15T10:20:00.000'),
-(23, 5, 'Amanda', 'Nicole', 'Foster', 'amanda.foster@enterprise.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-789-0123', 0, '2024-05-18T13:35:00.000'),
+(20, 5, 'Thomas', 'Carlos', 'Martinez', 'thomas.martinez@enterprise.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-456-7890', 'Finance', 'Melbourne, AU', 0, 1, '2024-05-12T08:30:00.000', '2024-05-12T08:30:00.000', '2024-10-21T05:45:00.000'),
+(21, 5, 'Maria', 'Isabella', 'Garcia', 'maria.garcia@enterprise.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-567-8901', 'Product', 'Melbourne, AU', 0, 1, '2024-05-13T14:45:00.000', '2024-05-13T14:45:00.000', '2024-10-20T07:20:00.000'),
+(22, 5, 'Kevin', 'William', 'Zhang', 'kevin.zhang@enterprise.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-678-9012', 'Product', 'Remote', 0, 1, '2024-05-15T10:20:00.000', '2024-05-15T10:20:00.000', '2024-10-19T13:30:00.000'),
+(23, 5, 'Amanda', 'Nicole', 'Foster', 'amanda.foster@enterprise.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-789-0123', 'Engineering', 'Melbourne, AU', 0, 1, '2024-05-18T13:35:00.000', '2024-05-18T13:35:00.000', '2024-10-21T12:10:00.000'),
 
 -- AgriTech Innovations NZ (Company 6) - Agriculture Technology
-(24, 6, 'John', 'Michael', 'Harrison', 'john.harrison@agritech.co.nz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-890-1234', 0, '2024-06-18T11:00:00.000'),
-(25, 6, 'Rebecca', 'Anne', 'Clark', 'rebecca.clark@agritech.co.nz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-901-2345', 0, '2024-06-20T09:15:00.000'),
-(26, 6, 'Samuel', 'James', 'Wright', 'samuel.wright@agritech.co.nz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-012-3456', 0, '2024-06-22T14:30:00.000'),
+(24, 6, 'John', 'Michael', 'Harrison', 'john.harrison@agritech.co.nz', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-890-1234', 'Executive', 'Christchurch, NZ', 0, 1, '2024-06-18T11:00:00.000', '2024-06-18T11:00:00.000', '2024-10-20T14:20:00.000'),
+(25, 6, 'Rebecca', 'Anne', 'Clark', 'rebecca.clark@agritech.co.nz', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-901-2345', 'Product', 'Christchurch, NZ', 0, 1, '2024-06-20T09:15:00.000', '2024-06-20T09:15:00.000', '2024-10-21T08:50:00.000'),
+(26, 6, 'Samuel', 'James', 'Wright', 'samuel.wright@agritech.co.nz', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-012-3456', 'Engineering', 'Remote', 0, 1, '2024-06-22T14:30:00.000', '2024-06-22T14:30:00.000', '2024-10-20T17:30:00.000'),
 
 -- FinanceForward Limited (Company 7) - Fintech
-(27, 7, 'Victoria', 'Grace', 'Thompson', 'victoria.thompson@financeforward.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-123-4567', 0, '2024-07-22T13:45:00.000'),
-(28, 7, 'Benjamin', 'Luke', 'Davis', 'benjamin.davis@financeforward.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-234-5678', 0, '2024-07-24T10:20:00.000'),
-(29, 7, 'Olivia', 'Mae', 'Wilson', 'olivia.wilson@financeforward.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-345-6789', 0, '2024-07-26T15:10:00.000'),
+(27, 7, 'Victoria', 'Grace', 'Thompson', 'victoria.thompson@financeforward.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-123-4567', 'Executive', 'London, UK', 0, 1, '2024-07-22T13:45:00.000', '2024-07-22T13:45:00.000', '2024-10-21T15:40:00.000'),
+(28, 7, 'Benjamin', 'Luke', 'Davis', 'benjamin.davis@financeforward.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-234-5678', 'Finance', 'London, UK', 0, 1, '2024-07-24T10:20:00.000', '2024-07-24T10:20:00.000', '2024-10-20T11:15:00.000'),
+(29, 7, 'Olivia', 'Mae', 'Wilson', 'olivia.wilson@financeforward.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-345-6789', 'Engineering', 'Remote', 0, 1, '2024-07-26T15:10:00.000', '2024-07-26T15:10:00.000', '2024-10-18T20:25:00.000'),
 
 -- HealthTech Solutions (Company 8) - Healthcare Technology
-(30, 8, 'Dr. Daniel', 'Richard', 'Anderson', 'daniel.anderson@healthtech.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-456-7890', 0, '2024-08-05T16:30:00.000'),
-(31, 8, 'Laura', 'Christine', 'Martinez', 'laura.martinez@healthtech.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-567-8901', 0, '2024-08-07T11:45:00.000'),
-(32, 8, 'Mohammad', 'Ali', 'Khan', 'mohammad.khan@healthtech.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-678-9012', 0, '2024-08-10T09:20:00.000'),
+(30, 8, 'Dr. Daniel', 'Richard', 'Anderson', 'daniel.anderson@healthtech.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-456-7890', 'Executive', 'Toronto, CA', 0, 1, '2024-08-05T16:30:00.000', '2024-08-05T16:30:00.000', '2024-10-21T16:00:00.000'),
+(31, 8, 'Laura', 'Christine', 'Martinez', 'laura.martinez@healthtech.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-567-8901', 'Product', 'Toronto, CA', 0, 1, '2024-08-07T11:45:00.000', '2024-08-07T11:45:00.000', '2024-10-20T13:40:00.000'),
+(32, 8, 'Mohammad', 'Ali', 'Khan', 'mohammad.khan@healthtech.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-678-9012', 'Engineering', 'Remote', 0, 1, '2024-08-10T09:20:00.000', '2024-08-10T09:20:00.000', '2024-10-19T09:50:00.000'),
 
 -- EduPlatform Global (Company 9) - Education Technology
-(33, 9, 'Catherine', 'Marie', 'Roberts', 'catherine.roberts@eduplatform.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-789-0123', 0, '2024-09-10T12:00:00.000'),
-(34, 9, 'Andrew', 'Scott', 'Miller', 'andrew.miller@eduplatform.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-890-1234', 0, '2024-09-12T10:15:00.000'),
-(35, 9, 'Jessica', 'Lynn', 'Cooper', 'jessica.cooper@eduplatform.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-901-2345', 0, '2024-09-15T14:45:00.000'),
+(33, 9, 'Catherine', 'Marie', 'Roberts', 'catherine.roberts@eduplatform.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-789-0123', 'Executive', 'Dublin, IE', 0, 1, '2024-09-10T12:00:00.000', '2024-09-10T12:00:00.000', '2024-10-21T17:20:00.000'),
+(34, 9, 'Andrew', 'Scott', 'Miller', 'andrew.miller@eduplatform.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-890-1234', 'Product', 'Dublin, IE', 0, 1, '2024-09-12T10:15:00.000', '2024-09-12T10:15:00.000', '2024-10-20T15:30:00.000'),
+(35, 9, 'Jessica', 'Lynn', 'Cooper', 'jessica.cooper@eduplatform.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-901-2345', 'Engineering', 'Remote', 0, 1, '2024-09-15T14:45:00.000', '2024-09-15T14:45:00.000', '2024-10-19T12:40:00.000'),
 
 -- GreenEnergy Systems (Company 10) - Clean Energy
-(36, 10, 'Marcus', 'Alexander', 'Green', 'marcus.green@greenenergy.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-012-3456', 0, '2024-10-01T09:30:00.000'),
-(37, 10, 'Elena', 'Sofia', 'Rodriguez', 'elena.rodriguez@greenenergy.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-123-4567', 0, '2024-10-03T11:20:00.000'),
-(38, 10, 'Peter', 'James', 'Wang', 'peter.wang@greenenergy.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/', '+64-21-234-5678', 0, '2024-10-05T15:10:00.000');
+(36, 10, 'Marcus', 'Alexander', 'Green', 'marcus.green@greenenergy.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-012-3456', 'Executive', 'Copenhagen, DK', 0, 1, '2024-10-01T09:30:00.000', '2024-10-01T09:30:00.000', '2024-10-21T18:10:00.000'),
+(37, 10, 'Elena', 'Sofia', 'Rodriguez', 'elena.rodriguez@greenenergy.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-123-4567', 'Engineering', 'Copenhagen, DK', 0, 1, '2024-10-03T11:20:00.000', '2024-10-03T11:20:00.000', '2024-10-20T10:45:00.000'),
+(38, 10, 'Peter', 'James', 'Wang', 'peter.wang@greenenergy.com', '$2b$12$B9ORtLO48O0f2o5JftIbj.vp5glCvU5lpS/dVmcEWUp.9A1thcTW6', '+64-21-234-5678', 'Engineering', 'Remote', 0, 1, '2024-10-05T15:10:00.000', '2024-10-05T15:10:00.000', '2024-10-18T16:25:00.000');
 SET IDENTITY_INSERT UserAccount OFF;
 
 -- =========
--- Enhanced User-Role Mapping (More Diverse Role Assignments)
+-- Enhanced User-Role Mapping (Updated for 7-Role Hierarchy)
 -- =========
 INSERT INTO UserRole (UserID, RoleID) VALUES
 -- SuperAdmin accounts
-(1, 1), -- System Administrator
+(1, 1), -- System Administrator - SuperAdmin
 (2, 1), -- Jade Sainui - MakeStuffGo SuperAdmin
 
 -- TechFlow Solutions Ltd (Company 1) - Software Development Team
-(3, 2), (3, 11), -- Sarah - CEO + Client Admin
-(4, 3), -- James - CFO  
-(5, 4), -- Emma - CTO
-(6, 6), -- Michael - Engineering Manager
-(7, 12), -- Priya - Data Analyst
+(3, 3), (3, 2), -- Sarah - CEO + Client Admin
+(4, 4), -- James - CFO  
+(5, 5), -- Emma - CTO
+(6, 6), -- Michael - Product Owner
+(7, 7), -- Priya - Engineer
+(39, 2), -- Johny - Client Admin
 
 -- CloudFirst Innovations (Company 2) - Cloud Services Team
-(8, 2), (8, 11), -- Lisa - CEO + Client Admin
-(9, 5), -- David - Product Manager
-(10, 8), -- Rachel - Finance Analyst
-(11, 13), -- Aaron - Security Specialist
+(8, 3), (8, 2), -- Lisa - CEO + Client Admin
+(9, 6), -- David - Product Owner
+(10, 7), -- Rachel - Engineer
+(11, 7), -- Aaron - Engineer
 
 -- Digital Transformation Corp (Company 3) - Enterprise Team
-(12, 2), (12, 11), -- Robert - CEO + Client Admin
-(13, 4), -- Jennifer - CTO
-(14, 7), -- Mark - DevOps Engineer
-(15, 9), -- Nina - Project Manager
-(16, 15), -- Carlos - Business Analyst
+(12, 3), (12, 2), -- Robert - CEO + Client Admin
+(13, 5), -- Jennifer - CTO
+(14, 7), -- Mark - Engineer
+(15, 6), -- Nina - Product Owner
+(16, 7), -- Carlos - Engineer
 
 -- StartupVenture Inc (Company 4) - Agile Startup Team
-(17, 2), (17, 4), (17, 11), -- Alex - CEO + CTO + Client Admin (wearing multiple hats)
-(18, 10), -- Sophie - Developer
-(19, 14), -- Ryan - QA Engineer
+(17, 3), (17, 5), (17, 2), -- Alex - CEO + CTO + Client Admin (wearing multiple hats)
+(18, 7), -- Sophie - Engineer
+(19, 7), -- Ryan - Engineer
 
 -- Enterprise Solutions Group (Company 5) - Large Enterprise Team
-(20, 3), (20, 11), -- Thomas - CFO + Client Admin
-(21, 9), -- Maria - Project Manager
-(22, 6), -- Kevin - Engineering Manager
-(23, 15), -- Amanda - Business Analyst
+(20, 4), (20, 2), -- Thomas - CFO + Client Admin
+(21, 6), -- Maria - Product Owner
+(22, 6), -- Kevin - Product Owner
+(23, 7), -- Amanda - Engineer
 
 -- AgriTech Innovations NZ (Company 6) - Agriculture Technology Team
-(24, 2), (24, 11), -- John - CEO + Client Admin
-(25, 5), -- Rebecca - Product Manager
-(26, 10), -- Samuel - Developer
+(24, 3), (24, 2), -- John - CEO + Client Admin
+(25, 6), -- Rebecca - Product Owner
+(26, 7), -- Samuel - Engineer
 
 -- FinanceForward Limited (Company 7) - Fintech Team
-(27, 2), (27, 11), -- Victoria - CEO + Client Admin
-(28, 3), -- Benjamin - CFO
-(29, 8), -- Olivia - Finance Analyst
+(27, 3), (27, 2), -- Victoria - CEO + Client Admin
+(28, 4), -- Benjamin - CFO
+(29, 7), -- Olivia - Engineer
 
 -- HealthTech Solutions (Company 8) - Healthcare Technology Team
-(30, 2), (30, 4), (30, 11), -- Dr. Daniel - CEO + CTO + Client Admin
-(31, 9), -- Laura - Project Manager
-(32, 13), -- Mohammad - Security Specialist
+(30, 3), (30, 5), (30, 2), -- Dr. Daniel - CEO + CTO + Client Admin
+(31, 6), -- Laura - Product Owner
+(32, 7), -- Mohammad - Engineer
 
 -- EduPlatform Global (Company 9) - Education Technology Team
-(33, 2), (33, 11), -- Catherine - CEO + Client Admin
-(34, 5), -- Andrew - Product Manager
-(35, 12), -- Jessica - Data Analyst
+(33, 3), (33, 2), -- Catherine - CEO + Client Admin
+(34, 6), -- Andrew - Product Owner
+(35, 7), -- Jessica - Engineer
 
 -- GreenEnergy Systems (Company 10) - Clean Energy Team
-(36, 2), (36, 11), -- Marcus - CEO + Client Admin
-(37, 4), -- Elena - CTO
-(38, 7); -- Peter - DevOps Engineer
+(36, 3), (36, 2), -- Marcus - CEO + Client Admin
+(37, 5), -- Elena - CTO
+(38, 7); -- Peter - Engineer
 
 -- =========
 -- Enhanced Sync Batch Data (More Comprehensive Data Sources)
@@ -464,18 +451,26 @@ INSERT INTO WorkflowFact (CompanyID, BatchID, Provider, ItemType, ItemKey, Proje
 -- =========
 -- Summary Information
 -- =========
-PRINT 'Enhanced mock data insertion completed successfully!';
+PRINT 'Enhanced mock data refresh completed successfully!';
 PRINT 'Summary:';
 PRINT '- 10 Companies created (diverse industry sectors)';
-PRINT '- 15 Roles defined with comprehensive permissions';
-PRINT '- 38 User accounts across all companies with realistic names';
+PRINT '- 7 Roles defined with organizational hierarchy (SuperAdmin, Client Admin, CEO, CFO, CTO, Product Owner, Engineer)';
+PRINT '- 38 User accounts across all companies with realistic names and updated role assignments';
 PRINT '- 29 Sync batches covering multiple data sources and timeframes';
 PRINT '- Comprehensive financial facts using FOCUS standard columns';
 PRINT '- Industry-specific Azure resource usage patterns';
 PRINT '- Extensive workflow data from GitHub and Jira across all companies';
 PRINT '- Realistic development workflows with proper metrics and timelines';
 PRINT '- Multi-provider cloud usage scenarios';
-PRINT '- Enhanced role assignments including Client Admin for each company';
+PRINT '- Updated role hierarchy with CEO/Client Admin combinations for company leadership';
+PRINT '';
+PRINT 'Role Distribution:';
+PRINT '- 2 SuperAdmins (System-wide access)';
+PRINT '- 10 CEOs (Company leadership + Client Admin privileges)';
+PRINT '- 3 CFOs (Financial oversight)';
+PRINT '- 6 CTOs (Technical leadership)';
+PRINT '- 8 Product Owners (Product management)';
+PRINT '- 17 Engineers (Technical implementation)';
 PRINT '';
 PRINT 'Industry Coverage:';
 PRINT '- Software Development (TechFlow Solutions)';
