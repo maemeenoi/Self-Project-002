@@ -1,0 +1,37 @@
+# name: Deploy Backend to Azure
+
+# on:
+#     push:
+#         branches:
+#             - main # 👈 When you push to main branch
+#             - dev # 👈 Or dev branch for testing
+#     workflow_dispatch: # Manual trigger
+
+# jobs:
+#     trigger-infrastructure:
+#         runs-on: ubuntu-latest
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
+
+#             - name: Trigger Infrastructure Pipeline
+#               run: |
+#                   curl -X POST \
+#                     -H "Accept: application/vnd.github.v3+json" \
+#                     -H "Authorization: token ${{ secrets.PIPELINE_TRIGGER_TOKEN }}" \
+#                     https://api.github.com/repos/LetsMakeStuffGo/cloud-automation-pipelines/dispatches \
+#                     -d '{
+#                       "event_type": "backend-deploy",
+#                       "client_payload": {
+#                         "repository": "${{ github.repository }}",
+#                         "ref": "${{ github.ref }}",
+#                         "sha": "${{ github.sha }}",
+#                         "triggered_by": "backend-push"
+#                       }
+#                     }'
+
+#             - name: Wait for Infrastructure
+#               run: |
+#                   echo "🚀 Infrastructure pipeline triggered!"
+#                   echo "Check: https://github.com/LetsMakeStuffGo/cloud-automation-pipelines/actions"
+#                   echo "Your backend will be deployed once infrastructure is ready."

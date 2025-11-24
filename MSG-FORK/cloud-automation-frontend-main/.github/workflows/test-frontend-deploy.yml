@@ -1,0 +1,109 @@
+name: Test Frontend Deployment to Azure
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Node.js version
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+
+            - name: Install dependencies and build (Next.js standalone)
+              run: |
+                  npm ci
+                  npm run build
+
+                  # Copy public + static files into standalone build
+                  cp -R ./public .next/standalone/public || echo "No public directory"
+                  cp -R .next/static .next/standalone/.next/static
+              env:
+                  # ✅ Explicitly export them for build-time (client) use
+                  NEXT_PUBLIC_BACKEND_URL: "https://app-makestuffgo-test-001-backend.azurewebsites.net"
+                  NEXT_PUBLIC_JWT_SECRET: ${{ secrets.NEXT_PUBLIC_JWT_SECRET }}
+                  # ✅ And also pass them for server runtime (optional, safe)
+                  BACKEND_URL: "https://app-makestuffgo-test-001-backend.azurewebsites.net"
+                  JWT_SECRET: ${{ secrets.NEXT_PUBLIC_JWT_SECRET }}
+
+            - name: Zip standalone output for deployment
+              run: zip -r release.zip .next/standalone
+
+            - name: Upload artifact for deployment job
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-app
+                  path: release.zip
+
+    deploy:
+        runs-on: ubuntu-latest
+        needs: build
+        environment: makestuffgo-test
+        permissions:
+            id-token: write
+            contents: read
+
+        steps:
+            - name: Download artifact from build job
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-app
+
+            - name: Unzip artifact for deployment
+              run: unzip release.zip
+
+            - name: Login to Azure
+              uses: azure/login@v2
+              with:
+                  creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+            - name: Deploy to Azure Web App
+              uses: azure/webapps-deploy@v3
+              with:
+                  app-name: "app-makestuffgo-test-001-frontend"
+                  package: .
+
+            - name: Configure App Settings
+              run: |
+                  # Set startup command
+                  az webapp config set \
+                    --resource-group "rg-makestuffgo-test-001" \
+                    --name "app-makestuffgo-test-001-frontend" \
+                    --startup-file "node .next/standalone/server.js" \
+                    --always-on true
+
+                  # Set environment variables for runtime (one by one to avoid issues)
+                  az webapp config appsettings set \
+                    --resource-group "rg-makestuffgo-test-001" \
+                    --name "app-makestuffgo-test-001-frontend" \
+                    --settings NODE_ENV=production
+
+                  az webapp config appsettings set \
+                    --resource-group "rg-makestuffgo-test-001" \
+                    --name "app-makestuffgo-test-001-frontend" \
+                    --settings "NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}"
+
+                  az webapp config appsettings set \
+                    --resource-group "rg-makestuffgo-test-001" \
+                    --name "app-makestuffgo-test-001-frontend" \
+                    --settings "NEXT_PUBLIC_JWT_SECRET=${{ secrets.NEXT_PUBLIC_JWT_SECRET }}"
+
+                  # Restart the app to pick up new environment variables
+                  az webapp restart \
+                    --resource-group "rg-makestuffgo-test-001" \
+                    --name "app-makestuffgo-test-001-frontend"
+
+                  echo "✅ App settings configured and app restarted"
+
+            - name: Cleanup
+              run: rm -f release.zip

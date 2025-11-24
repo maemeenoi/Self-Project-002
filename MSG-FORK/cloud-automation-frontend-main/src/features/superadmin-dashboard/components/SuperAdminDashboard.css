@@ -1,0 +1,1903 @@
+/* Super Admin Dashboard - Master Control Theme */
+/* Purple/Pink theme for ultimate power and control */
+
+:root {
+  /* Super Admin Color Palette */
+  --superadmin-primary: #7C3AED;     /* Purple - master control */
+  --superadmin-secondary: #EC4899;   /* Pink - power */
+  --superadmin-success: #10B981;     /* Green - healthy */
+  --superadmin-warning: #F59E0B;     /* Amber - attention */
+  --superadmin-danger: #DC2626;      /* Red - critical */
+  --superadmin-info: #3B82F6;        /* Blue - information */
+  --superadmin-dark: #1F2937;        /* Dark gray - authority */
+  --superadmin-purple-light: #EDE9FE; /* Light purple background */
+  --superadmin-pink-light: #FCE7F3;   /* Light pink background */
+  
+  /* Gradients */
+  --superadmin-gradient: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
+  --superadmin-gradient-light: linear-gradient(135deg, #EDE9FE 0%, #FCE7F3 100%);
+  
+  /* Shadows */
+  --superadmin-shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.1), 0 2px 4px -1px rgba(124, 58, 237, 0.06);
+  --superadmin-shadow-lg: 0 10px 15px -3px rgba(124, 58, 237, 0.1), 0 4px 6px -2px rgba(124, 58, 237, 0.05);
+}
+
+/* Main Dashboard Container */
+.superadmin-dashboard {
+  margin: 0 auto;
+  padding: 0;
+  background: #F9FAFB;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.3;
+}
+
+/* ============================================
+   PROFESSIONAL SAAS HEADER
+   ============================================ */
+
+.dashboard-header-pro {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-content-pro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1800px;
+  margin: 0 auto;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* User Section */
+.user-section-pro {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name-pro {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.user-role-pro {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Actions Section */
+.actions-section-pro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Professional Buttons */
+.btn-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-pro svg {
+  flex-shrink: 0;
+}
+
+/* Primary Button - Blue */
+.btn-primary-pro {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-primary-pro:hover {
+  background: #1e40af;
+  border-color: #1e40af;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+/* Secondary Buttons - Outlined */
+.btn-secondary-pro {
+  background: #ffffff;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.btn-secondary-pro:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+/* Timestamp Box */
+.timestamp-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #6b7280;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.timestamp-pro svg {
+  opacity: 0.7;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .dashboard-header-pro {
+    padding: 16px 20px;
+  }
+  
+  .header-content-pro {
+    gap: 16px;
+  }
+  
+  .actions-section-pro {
+    gap: 8px;
+  }
+  
+  .btn-pro {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header-pro {
+    padding: 12px 16px;
+  }
+  
+  .header-content-pro {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .actions-section-pro {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .btn-pro {
+    flex: 1;
+    justify-content: center;
+    min-width: fit-content;
+  }
+  
+  .timestamp-pro {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Typography optimizations */
+.superadmin-dashboard h1,
+.superadmin-dashboard h2,
+.superadmin-dashboard h3,
+.superadmin-dashboard h4,
+.superadmin-dashboard h5,
+.superadmin-dashboard h6 {
+  line-height: 1.2; /* 15% tighter for all headings */
+  margin-bottom: 0.5em; /* tighter bottom margins */
+}
+
+.superadmin-dashboard p,
+.superadmin-dashboard div,
+.superadmin-dashboard span {
+  line-height: 1.3; /* 10-15% tighter for body text */
+}
+
+/* Compact spacing utilities */
+.superadmin-dashboard .text-sm {
+  font-size: 13px; /* globally smaller small text */
+  line-height: 1.2;
+}
+
+.superadmin-dashboard .text-xs {
+  font-size: 11px; /* globally smaller extra small text */
+  line-height: 1.2;
+}
+
+/* Loading States */
+.superadmin-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--superadmin-gradient-light);
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--superadmin-purple-light);
+  border-top: 4px solid var(--superadmin-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.superadmin-loading h2 {
+  color: var(--superadmin-primary);
+  margin-bottom: 8px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.superadmin-loading p {
+  color: #6B7280;
+  font-size: 16px;
+}
+
+/* Error States */
+.superadmin-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #FEF2F2;
+  padding: 32px;
+}
+
+.error-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+}
+
+.superadmin-error h2 {
+  color: var(--superadmin-danger);
+  margin-bottom: 16px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.retry-btn {
+  background: var(--superadmin-gradient);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--superadmin-shadow-lg);
+}
+
+/* Dashboard Header - Professional Corporate Design */
+.dashboard-header {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%); /* Clean white to light gray gradient */
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  color: #111827; /* Dark text for contrast */
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #E5E7EB; /* Subtle border */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06); /* Professional shadow */
+}
+
+.dashboard-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(79, 70, 229, 0.02) 0%, transparent 100%); /* Very subtle accent */
+  pointer-events: none;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827; /* Dark gray for excellent contrast */
+  line-height: 1.2;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #6B7280; /* Medium gray for subtitle */
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+/* Header Actions - Professional Corporate Layout */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Consistent 16px spacing */
+}
+
+/* PRIMARY ACTION - Create Company Button */
+.create-company-btn-header {
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%) !important; /* Professional indigo with !important */
+  color: white !important; /* Force white text */
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.create-company-btn-header:hover {
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%) !important;
+  color: white !important; /* Force white text on hover */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+}
+
+.create-company-btn-header:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  color: white !important; /* Force white text on active */
+}
+
+/* SECONDARY ACTION - Refresh Button */
+.refresh-btn, .logout-btn {
+  background: transparent;
+  color: #6B7280; /* Medium gray text */
+  border: 1.5px solid #D1D5DB; /* Light gray border */
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.refresh-btn:hover, .logout-btn:hover {
+  background: #F9FAFB; /* Light background on hover */
+  border-color: #9CA3AF; /* Darker border on hover */
+  color: #374151; /* Darker text on hover */
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* User Info - Professional Styling */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: 8px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827; /* Dark text for contrast */
+  line-height: 1.2;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #6B7280; /* Medium gray for subtitle */
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.last-updated {
+  font-size: 12px;
+  color: #6B7280; /* Medium gray */
+  background: #F3F4F6; /* Light gray background */
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  border: 1px solid #E5E7EB;
+}
+
+/* User Info */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.user-role {
+  font-size: 14px;
+  color: #6B7280; /* Medium gray for subtitle */
+  font-weight: 500;
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+.last-updated {
+  font-size: 12px;
+  color: #6B7280; /* Medium gray */
+  background: #F3F4F6; /* Light gray background */
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  border: 1px solid #E5E7EB;
+}
+
+/* Dashboard Grid Layout - Improved Visual Hierarchy */
+.dashboard-row {
+  max-width: 1800px;
+  margin: 0 auto 20px auto; /* consistent spacing */
+  padding: 0 20px;
+}
+
+/* Row 1: 4 Metric Cards */
+.row-1 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px; /* extra space after metrics */
+}
+
+/* Row Alerts: Critical Alerts - Full Width and Prominent */
+.row-alerts {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin-bottom: 24px; /* space after alerts */
+}
+
+.row-alerts .superadmin-widget-card {
+  border-left: 4px solid #EF4444; /* Red accent for alerts */
+  background: linear-gradient(135deg, #FEF2F2 0%, #FFFFFF 100%);
+}
+
+/* Row 2: Critical Alerts - Compact Banner Style (60% less height) */
+.dashboard-row.row-alerts-compact {
+  margin-bottom: 16px; /* Reduced from 24px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-item {
+  margin-bottom: 8px !important; /* Reduced from 16px */
+  padding: 12px !important; /* Reduced from 16px */
+  border-radius: 6px;
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-header {
+  margin-bottom: 8px !important; /* Reduced from 12px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .severity-badge {
+  font-size: 10px !important; /* Reduced from 12px */
+  padding: 3px 6px !important; /* Reduced from 4px 8px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-message {
+  font-size: 13px !important; /* Reduced from default */
+  line-height: 1.3 !important;
+  margin-bottom: 6px !important;
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-content {
+  margin-bottom: 8px !important; /* Reduced from 12px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts {
+  border-left-width: 3px !important; /* Thinner border from 4px */
+}
+
+/* Row 3: Company Usage & Billing - THE HERO SECTION */
+.dashboard-row.row-billing-hero {
+  margin-bottom: 24px;
+  grid-column: 1 / -1; /* Full width */
+}
+
+.dashboard-row.row-billing-hero .superadmin-widget-card {
+  padding: 24px !important; /* More breathing room */
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-row.row-billing-hero .widget-header h3 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: var(--primary-color) !important;
+  margin-bottom: 8px !important;
+}
+
+.dashboard-row.row-billing-hero .widget-header {
+  margin-bottom: 20px !important;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f1f3f4;
+}
+
+/* Enhanced table styling for hero section */
+.dashboard-row.row-billing-hero .superadmin-table {
+  margin-top: 0 !important;
+}
+
+.dashboard-row.row-billing-hero .superadmin-table th {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  padding: 16px 12px !important; /* More row height */
+  background: #f8f9fa !important;
+  border-bottom: 2px solid #e5e7eb !important;
+}
+
+.dashboard-row.row-billing-hero .superadmin-table td {
+  padding: 14px 12px !important; /* Increased row height */
+  border-bottom: 1px solid #f1f3f4 !important;
+}
+
+.dashboard-row.row-billing-hero .superadmin-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.dashboard-row.row-billing-hero .superadmin-table tbody tr:hover {
+  background-color: #f0f7ff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Row 4: Three Compact Columns */
+.dashboard-row.row-compact-trio {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: flex-start;
+}
+
+.compact-col {
+  height: 100%;
+}
+
+.compact-col .superadmin-widget-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px !important; /* More compact padding */
+}
+
+.compact-col .widget-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Recent Companies - Compact Version */
+.compact-col.recent-col .companies-card-grid .company-card-item {
+  margin-bottom: 10px !important; /* Reduced from 12px */
+  padding: 10px !important; /* Reduced from 12px */
+}
+
+.compact-col.recent-col .company-name-primary {
+  font-size: 15px !important; /* Slightly smaller */
+}
+
+.compact-col.recent-col .company-date-subtle {
+  font-size: 11px !important;
+}
+
+/* System Activity Log - Show only 3 items, smaller */
+.compact-col.activity-col .activity-feed-compact {
+  gap: 6px !important; /* Reduced from 8px */
+}
+
+.compact-col.activity-col .activity-item-compact {
+  padding: 6px 0 !important; /* Reduced from 8px */
+}
+
+.compact-col.activity-col .activity-description-primary {
+  font-size: 13px !important; /* Reduced from 14px */
+  line-height: 1.3 !important;
+  margin-bottom: 3px !important;
+}
+
+.compact-col.activity-col .activity-time-subtle {
+  font-size: 11px !important;
+}
+
+.compact-col.activity-col .severity-badge-small {
+  font-size: 9px !important;
+  padding: 1px 4px !important;
+}
+
+/* Integration Status - Keep current compact design */
+.compact-col.integration-col .provider-card-horizontal {
+  padding: 10px 12px !important; /* Slightly more compact */
+  margin-bottom: 8px !important;
+}
+
+/* Row 5: Company Management Table */
+.dashboard-row.row-company-table {
+  margin-bottom: 24px;
+}
+
+/* Visual Weight Distribution - Section Heights */
+.dashboard-row.row-1 {
+  /* Metrics - 15% of viewport */
+  min-height: 120px;
+}
+
+.dashboard-row.row-alerts-compact {
+  /* Alerts - 10% of viewport */
+  min-height: 80px;
+  max-height: 120px;
+}
+
+.dashboard-row.row-billing-hero {
+  /* Billing - 45-50% of viewport - THE STAR */
+  min-height: 400px;
+}
+
+.dashboard-row.row-compact-trio {
+  /* Three columns - 25-30% of viewport */
+  min-height: 280px;
+  max-height: 350px;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .dashboard-row.row-compact-trio {
+    grid-template-columns: 1fr 1fr; /* Two columns on medium screens */
+  }
+  
+  .compact-col.integration-col {
+    grid-column: 1 / -1; /* Integration spans full width */
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashboard-row.row-compact-trio {
+    grid-template-columns: 1fr; /* Single column on smaller screens */
+    gap: 12px;
+  }
+  
+  .dashboard-row.row-billing-hero .superadmin-table {
+    overflow-x: auto; /* Horizontal scroll for table */
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-row.row-billing-hero {
+    min-height: 300px; /* Smaller on mobile */
+  }
+  
+  .dashboard-row.row-compact-trio {
+    min-height: auto;
+  }
+  
+  .compact-col .superadmin-widget-card {
+    padding: 12px !important;
+  }
+}
+
+/* Widget Card Base Styles */
+.superadmin-widget-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: var(--superadmin-shadow);
+  border: 1px solid #E5E7EB;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.superadmin-widget-card:hover {
+  box-shadow: var(--superadmin-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.widget-header {
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #F3F4F6;
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+}
+
+.widget-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--superadmin-dark);
+}
+
+.widget-content {
+  padding: 16px; /* compact content */
+}
+
+/* Loading States */
+.loading-content {
+  padding: 24px;
+  text-align: center;
+}
+
+.loading-skeleton {
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  height: 20px;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6B7280;
+}
+
+.empty-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* View All Links */
+.view-all-link {
+  color: var(--superadmin-primary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.view-all-link:hover {
+  color: var(--superadmin-secondary);
+  text-decoration: underline;
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-select {
+  background: white;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--superadmin-dark);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--superadmin-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* Widget Footer */
+.widget-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #F3F4F6;
+  background: #F9FAFB;
+  text-align: center;
+}
+
+/* Main Create Company Button - SUPER PROMINENT */
+.main-create-company-btn {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+  color: white;
+  border: none;
+  padding: 18px 32px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 20px;
+  border: 3px solid #FF4500;
+  animation: pulse-create 2s infinite;
+}
+
+.main-create-company-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(255, 107, 53, 0.6);
+  background: linear-gradient(135deg, #FF4500 0%, #FF6347 100%);
+}
+
+@keyframes pulse-create {
+  0% {
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+  }
+  50% {
+    box-shadow: 0 12px 35px rgba(255, 107, 53, 0.7);
+  }
+  100% {
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+  }
+}
+
+/* Global Dashboard Styling */
+.superadmin-dashboard * {
+  box-sizing: border-box;
+}
+
+/* Color System - Consistent Purple Theme */
+:root {
+  --primary-purple: #6366F1;
+  --secondary-purple: #8B5CF6;
+  --success-green: #10B981;
+  --danger-red: #EF4444;
+  --warning-yellow: #F59E0B;
+  --neutral-50: #F9FAFB;
+  --neutral-100: #F3F4F6;
+  --neutral-200: #E5E7EB;
+  --neutral-500: #6B7280;
+  --neutral-700: #374151;
+  --neutral-900: #111827;
+}
+
+/* =================================
+   FINAL REFINEMENTS CSS
+   ================================= */
+
+/* Row 3: Balanced Two-Column Layout */
+.dashboard-row.row-3 {
+  display: grid;
+  grid-template-columns: 35% 65%; /* Recent Additions narrower, Activity wider */
+  gap: 1.5rem;
+  align-items: flex-start;
+  min-height: 400px; /* Ensure consistent height */
+}
+
+.recent-additions-col,
+.system-activity-col {
+  height: 100%;
+}
+
+.recent-additions-col .superadmin-widget-card,
+.system-activity-col .superadmin-widget-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-additions-col .widget-content,
+.system-activity-col .widget-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Critical Alerts Improvements */
+.critical-alerts .alert-item {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  border-left: 4px solid #dc2626; /* Default red for critical */
+  position: relative;
+}
+
+.critical-alerts .alert-item.open {
+  border-left-color: #dc2626; /* Red for critical */
+}
+
+.critical-alerts .alert-item[style*="orange"] {
+  border-left-color: #f59e0b !important; /* Orange for warning */
+}
+
+.critical-alerts .alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.critical-alerts .alert-severity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.critical-alerts .severity-icon {
+  font-size: 16px;
+}
+
+.critical-alerts .severity-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.critical-alerts .open-status-indicator {
+  width: 8px;
+  height: 8px;
+  background: #dc2626;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.critical-alerts .alert-content {
+  margin-bottom: 12px;
+}
+
+.critical-alerts .alert-company {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.critical-alerts .alert-message {
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.critical-alerts .alert-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Recent Companies Visual Hierarchy */
+.company-name-primary {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important;
+  line-height: 1.3;
+}
+
+.company-date-subtle {
+  font-size: 12px !important;
+  color: var(--text-muted) !important;
+  font-weight: 400 !important;
+}
+
+.subscription-badge-subtle {
+  font-size: 11px !important;
+  padding: 2px 6px !important;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.view-btn-subtle {
+  background: none !important;
+  border: none !important;
+  color: var(--primary-color) !important;
+  font-size: 13px !important;
+  text-decoration: underline !important;
+  padding: 4px 0 !important;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.view-btn-subtle:hover {
+  color: var(--primary-hover) !important;
+  text-decoration: none !important;
+}
+
+.companies-card-grid .company-card-item {
+  margin-bottom: 12px !important; /* Reduced from default */
+  padding: 12px !important;
+}
+
+/* System Activity Log Compact Design */
+.activity-feed-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Tighter spacing */
+}
+
+.activity-item-compact {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.activity-item-compact:last-child {
+  border-bottom: none;
+}
+
+.activity-content-compact {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-description-primary {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.activity-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.activity-time-subtle {
+  font-size: 12px !important;
+  color: var(--text-muted) !important;
+  font-weight: 400;
+}
+
+.severity-badge-small {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Integration Status Compact Horizontal Cards */
+.cloud-providers-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.provider-card-horizontal {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.provider-header-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.provider-icon-large {
+  font-size: 24px;
+  min-width: 32px;
+  text-align: center;
+}
+
+.provider-details-compact {
+  flex: 1;
+}
+
+.provider-name-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.provider-name-bold {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.status-badge-compact {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.provider-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.stat-item {
+  color: var(--text-secondary);
+}
+
+.stat-item.error {
+  color: #dc2626;
+}
+
+.stat-item strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Company Management Table Improvements */
+.company-management-table .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-table-btn {
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-table-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.collapsed-summary {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  text-align: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Table with zebra striping */
+.superadmin-table.striped tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.superadmin-table.striped tbody tr:hover {
+  background-color: #e3f2fd;
+}
+
+/* Consistent spacing throughout dashboard */
+.dashboard-row {
+  margin-bottom: 24px; /* Consistent 24px gaps */
+}
+
+.superadmin-widget-card {
+  padding: 20px; /* Consistent internal padding */
+}
+
+.widget-header {
+  margin-bottom: 16px; /* Consistent header spacing */
+}
+
+/* Secondary buttons should be subtle */
+.action-btn.view {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.action-btn.view:hover {
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .dashboard-row.row-3 {
+    grid-template-columns: 1fr; /* Stack on smaller screens */
+    gap: 1rem;
+  }
+  
+  .recent-additions-col,
+  .system-activity-col {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .summary-stats {
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 12px;
+  }
+  
+  .provider-header-compact {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .provider-name-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+/* =================================
+   NEW HERO LAYOUT - BILLING FOCUSED
+   ================================= */
+
+/* Row 2: Critical Alerts - Compact Banner Style (60% less height) */
+.dashboard-row.row-alerts-compact {
+  margin-bottom: 16px; /* Reduced from 24px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-item {
+  margin-bottom: 8px !important; /* Reduced from 16px */
+  padding: 12px !important; /* Reduced from 16px */
+  border-radius: 6px;
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-header {
+  margin-bottom: 8px !important; /* Reduced from 12px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .severity-badge {
+  font-size: 10px !important; /* Reduced from 12px */
+  padding: 3px 6px !important; /* Reduced from 4px 8px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-message {
+  font-size: 13px !important; /* Reduced from default */
+  line-height: 1.3 !important;
+  margin-bottom: 6px !important;
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-content {
+  margin-bottom: 8px !important; /* Reduced from 12px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts {
+  border-left-width: 3px !important; /* Thinner border from 4px */
+}
+
+/* Row 3: Company Usage & Billing - THE HERO SECTION */
+.dashboard-row.row-billing-hero {
+  margin-bottom: 24px;
+  grid-column: 1 / -1; /* Full width */
+}
+
+.dashboard-row.row-billing-hero .superadmin-widget-card {
+  padding: 24px !important; /* More breathing room */
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-row.row-billing-hero .widget-header h3 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: var(--primary-color) !important;
+  margin-bottom: 8px !important;
+}
+
+.dashboard-row.row-billing-hero .widget-header {
+  margin-bottom: 20px !important;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f1f3f4;
+}
+
+/* Enhanced table styling for hero section */
+.dashboard-row.row-billing-hero .superadmin-table {
+  margin-top: 0 !important;
+}
+
+.dashboard-row.row-billing-hero .superadmin-table th {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  padding: 16px 12px !important; /* More row height */
+  background: #f8f9fa !important;
+  border-bottom: 2px solid #e5e7eb !important;
+}
+
+.dashboard-row.row-billing-hero .superadmin-table td {
+  padding: 14px 12px !important; /* Increased row height */
+  border-bottom: 1px solid #f1f3f4 !important;
+}
+
+.dashboard-row.row-billing-hero .superadmin-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.dashboard-row.row-billing-hero .superadmin-table tbody tr:hover {
+  background-color: #f0f7ff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Row 4: Three Compact Columns */
+.dashboard-row.row-compact-trio {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: flex-start;
+}
+
+.compact-col {
+  height: 100%;
+}
+
+.compact-col .superadmin-widget-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px !important; /* More compact padding */
+}
+
+.compact-col .widget-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Recent Companies - Compact Version */
+.compact-col.recent-col .companies-card-grid .company-card-item {
+  margin-bottom: 10px !important; /* Reduced from 12px */
+  padding: 10px !important; /* Reduced from 12px */
+}
+
+.compact-col.recent-col .company-name-primary {
+  font-size: 15px !important; /* Slightly smaller */
+}
+
+.compact-col.recent-col .company-date-subtle {
+  font-size: 11px !important;
+}
+
+/* System Activity Log - Show only 3 items, smaller */
+.compact-col.activity-col .activity-feed-compact {
+  gap: 6px !important; /* Reduced from 8px */
+}
+
+.compact-col.activity-col .activity-item-compact {
+  padding: 6px 0 !important; /* Reduced from 8px */
+}
+
+.compact-col.activity-col .activity-description-primary {
+  font-size: 13px !important; /* Reduced from 14px */
+  line-height: 1.3 !important;
+  margin-bottom: 3px !important;
+}
+
+.compact-col.activity-col .activity-time-subtle {
+  font-size: 11px !important;
+}
+
+.compact-col.activity-col .severity-badge-small {
+  font-size: 9px !important;
+  padding: 1px 4px !important;
+}
+
+/* Integration Status - Keep current compact design */
+.compact-col.integration-col .provider-card-horizontal {
+  padding: 10px 12px !important; /* Slightly more compact */
+  margin-bottom: 8px !important;
+}
+
+/* Row 5: Company Management Table */
+.dashboard-row.row-company-table {
+  margin-bottom: 24px;
+}
+
+/* Visual Weight Distribution - Section Heights */
+.dashboard-row.row-1 {
+  /* Metrics - 15% of viewport */
+  min-height: 120px;
+}
+
+.dashboard-row.row-alerts-compact {
+  /* Alerts - 10% of viewport */
+  min-height: 80px;
+  max-height: 120px;
+}
+
+.dashboard-row.row-billing-hero {
+  /* Billing - 45-50% of viewport - THE STAR */
+  min-height: 400px;
+}
+
+.dashboard-row.row-compact-trio {
+  /* Three columns - 25-30% of viewport */
+  min-height: 280px;
+  max-height: 350px;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .dashboard-row.row-compact-trio {
+    grid-template-columns: 1fr 1fr; /* Two columns on medium screens */
+  }
+  
+  .compact-col.integration-col {
+    grid-column: 1 / -1; /* Integration spans full width */
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashboard-row.row-compact-trio {
+    grid-template-columns: 1fr; /* Single column on smaller screens */
+    gap: 12px;
+  }
+  
+  .dashboard-row.row-billing-hero .superadmin-table {
+    overflow-x: auto; /* Horizontal scroll for table */
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-row.row-billing-hero {
+    min-height: 300px; /* Smaller on mobile */
+  }
+  
+  .dashboard-row.row-compact-trio {
+    min-height: auto;
+  }
+  
+  .compact-col .superadmin-widget-card {
+    padding: 12px !important;
+  }
+}
+
+/* =================================
+   CRITICAL FIXES - OVERLAP & LAYOUT
+   ================================= */
+
+/* URGENT: Fix Critical Alerts Overlap */
+.dashboard-row.row-alerts-compact {
+  margin-bottom: 24px !important; /* Clear spacing - prevent overlap */
+  position: relative !important;
+  z-index: 1 !important;
+  clear: both !important;
+}
+
+/* Ultra Compact Alerts - Additional 25-30% height reduction */
+.dashboard-row.row-alerts-compact .critical-alerts .alert-item {
+  margin-bottom: 4px !important; /* Reduced from 6px */
+  padding: 6px 10px !important; /* Reduced from 8px 12px - 25% smaller */
+  border-radius: 6px !important;
+  min-height: auto !important;
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-header {
+  margin-bottom: 3px !important; /* Reduced from 4px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .severity-badge {
+  font-size: 8px !important; /* Reduced from 9px */
+  padding: 1px 4px !important; /* Reduced from 2px 5px */
+  font-weight: 600;
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-message {
+  font-size: 11px !important; /* Reduced from 12px */
+  line-height: 1.1 !important; /* Tighter line height */
+  margin-bottom: 3px !important; /* Reduced from 4px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-content {
+  margin-bottom: 4px !important; /* Reduced from 6px */
+}
+
+.dashboard-row.row-alerts-compact .critical-alerts .alert-actions .action-btn {
+  font-size: 9px !important; /* Reduced from 10px */
+  padding: 1px 4px !important; /* Reduced from 2px 6px */
+}
+
+/* Hero Section - Clear positioning */
+.dashboard-row.row-billing-hero {
+  margin-top: 0 !important;
+  margin-bottom: 24px !important;
+  position: relative !important;
+  z-index: 0 !important;
+  clear: both !important;
+}
+
+/* Three Column Layout Fix */
+.dashboard-row.row-compact-trio {
+  display: grid !important;
+  grid-template-columns: 30% 35% 30% !important; /* LEFT: Recent, MIDDLE: Activity, RIGHT: Integration */
+  gap: 16px !important;
+  margin-bottom: 24px !important;
+  align-items: flex-start !important;
+}
+
+/* System Activity Log Compact Card Styling */
+.system-activity-log.compact-card .widget-header h3 {
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+
+.system-activity-log.compact-card .last-updated-small {
+  font-size: 11px !important;
+  color: var(--text-muted) !important;
+}
+
+.system-activity-log.compact-card .activity-item-compact {
+  padding: 6px 0 !important;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.system-activity-log.compact-card .activity-description-primary {
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+  margin-bottom: 3px !important;
+}
+
+.system-activity-log.compact-card .view-all-link-small {
+  font-size: 12px !important;
+  color: var(--primary-color) !important;
+  text-decoration: none;
+  margin-top: 8px !important;
+  display: inline-block;
+}
+
+/* Recent Companies - Text Links */
+.compact-col.recent-col .view-btn-subtle {
+  background: none !important;
+  border: none !important;
+  color: var(--primary-color) !important;
+  font-size: 12px !important;
+  text-decoration: underline !important;
+  padding: 2px 0 !important;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.compact-col.recent-col .view-btn-subtle:hover {
+  color: var(--primary-hover) !important;
+  text-decoration: none !important;
+}
+
+/* Fix Recent Companies spacing */
+.compact-col.recent-col .companies-card-grid .company-card-item {
+  margin-bottom: 8px !important; /* Reduced spacing */
+  padding: 10px !important;
+}
+
+/* Table Column Width Fixes */
+.usage-table-container-hero .company-col { width: 18% !important; } /* Reduced from 20% */
+.usage-table-container-hero .tier-col { width: 10% !important; }
+.usage-table-container-hero .storage-col { width: 12% !important; }
+.usage-table-container-hero .api-col { width: 12% !important; }
+.usage-table-container-hero .cost-col { width: 12% !important; }
+.usage-table-container-hero .users-col { width: 10% !important; }
+.usage-table-container-hero .activity-col { width: 14% !important; } /* Wider for timestamps */
+.usage-table-container-hero .actions-col { width: 12% !important; }
+
+/* Remove duplicate "View All Alerts" link */
+.critical-alerts .widget-footer {
+  display: none !important;
+}
+
+/* Ensure proper section separation */
+.dashboard-row {
+  position: relative;
+  margin-bottom: 24px;
+  clear: both;
+}
+
+/* Responsive Three-Column Fixes */
+@media (max-width: 1400px) {
+  .dashboard-row.row-compact-trio {
+    grid-template-columns: 1fr 1fr !important; /* Two columns */
+  }
+  
+  .compact-col.integration-col {
+    grid-column: 1 / -1 !important; /* Integration spans full width */
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashboard-row.row-compact-trio {
+    grid-template-columns: 1fr !important; /* Single column */
+    gap: 12px !important;
+  }
+}
+
+/* =================================
+   FINAL POLISH REFINEMENTS
+   ================================= */
+
+/* Enhanced Summary Cards Styling */
+.usage-summary-hero .summary-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.usage-summary-hero .summary-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  border-color: #d1d5db;
+}
+
+/* Enhanced Table Styling */
+.usage-table-container-hero .usage-table th {
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #374151 !important;
+}
+
+/* Table Row Hover Effect */
+.usage-table-container-hero .usage-row {
+  transition: all 0.2s ease;
+}
+
+.usage-table-container-hero .usage-row:hover {
+  background-color: #f0f7ff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Zebra Striping */
+.usage-table-container-hero .usage-row:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+.usage-table-container-hero .usage-row:nth-child(even):hover {
+  background-color: #f0f7ff !important;
+}
+
+/* Company ID Styling */
+.company-id {
+  font-size: 10px !important;
+  color: #9ca3af !important; /* Lighter gray */
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* Smaller Action Buttons */
+.action-btn-hero {
+  padding: 3px 6px !important; /* Reduced from 4px 8px */
+  font-size: 10px !important; /* Reduced from 11px */
+  border-radius: 3px;
+}
+
+/* Consistent Spacing Between Sections */
+.dashboard-row {
+  margin-bottom: 20px !important; /* Consistent 20px spacing */
+}
+
+.dashboard-row.row-1 {
+  margin-bottom: 20px !important;
+}
+
+.dashboard-row.row-alerts-compact {
+  margin-bottom: 20px !important;
+}
+
+.dashboard-row.row-billing-hero {
+  margin-bottom: 20px !important;
+}
+
+.dashboard-row.row-compact-trio {
+  margin-bottom: 20px !important;
+}
+
+/* Recent Additions - Lighter Timestamps */
+.compact-col.recent-col .company-date-subtle {
+  font-size: 11px !important;
+  color: #9ca3af !important; /* Lighter gray */
+  font-weight: 300 !important;
+  opacity: 0.8;
+}
+
+.compact-col.recent-col .view-btn-subtle {
+  color: #6b7280 !important; /* Less prominent */
+  font-size: 11px !important;
+}
+
+.compact-col.recent-col .view-btn-subtle:hover {
+  color: var(--primary-color) !important;
+}
+
+/* System Activity Log - Tighter Spacing */
+.system-activity-log.compact-card .activity-item-compact {
+  padding: 4px 0 !important; /* Reduced from 6px */
+  margin-bottom: 2px !important;
+}
+
+.system-activity-log.compact-card .activity-time-subtle {
+  font-size: 10px !important; /* Smaller */
+  color: #9ca3af !important; /* Lighter */
+  opacity: 0.8;
+}
+
+.system-activity-log.compact-card .view-all-link-small {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  opacity: 0.9;
+}
+
+.system-activity-log.compact-card .view-all-link-small:hover {
+  color: var(--primary-color) !important;
+  opacity: 1;
+}
+
+/* Activity Column Timestamp Styling */
+.activity-time {
+  font-size: 11px !important;
+  color: #9ca3af !important;
+  font-weight: 400;
+}
+
+/* Focus States for Accessibility */
+.action-btn-hero:focus,
+.view-btn-subtle:focus,
+.view-all-link-small:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Box Shadows for Card Depth */
+.superadmin-widget-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.superadmin-widget-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Header User Info Enhancement */
+.header-actions .user-name {
+  font-weight: 600;
+  color: #374151;
+}
+
+.header-actions .user-role {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* Responsive Table Scrolling */
+@media (max-width: 1024px) {
+  .usage-table-container-hero {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .usage-table-container-hero .usage-table {
+    min-width: 800px;
+  }
+}
+
+/* Mobile Three-Column Stack */
+@media (max-width: 768px) {
+  .dashboard-row.row-compact-trio {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+  
+  .compact-col {
+    width: 100%;
+  }
+  
+  /* Maintain readability on mobile */
+  .usage-table-container-hero .usage-table th,
+  .usage-table-container-hero .usage-table td {
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+  }
+  
+  .action-btn-hero {
+    padding: 2px 4px !important;
+    font-size: 9px !important;
+  }
+}
+
+/* Row 2 - Single Widget Layout */
+.dashboard-single-widget {
+  max-width: 1800px;
+  margin: 0 auto 32px auto;
+  padding: 0 20px;
+}
+
+.dashboard-single-widget .widget-pro {
+  max-width: 100%;
+}

@@ -1,0 +1,266 @@
+/* Stat Card Styles for Super Admin Dashboard */
+
+.superadmin-dashboard .stat-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: var(--superadmin-shadow);
+  border: 1px solid #E5E7EB;
+  overflow: hidden;
+  transition: all 0.2s;
+  position: relative;
+  padding: 0; /* no inner padding */
+}
+
+.stat-card:hover {
+  box-shadow: var(--superadmin-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.stat-card.loading {
+  opacity: 0.7;
+}
+
+/* Card Header */
+.superadmin-dashboard .stat-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px; /* more compact header */
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 14px; /* smaller title */
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.superadmin-dashboard .stat-card .card-icon {
+  font-size: 14px; /* smaller icon */
+  opacity: 0.8;
+}
+
+/* Card Content */
+.superadmin-dashboard .stat-card .card-content {
+  padding: 6px; /* ultra-compact content */
+  text-align: center;
+}
+
+.superadmin-dashboard .stat-card .main-stat {
+  font-size: 22px; /* 15% smaller main numbers */
+  font-weight: 800;
+  color: var(--superadmin-dark);
+  margin-bottom: 2px; /* minimal spacing */
+  line-height: 1;
+}
+
+.superadmin-dashboard .stat-card .status-text {
+  font-size: 10px; /* smaller text */
+  color: #6B7280;
+  margin-bottom: 2px; /* minimal spacing */
+  font-weight: 500;
+}
+
+/* Stat Breakdown */
+.superadmin-dashboard .stat-card .stat-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 1px; /* minimal spacing */
+  margin-bottom: 2px; /* minimal margin */
+}
+
+.superadmin-dashboard .stat-card .breakdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px; /* tight gap */
+  font-size: 10px; /* smaller text */
+  font-weight: 500;
+}
+
+.breakdown-item .indicator {
+  width: 6px; /* smaller indicators */
+  height: 6px;
+  border-radius: 50%;
+}
+
+.breakdown-item.active .indicator {
+  background: var(--superadmin-success);
+}
+
+.breakdown-item.inactive .indicator {
+  background: #6B7280;
+}
+
+.breakdown-item.admin .indicator {
+  background: var(--superadmin-primary);
+}
+
+.breakdown-item.regular .indicator {
+  background: var(--superadmin-info);
+}
+
+/* Growth Indicator */
+.superadmin-dashboard .stat-card .growth-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0; /* no gap */
+  font-size: 10px; /* smaller text */
+  font-weight: 600;
+  color: var(--superadmin-success);
+}
+
+.trend-up {
+  font-size: 14px; /* smaller trend icon */
+}
+
+.growth-period {
+  font-size: 10px; /* smaller period text */
+  color: #6B7280;
+  font-weight: 400;
+}
+
+/* Card Variants */
+.stat-card.total-companies {
+  border-left: 4px solid var(--superadmin-primary);
+}
+
+.stat-card.total-companies .main-stat {
+  color: var(--superadmin-primary);
+}
+
+.stat-card.active-companies {
+  border-left: 4px solid var(--superadmin-success);
+}
+
+.stat-card.active-companies .main-stat {
+  color: var(--superadmin-success);
+}
+
+.stat-card.total-users {
+  border-left: 4px solid var(--superadmin-info);
+}
+
+.stat-card.total-users .main-stat {
+  color: var(--superadmin-info);
+}
+
+.stat-card.system-health {
+  border-left: 4px solid var(--superadmin-warning);
+}
+
+.stat-card.system-health .main-stat {
+  color: var(--superadmin-warning);
+}
+
+/* System Health Specific Styles */
+.stat-card.system-health.success {
+  border-left-color: var(--superadmin-success);
+}
+
+.stat-card.system-health.success .main-stat {
+  color: var(--superadmin-success);
+}
+
+.stat-card.system-health.warning {
+  border-left-color: var(--superadmin-warning);
+}
+
+.stat-card.system-health.warning .main-stat {
+  color: var(--superadmin-warning);
+}
+
+.stat-card.system-health.danger {
+  border-left-color: var(--superadmin-danger);
+}
+
+.stat-card.system-health.danger .main-stat {
+  color: var(--superadmin-danger);
+}
+
+.main-status {
+  font-size: 16px; /* smaller status text */
+  font-weight: 700;
+  margin-bottom: 6px; /* tighter margin */
+}
+
+.uptime {
+  font-size: 12px; /* smaller uptime text */
+  color: #6B7280;
+  margin-bottom: 8px; /* tighter margin */
+  font-weight: 500;
+}
+
+.system-breakdown {
+  display: flex;
+  justify-content: space-around;
+  gap: 16px;
+}
+
+.system-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.system-icon {
+  font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card-content {
+    padding: 12px;
+  }
+  
+  .main-stat {
+    font-size: 30px;
+  }
+  
+  .card-header {
+    padding: 10px 12px;
+  }
+  
+  .card-header h3 {
+    font-size: 14px;
+  }
+  
+  .card-icon {
+    font-size: 20px;
+  }
+  
+  .system-breakdown {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Loading States */
+.stat-card.loading .card-content {
+  padding: 48px 24px;
+}
+
+.stat-card.loading .loading-skeleton {
+  height: 48px;
+  margin: 0 auto;
+  max-width: 200px;
+}
+
+/* Hover Effects */
+.stat-card:not(.loading):hover .main-stat {
+  transform: scale(1.05);
+  transition: transform 0.2s;
+}
+
+.stat-card:not(.loading):hover .card-icon {
+  transform: scale(1.1);
+  transition: transform 0.2s;
+}

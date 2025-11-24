@@ -1,0 +1,80 @@
+# :rocket: Unified Cloud Automation Backend - Requirements
+# High-performance FastAPI backend with Azure integration and optimized data processing
+# Updated: November 2025
+# ===== CORE FRAMEWORK =====
+fastapi==0.104.1              # Modern, fast web framework for building APIs
+uvicorn[standard]==0.24.0     # ASGI server with auto-reload and performance features
+gunicorn==21.2.0              # Production WSGI server for FastAPI
+python-multipart==0.0.6       # File upload and form data support
+starlette==0.27.0             # ASGI framework underlying FastAPI
+# ===== DATABASE & ORM =====
+sqlalchemy==2.0.23            # Modern Python SQL toolkit and ORM
+pyodbc>=5.0.0                 # Microsoft SQL Server database connectivity
+# alembic==1.12.1               # Database migration tool for SQLAlchemy
+# ===== AZURE CLOUD SERVICES =====
+azure-storage-blob==12.19.0   # Azure Blob Storage for file management
+azure-identity==1.15.0        # Azure authentication and credential management
+azure-mgmt-sql==3.0.1         # Azure SQL Database management
+# azure-mgmt-resource==23.0.1   # Azure resource management
+# ===== HTTP CLIENTS & API INTEGRATION =====
+aiohttp==3.9.1                # Async HTTP client for GitHub/Jira APIs (PERFORMANCE OPTIMIZED)
+httpx==0.25.2                 # Modern async HTTP client
+requests==2.31.0              # Synchronous HTTP client for compatibility
+# ===== CONFIGURATION & ENVIRONMENT =====
+python-decouple==3.8          # Environment variable management
+python-dotenv==1.0.0          # .env file support
+# ===== SECURITY & AUTHENTICATION =====
+python-jose[cryptography]>=3.3.0  # JWT token handling
+passlib[bcrypt]==1.7.4            # Password hashing
+cryptography>=40.0.0              # Encryption for integration secrets
+bcrypt>=4.0.0
+# ===== DATA PROCESSING & ANALYTICS =====
+pandas>=2.2.0                     # Data manipulation and analysis
+numpy>=1.26.0                     # Numerical computing
+# ===== VALIDATION & SERIALIZATION =====
+pydantic>=2.5.0
+pydantic-settings>=2.1.0        # Settings management with Pydantic
+pydantic[email]>=2.5.0          # optional email validator extra (provides email-validator)
+# ===== DATE & TIME UTILITIES =====
+python-dateutil==2.8.2           # Extended date/time parsing
+pytz==2023.3                      # Timezone handling
+azure-mgmt-costmanagement==4.0.1
+typing-extensions>=4.8.0
+
+# ===== AI & MACHINE LEARNING =====
+# openai>=1.3.0                     # Azure OpenAI integration for AI recommendations
+# ===== CLOUD PROVIDER INTEGRATIONS =====
+# AWS Cloud Cost Analysis
+boto3==1.34.0                     # AWS SDK for Python
+botocore==1.34.0                  # Low-level AWS service access
+# ===== WORKFLOW INTEGRATIONS (GITHUB/JIRA) =====
+# atlassian-python-api==3.41.10     # Jira API client
+# PyGithub==2.1.1                   # GitHub API client (legacy support)
+# jira==3.5.0                       # Additional Jira integration
+# ===== UTILITIES & HELPERS =====
+# click==8.1.7                      # CLI interface creation
+# pyyaml==6.0.1                     # YAML configuration parsing
+# colorama==0.4.6                   # Cross-platform colored terminal output
+# tqdm==4.66.1                      # Progress bars for long operations
+# schedule==1.2.0                   # Task scheduling
+# cachetools==5.3.2                 # Caching utilities
+# chardet==5.2.0                    # Character encoding detection
+# ===== TEMPLATE & DOCUMENTATION =====
+# Jinja2==3.1.2                     # Template engine for reports
+# MarkupSafe==2.1.3                 # Safe string handling for templates
+# openapi-spec-validator==0.7.1     # API documentation validation
+# ===== OPTIONAL INTEGRATIONS =====
+# Email & Notifications
+# sendgrid==6.10.0                  # Email service integration
+# # Error Tracking & Monitoring
+# sentry-sdk[fastapi]==1.38.0       # Application performance monitoring
+# ===== DEVELOPMENT & CODE QUALITY =====
+# Code Formatting & Linting
+# black==23.11.0                    # Python code formatter
+# flake8==6.1.0                     # Style guide enforcement
+# mypy==1.7.1                       # Static type checker
+# isort==5.12.0                     # Import sorting
+# # Testing Framework
+# pytest==7.4.3                     # Testing framework
+# pytest-asyncio==0.21.1            # Async testing support
+# pytest-mock==3.12.0               # Mocking utilities for tests

@@ -1,0 +1,169 @@
+# name: Python application
+
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       reason:
+#         description: "Reason for deployment"
+#         required: false
+#         default: "Basic deploy"
+#       update_settings:
+#         description: "Update App Service settings (only when secrets change)"
+#         type: boolean
+#         required: false
+#         default: false
+
+# env:
+#   AZURE_WEBAPP_NAME: app-makestuffgo-test-001-backend
+#   AZURE_WEBAPP_PACKAGE_PATH: unified_backend
+
+# jobs:
+#   configure:
+#     if: ${{ github.event.inputs.update_settings == 'true' }}
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: azure/login@v2
+#         with:
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#       - name: Set App Service application settings (via Azure CLI)
+#         uses: azure/cli@v1
+#         with:
+#           inlineScript: |
+#             az webapp config appsettings set \
+#               --name ${{ env.AZURE_WEBAPP_NAME }} \
+#               --resource-group rg-makestuffgo-test-001 \
+#               --settings \
+#                 DB_HOST="${{ secrets.DB_HOST }}" \
+#                 DB_NAME="${{ secrets.DB_NAME }}" \
+#                 DB_USER="${{ secrets.DB_USER }}" \
+#                 DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+#                 DB_PORT="1433" \
+#                 DB_ENCRYPT="yes" \
+#                 DB_TRUST_SERVER_CERTIFICATE="no" \
+#                 JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+#                 AZURE_STORAGE_CONNECTION_STRING="${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
+#                 INTEGRATION_ENCRYPTION_KEY="${{ secrets.INTEGRATION_ENCRYPTION_KEY }}" \
+#                 AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+#                 AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+#                 AZURE_OPENAI_DEPLOYMENT_NAME="${{ secrets.AZURE_OPENAI_DEPLOYMENT_NAME }}" \
+#                 AZURE_OPENAI_API_VERSION="${{ secrets.AZURE_OPENAI_API_VERSION }}" \
+#                 AZURE_AI_SEARCH_ENDPOINT="${{ secrets.AZURE_AI_SEARCH_ENDPOINT }}" \
+#                 AZURE_AI_SEARCH_KEY="${{ secrets.AZURE_AI_SEARCH_KEY }}" \
+#                 AZURE_AI_SEARCH_INDEX="${{ secrets.AZURE_AI_SEARCH_INDEX }}" \
+#                 CORS_ORIGINS='["https://app-makestuffgo-test-001-frontend.azurewebsites.net", "http://localhost:3000", "http://localhost:3001"]' \
+#                 LOG_LEVEL="INFO" \
+#                 FASTAPI_HOST="0.0.0.0" \
+#                 FASTAPI_PORT="8000"
+
+#       - name: Wait for SCM restart to complete
+#         run: sleep 60
+
+#       - name: logout
+#         run: az logout
+
+#   deploy:
+#     needs: [configure]
+#     if: always()
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - uses: azure/login@v2
+#         with:
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#       - name: Set up Python 3.x
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: "3.11"
+
+#       - name: Install dependencies
+#         working-directory: unified_backend
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
+
+#       - name: Deploy web App using GH Action azure/webapps-deploy
+#         uses: azure/webapps-deploy@v3
+#         with:
+#           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+#           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+#           startup-command: "gunicorn -k uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 --timeout 600 main:app"
+
+#       - name: logout
+#         run: az logout
+
+name: Python application
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for deployment"
+        required: false
+        default: "Basic deploy"
+
+env:
+  AZURE_WEBAPP_NAME: app-makestuffgo-test-001-backend
+  AZURE_WEBAPP_PACKAGE_PATH: unified_backend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set App Service application settings (via Azure CLI)
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            az webapp config appsettings set \
+              --name ${{ env.AZURE_WEBAPP_NAME }} \
+              --resource-group rg-makestuffgo-test-001 \
+              --settings \
+                DB_HOST="${{ secrets.DB_HOST }}" \
+                DB_NAME="${{ secrets.DB_NAME }}" \
+                DB_USER="${{ secrets.DB_USER }}" \
+                DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+                DB_PORT="1433" \
+                DB_ENCRYPT="yes" \
+                DB_TRUST_SERVER_CERTIFICATE="no" \
+                JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+                AZURE_STORAGE_CONNECTION_STRING="${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
+                INTEGRATION_ENCRYPTION_KEY="${{ secrets.INTEGRATION_ENCRYPTION_KEY }}" \
+                AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+                AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+                AZURE_OPENAI_DEPLOYMENT_NAME="${{ secrets.AZURE_OPENAI_DEPLOYMENT_NAME }}" \
+                AZURE_OPENAI_API_VERSION="${{ secrets.AZURE_OPENAI_API_VERSION }}" \
+                AZURE_AI_SEARCH_ENDPOINT="${{ secrets.AZURE_AI_SEARCH_ENDPOINT }}" \
+                AZURE_AI_SEARCH_KEY="${{ secrets.AZURE_AI_SEARCH_KEY }}" \
+                AZURE_AI_SEARCH_INDEX="${{ secrets.AZURE_AI_SEARCH_INDEX }}" \
+                CORS_ORIGINS='["https://app-makestuffgo-test-001-frontend.azurewebsites.net", "http://localhost:3000", "http://localhost:3001"]' \
+                LOG_LEVEL="INFO" \
+                FASTAPI_HOST="0.0.0.0" \
+                FASTAPI_PORT="8000"
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: unified_backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Deploy web App using GH Action azure/webapps-deploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          startup-command: "gunicorn -k uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 --timeout 600 main:app"
+
+      - name: logout
+        run: az logout

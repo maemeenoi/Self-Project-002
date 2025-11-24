@@ -1,0 +1,100 @@
+/* Professional CEO Dashboard Styles - Blue SaaS Theme */
+
+/* Main Dashboard Grid */
+.ceo-dashboard-grid {
+  display: grid;
+  gap: 24px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+/* Row Layouts */
+.row-1 {
+  grid-template-columns: 1fr;
+}
+
+.row-2,
+.row-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.row-3 {
+  grid-template-columns: 1fr;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .ceo-dashboard-grid {
+    gap: 20px;
+    padding: 0 20px;
+  }
+  
+  .row-2,
+  .row-4 {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Mobile (<768px) */
+@media (max-width: 767px) {
+  .ceo-dashboard-grid {
+    gap: 16px;
+    padding: 0 16px;
+  }
+  
+  .row-2,
+  .row-4 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Large Desktop (≥1400px) */
+@media (min-width: 1400px) {
+  .ceo-dashboard-grid {
+    gap: 32px;
+  }
+  
+  .row-2,
+  .row-4 {
+    gap: 32px;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  .ceo-dashboard-grid {
+    gap: 16px;
+  }
+  
+  .ceo-card-pro {
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+    break-inside: avoid;
+  }
+  
+  .row-2,
+  .row-4 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .ceo-header-pro {
+    display: none;
+  }
+  
+  .ceo-footer-pro {
+    display: none;
+  }
+}
