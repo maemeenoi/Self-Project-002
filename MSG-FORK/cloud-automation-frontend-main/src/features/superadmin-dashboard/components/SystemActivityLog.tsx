@@ -100,7 +100,7 @@ function SystemActivityLog({ data }: SystemActivityLogProps) {
     return severityMap[severity.toLowerCase()] || 'severity-info';
   };
 
-  const displayData = data.slice(0, 5);
+  const displayData = Array.isArray(data) ? data.slice(0, 5) : [];
 
   return (
     <div className="widget-pro activity-log-pro">
@@ -152,7 +152,7 @@ function SystemActivityLog({ data }: SystemActivityLogProps) {
         )}
 
         {/* Footer */}
-        {data.length > 5 && (
+        {Array.isArray(data) && data.length > 5 && (
           <div className="widget-pro-footer">
             <button 
               className="view-all-btn-pro"

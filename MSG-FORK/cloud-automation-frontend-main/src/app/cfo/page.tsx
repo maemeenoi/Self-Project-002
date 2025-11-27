@@ -1,15 +1,18 @@
 'use client';
 
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { ExecutiveRoute } from '@/components/ExecutiveRoute';
 import SimpleLayout from '@/components/layout/SimpleLayout';
-import CFODashboard from '@/components/cfo/CFODashboard';
+import { BusinessExecutiveDashboard } from '@/components/BusinessExecutiveDashboard';
 
 export default function CFOPage() {
   return (
-    <ProtectedRoute requiredRoles={['CFO', 'Client Admin']}>
-      <SimpleLayout title="CFO Dashboard" subtitle="Financial insights and cost management">
-        <CFODashboard />
+    <ExecutiveRoute requiredRoles={['CFO']}>
+      <SimpleLayout 
+        title="CFO Dashboard" 
+        subtitle="Strategic Financial Intelligence & Executive Overview"
+      >
+        <BusinessExecutiveDashboard />
       </SimpleLayout>
-    </ProtectedRoute>
+    </ExecutiveRoute>
   );
 }

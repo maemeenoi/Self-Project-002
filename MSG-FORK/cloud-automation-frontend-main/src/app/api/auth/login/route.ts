@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Forward to backend authentication API
     console.log("Trying to login with:", email)
     const backendResponse = await fetch(
-      "https://app-makestuffgo-test-001-backend.azurewebsites.net/api/auth/login",
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
       {
         method: "POST",
         headers: {

@@ -62,9 +62,9 @@ function EditCompanyModal({ company, onClose, onSuccess }: EditCompanyModalProps
     try {
       setAdminLoading(true);
       console.log('🔍 Fetching admin info for company ID:', company.company_id);
-      const admin = await superAdminApi.getCompanyAdmin(company.company_id) as AdminInfo;
+      const admin = await superAdminApi.getCompanyAdmin(company.company_id);
       console.log('✅ Admin info received:', admin);
-      setAdminInfo(admin);
+      setAdminInfo(admin as AdminInfo);
     } catch (err: any) {
       console.error('❌ Admin info fetch failed:', err);
       console.warn('Admin info not found:', err.message);
@@ -236,6 +236,13 @@ function EditCompanyModal({ company, onClose, onSuccess }: EditCompanyModalProps
                     <label>Full Name</label>
                     <div className="admin-value">
                       {adminInfo.first_name} {adminInfo.middle_name ? adminInfo.middle_name + ' ' : ''}{adminInfo.last_name}
+                    </div>
+                  </div>
+                  
+                  <div className="admin-detail">
+                    <label>Role</label>
+                    <div className="admin-value">
+                      <span className="role-badge">Client Admin</span>
                     </div>
                   </div>
                   

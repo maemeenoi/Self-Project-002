@@ -351,13 +351,10 @@ class UserRole(Base):
     
     UserID = Column(Integer, ForeignKey("UserAccount.UserID"), primary_key=True)
     RoleID = Column(Integer, ForeignKey("Role.RoleID"), primary_key=True)
-    AssignedAt = Column(DateTime, default=func.now(), nullable=False)
-    AssignedBy = Column(Integer, ForeignKey("UserAccount.UserID"), nullable=True)
     
     # Relationships
     user = relationship("UserAccount", back_populates="roles", foreign_keys=[UserID])
     role = relationship("Role", back_populates="users")
-    assigned_by_user = relationship("UserAccount", foreign_keys=[AssignedBy])
 
 
 class RolePermission(Base):

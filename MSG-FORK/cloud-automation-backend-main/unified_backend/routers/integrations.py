@@ -30,16 +30,16 @@ from models.integration import (
     IntegrationCreate, IntegrationUpdate, IntegrationResponse, 
     IntegrationWithSecrets, IntegrationType
 )
-from services.integration_service import IntegrationService
+from services.integrations.integration_service import IntegrationService
 
 # Services
-from services.azure_storage import UnifiedAzureBlobStorage
-from services.github_service import GitHubService
-from services.jira_service import JiraService
-from services.data_ingestion_service import DataIngestionService
-from services.aws_service import AWSService
-from services.azure_cost_service import AzureService
-from services.gcp_service import GCPService
+from services.cloud.azure_storage import UnifiedAzureBlobStorage
+from services.integrations.github_service import GitHubService
+from services.integrations.jira_service import JiraService
+from services.automation.data_ingestion_service import DataIngestionService
+from services.cloud.aws_service import AWSService
+from services.cloud.azure_cost_service import AzureService
+from services.cloud.gcp_service import GCPService
 
 # Environment config
 from decouple import config

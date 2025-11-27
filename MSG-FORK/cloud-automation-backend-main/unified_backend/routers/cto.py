@@ -26,7 +26,7 @@ security = HTTPBearer()
 from utils.auth import get_current_company
 
 # Import cloud service
-from services.cloud_api_service import (
+from services.cloud.cloud_api_service import (
     fetch_azure_forecast_data,
     fetch_azure_recommendations, 
     fetch_aws_forecast_and_recommendations
@@ -131,7 +131,7 @@ async def generate_forecast_for_company(company_id: int, forecast_request: "Fore
 async def get_integration_credentials(company_id: int, provider: str):
     """Get integration credentials for a specific provider from the database"""
     try:
-        from services.integration_service import IntegrationService
+        from services.integrations.integration_service import IntegrationService
         from models.integration import IntegrationType
         
         service = IntegrationService()
@@ -191,7 +191,7 @@ async def generate_ai_recommendations(cost_data: List[Dict[str, Any]], daily_cos
     """Generate AI recommendations using Azure OpenAI based on real cloud cost data analysis"""
     try:
         # Import Azure OpenAI service
-        from services.azure_openai_service import azure_openai_service
+        from services.ai.azure_openai_service import azure_openai_service
         
         # Convert DailyCosts to dict for AI service
         daily_costs_dict = {
@@ -783,7 +783,7 @@ def generate_terraform_with_azure_openai(recommendation: Dict[str, Any], cost_su
     """Generate Terraform code using Azure OpenAI based on a cost recommendation"""
     try:
         # Import Azure OpenAI service
-        from services.azure_openai_service import azure_openai_service
+        from services.ai.azure_openai_service import azure_openai_service
         from decouple import config
         
         # Get Azure OpenAI configuration

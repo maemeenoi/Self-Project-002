@@ -25,14 +25,26 @@ const getDashboardPath = (userRole?: string): string => {
     case 'CTO':
       return '/cto'
     case 'CFO':
-      return '/cfo' 
+      return '/cfo'
+    case 'CIO':
+      console.log('Matched CIO, returning /cio')
+      return '/cio'
+    case 'CISO':
+      console.log('Matched CISO, returning /ciso')
+      return '/ciso'
+    case 'Delivery Executive':
+      console.log('Matched Delivery Executive, returning /delivery-executive')
+      return '/delivery-executive'
     case 'Engineer':
       return '/engineer'
     case 'Product Owner':
       return '/product-owner'
+    case 'UNKNOWN':
+      console.log('Unknown role detected, redirecting to role assignment page')
+      return '/role-assignment-needed'
     default:
-      console.log('No match found for role:', userRole, 'returning /dashboard')
-      return '/dashboard' // Safe fallback for users with unrecognized roles
+      console.log('No match found for role:', userRole, 'returning /role-assignment-needed for security')
+      return '/role-assignment-needed' // Secure fallback - unknown roles need proper assignment
   }
 }
 

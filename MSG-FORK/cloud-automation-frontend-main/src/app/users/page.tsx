@@ -6,7 +6,7 @@ import WidgetPermissionManager from '@/components/admin/WidgetPermissionManager'
 import { UserWithWidgets } from '@/lib/widgetUtils'
 
 // Import API URL from environment config
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 // Simple API helper
 const api = {
@@ -32,6 +32,11 @@ const api = {
     })
     return response.json()
   }
+}
+
+interface Role {
+  role_id: number
+  name: string
 }
 
 interface User {
@@ -255,6 +260,15 @@ function UserActionsDropdown({ user, onEdit, onManageWidgets, onResetPassword, o
 function UserModal({ user, isOpen, onClose, onSave }: UserModalProps) {
   const [formData, setFormData] = useState<User | null>(user)
   const [isSaving, setIsSaving] = useState(false)
+  const [roles, setRoles] = useState<Role[]>([])
+  const [rolesLoading, setRolesLoading] = useState(false)
+
+  // Load roles when component mounts or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      loadRoles()
+    }
+  }, [isOpen])
 
   // Update form data when user prop changes
   useEffect(() => {
@@ -262,6 +276,42 @@ function UserModal({ user, isOpen, onClose, onSave }: UserModalProps) {
       setFormData(user)
     }
   }, [user])
+
+  const loadRoles = async () => {
+    try {
+      setRolesLoading(true)
+      const response = await fetch(`${API_URL}/api/admin/roles`)
+      if (response.ok) {
+        const rolesData = await response.json()
+        setRoles(rolesData || [])
+      } else {
+        // Fallback roles if API fails
+        setRoles([
+          { role_id: 1, name: 'User' },
+          { role_id: 2, name: 'Client Admin' },
+          { role_id: 3, name: 'CEO' },
+          { role_id: 4, name: 'CTO' },
+          { role_id: 5, name: 'CFO' },
+          { role_id: 6, name: 'Product Owner' },
+          { role_id: 7, name: 'Engineer' }
+        ])
+      }
+    } catch (error) {
+      console.error('Failed to load roles:', error)
+      // Fallback roles on error
+      setRoles([
+        { role_id: 1, name: 'User' },
+        { role_id: 2, name: 'Client Admin' },
+        { role_id: 3, name: 'CEO' },
+        { role_id: 4, name: 'CTO' },
+        { role_id: 5, name: 'CFO' },
+        { role_id: 6, name: 'Product Owner' },
+        { role_id: 7, name: 'Engineer' }
+      ])
+    } finally {
+      setRolesLoading(false)
+    }
+  }
 
   if (!isOpen || !user) return null
 
@@ -337,11 +387,14 @@ function UserModal({ user, isOpen, onClose, onSave }: UserModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Edit User</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900">Edit User</h3>
+            <p className="text-sm text-gray-600 mt-1">Update user information and account settings</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -349,69 +402,207 @@ function UserModal({ user, isOpen, onClose, onSave }: UserModalProps) {
         </div>
         
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              value={formData?.name || ''}
-              onChange={(e) => setFormData(prev => prev ? {...prev, name: e.target.value} : null)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+          {/* Personal Information Section */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="text-md font-semibold text-gray-900 mb-3">Personal Information</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                <input
+                  type="text"
+                  value={formData?.name ? formData.name.split(' ')[0] : ''}
+                  onChange={(e) => {
+                    const nameParts = formData?.name?.split(' ') || [''];
+                    const newName = [e.target.value, ...nameParts.slice(1)].join(' ').trim();
+                    setFormData(prev => prev ? {...prev, name: newName} : null);
+                  }}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="John"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+                <input
+                  type="text"
+                  value={formData?.name ? formData.name.split(' ').slice(1, -1).join(' ') : ''}
+                  onChange={(e) => {
+                    const nameParts = formData?.name?.split(' ') || ['', ''];
+                    const firstName = nameParts[0] || '';
+                    const lastName = nameParts[nameParts.length - 1] || '';
+                    const middleName = e.target.value;
+                    const newName = [firstName, middleName, lastName].filter(part => part.trim()).join(' ');
+                    setFormData(prev => prev ? {...prev, name: newName} : null);
+                  }}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Optional"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                <input
+                  type="text"
+                  value={formData?.name ? (() => {
+                    const nameParts = formData.name.split(' ');
+                    return nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+                  })() : ''}
+                  onChange={(e) => {
+                    const nameParts = formData?.name?.split(' ') || [''];
+                    const firstName = nameParts[0] || '';
+                    const middleParts = nameParts.slice(1, -1);
+                    const newName = [firstName, ...middleParts, e.target.value].filter(part => part.trim()).join(' ');
+                    setFormData(prev => prev ? {...prev, name: newName} : null);
+                  }}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Doe"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+              <input
+                type="email"
+                value={formData?.email || ''}
+                onChange={(e) => setFormData(prev => prev ? {...prev, email: e.target.value} : null)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="john.doe@company.com"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  value={formData?.phone || ''}
+                  onChange={(e) => setFormData(prev => prev ? {...prev, phone: e.target.value} : null)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="+44 20 7946 0958"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <input
+                  type="text"
+                  value={formData?.location || ''}
+                  onChange={(e) => setFormData(prev => prev ? {...prev, location: e.target.value} : null)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="London, UK"
+                />
+              </div>
+            </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={formData?.email || ''}
-              onChange={(e) => setFormData(prev => prev ? {...prev, email: e.target.value} : null)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+
+          {/* Work Information Section */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="text-md font-semibold text-gray-900 mb-3">Work Information</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                <select
+                  value={formData?.role || ''}
+                  onChange={(e) => setFormData(prev => prev ? {...prev, role: e.target.value} : null)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={rolesLoading}
+                >
+                  <option value="">{rolesLoading ? 'Loading roles...' : 'Select Role'}</option>
+                  {roles.map(role => (
+                    <option key={role.role_id} value={role.name}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+                {rolesLoading && (
+                  <small className="text-gray-500 text-xs mt-1">Loading available roles...</small>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <select
+                  value={formData?.department || ''}
+                  onChange={(e) => setFormData(prev => prev ? {...prev, department: e.target.value} : null)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Department</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Executive">Executive</option>
+                  <option value="Product">Product</option>
+                  <option value="HR">Human Resources</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Operations">Operations</option>
+                  <option value="Legal">Legal</option>
+                  <option value="Customer Success">Customer Success</option>
+                </select>
+              </div>
+            </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              value={formData?.role || ''}
-              onChange={(e) => setFormData(prev => prev ? {...prev, role: e.target.value} : null)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="Client Admin">Client Admin</option>
-              <option value="CEO">CEO</option>
-              <option value="CTO">CTO</option>
-              <option value="CFO">CFO</option>
-              <option value="Product Owner">Product Owner</option>
-              <option value="Engineer">Engineer</option>
-            </select>
+
+          {/* Account Status & Information Section */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="text-md font-semibold text-gray-900 mb-3">Account Status & Information</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Account Status</label>
+                <select
+                  value={formData?.status || ''}
+                  onChange={(e) => setFormData(prev => prev ? {...prev, status: e.target.value as 'active' | 'inactive'} : null)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="active">✅ Active</option>
+                  <option value="inactive">❌ Inactive</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Last Sign In</label>
+                <input
+                  type="text"
+                  value={formData?.lastSignIn || 'Never'}
+                  disabled
+                  className="w-full p-2 border border-gray-200 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                />
+                <small className="text-gray-500 text-xs mt-1">Read-only: Updated automatically on login</small>
+              </div>
+            </div>
+            
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
+              <input
+                type="text"
+                value={formData?.joinDate || 'Not available'}
+                disabled
+                className="w-full p-2 border border-gray-200 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+              />
+              <small className="text-gray-500 text-xs mt-1">Read-only: Account creation date</small>
+            </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-            <select
-              value={formData?.department || ''}
-              onChange={(e) => setFormData(prev => prev ? {...prev, department: e.target.value} : null)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="Engineering">Engineering</option>
-              <option value="Finance">Finance</option>
-              <option value="Executive">Executive</option>
-              <option value="Product">Product</option>
-              <option value="HR">HR</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Sales">Sales</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
-              value={formData?.status || ''}
-              onChange={(e) => setFormData(prev => prev ? {...prev, status: e.target.value as 'active' | 'inactive'} : null)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+
+          {/* Additional Notes Section */}
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div className="flex items-start space-x-2">
+              <div className="flex-shrink-0">
+                <svg className="w-5 h-5 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h5 className="text-sm font-medium text-blue-900 mb-1">Important Notes</h5>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Email changes may require the user to re-verify their account</li>
+                  <li>• Role changes will affect user permissions immediately</li>
+                  <li>• Deactivating a user will prevent them from logging in</li>
+                  <li>• Contact IT support for password reset requests</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -449,6 +640,51 @@ function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalProps) {
     isActive: true,
     selectedGroups: [] as string[]
   })
+  const [roles, setRoles] = useState<Role[]>([])
+  const [rolesLoading, setRolesLoading] = useState(false)
+
+  // Load roles when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      loadRoles()
+    }
+  }, [isOpen])
+
+  const loadRoles = async () => {
+    try {
+      setRolesLoading(true)
+      const response = await fetch(`${API_URL}/api/admin/roles`)
+      if (response.ok) {
+        const rolesData = await response.json()
+        setRoles(rolesData || [])
+      } else {
+        // Fallback roles if API fails
+        setRoles([
+          { role_id: 1, name: 'User' },
+          { role_id: 2, name: 'Client Admin' },
+          { role_id: 3, name: 'CEO' },
+          { role_id: 4, name: 'CTO' },
+          { role_id: 5, name: 'CFO' },
+          { role_id: 6, name: 'Product Owner' },
+          { role_id: 7, name: 'Engineer' }
+        ])
+      }
+    } catch (error) {
+      console.error('Failed to load roles:', error)
+      // Fallback roles on error
+      setRoles([
+        { role_id: 1, name: 'User' },
+        { role_id: 2, name: 'Client Admin' },
+        { role_id: 3, name: 'CEO' },
+        { role_id: 4, name: 'CTO' },
+        { role_id: 5, name: 'CFO' },
+        { role_id: 6, name: 'Product Owner' },
+        { role_id: 7, name: 'Engineer' }
+      ])
+    } finally {
+      setRolesLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -649,15 +885,18 @@ function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalProps) {
                 value={formData.role}
                 onChange={(e) => setFormData(prev => ({...prev, role: e.target.value}))}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={rolesLoading}
               >
-                <option value="">Select Role</option>
-                <option value="Client Admin">Client Admin</option>
-                <option value="CEO">CEO</option>
-                <option value="CTO">CTO</option>
-                <option value="CFO">CFO</option>
-                <option value="Product Owner">Product Owner</option>
-                <option value="Engineer">Engineer</option>
+                <option value="">{rolesLoading ? 'Loading roles...' : 'Select Role'}</option>
+                {roles.map(role => (
+                  <option key={role.role_id} value={role.name}>
+                    {role.name}
+                  </option>
+                ))}
               </select>
+              {rolesLoading && (
+                <small className="text-gray-500 text-xs mt-1">Loading available roles...</small>
+              )}
             </div>
             
             <div>
@@ -746,6 +985,8 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [roles, setRoles] = useState<Role[]>([])
+  const [rolesLoading, setRolesLoading] = useState(false)
 
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
   const [sortConfig, setSortConfig] = useState<{key: keyof User, direction: 'asc' | 'desc'} | null>(null)
@@ -766,6 +1007,7 @@ export default function UsersPage() {
   // Load users from API on component mount
   useEffect(() => {
     loadUsers()
+    loadRoles()
   }, [])
 
   // Update selectedUser when users array changes (for widget permissions updates)
@@ -819,6 +1061,21 @@ export default function UsersPage() {
       const backendUsers = await response.json()
       console.log('Backend users response:', backendUsers)
       
+      // Helper function to format date in British format (DD/MM/YYYY)
+      const formatBritishDate = (dateString: string | null) => {
+        if (!dateString) return 'Never';
+        try {
+          const date = new Date(dateString);
+          return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+        } catch (error) {
+          return 'Invalid Date';
+        }
+      };
+
       // Transform backend users to frontend format
       const transformedUsers: User[] = backendUsers.map((user: any) => ({
         id: user.user_id.toString(),
@@ -829,8 +1086,8 @@ export default function UsersPage() {
         status: user.is_active ? 'active' : 'inactive',
         phone: user.phone || '',
         location: user.location || '',
-        lastSignIn: user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'Never',
-        joinDate: user.created_at ? new Date(user.created_at).toLocaleDateString() : '',
+        lastSignIn: formatBritishDate(user.last_sign_in_at),
+        joinDate: formatBritishDate(user.created_at),
         userGroups: [],
         widgetOverrides: []
       }))
@@ -843,6 +1100,44 @@ export default function UsersPage() {
       setError('Failed to load users. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Load roles from backend
+  const loadRoles = async () => {
+    try {
+      setRolesLoading(true)
+      const response = await fetch(`${API_URL}/api/admin/roles`)
+      if (response.ok) {
+        const rolesData = await response.json()
+        setRoles(rolesData || [])
+      } else {
+        console.error('Failed to fetch roles, using fallback')
+        // Fallback roles if API fails
+        setRoles([
+          { role_id: 1, name: 'User' },
+          { role_id: 2, name: 'Client Admin' },
+          { role_id: 3, name: 'CEO' },
+          { role_id: 4, name: 'CTO' },
+          { role_id: 5, name: 'CFO' },
+          { role_id: 6, name: 'Product Owner' },
+          { role_id: 7, name: 'Engineer' }
+        ])
+      }
+    } catch (error) {
+      console.error('Failed to load roles:', error)
+      // Fallback roles on error
+      setRoles([
+        { role_id: 1, name: 'User' },
+        { role_id: 2, name: 'Client Admin' },
+        { role_id: 3, name: 'CEO' },
+        { role_id: 4, name: 'CTO' },
+        { role_id: 5, name: 'CFO' },
+        { role_id: 6, name: 'Product Owner' },
+        { role_id: 7, name: 'Engineer' }
+      ])
+    } finally {
+      setRolesLoading(false)
     }
   }
 
@@ -1211,14 +1506,14 @@ export default function UsersPage() {
                 value={filters.role}
                 onChange={(e) => setFilters(prev => ({...prev, role: e.target.value}))}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={rolesLoading}
               >
-                <option value="">All Roles</option>
-                <option value="Client Admin">Client Admin</option>
-                <option value="CEO">CEO</option>
-                <option value="CTO">CTO</option>
-                <option value="CFO">CFO</option>
-                <option value="Product Owner">Product Owner</option>
-                <option value="Engineer">Engineer</option>
+                <option value="">{rolesLoading ? 'Loading...' : 'All Roles'}</option>
+                {roles.map(role => (
+                  <option key={role.role_id} value={role.name}>
+                    {role.name}
+                  </option>
+                ))}
               </select>
             </div>
             

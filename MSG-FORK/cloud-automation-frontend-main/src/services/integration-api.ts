@@ -101,8 +101,8 @@ export interface IntegrationStatus {
 class IntegrationApiService {
   private readonly baseUrl = "/api/integrations/managed"
   private readonly backendUrl =
-    process.env.NEXT_PUBLIC_NEXT_PUBLIC_BACKEND_URL ||
-    "https://app-makestuffgo-test-001-backend.azurewebsites.net"
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+    // "https://app-makestuffgo-test-001-backend.azurewebsites.net" 
 
   private getAuthHeaders() {
     const token = localStorage.getItem("auth_token")

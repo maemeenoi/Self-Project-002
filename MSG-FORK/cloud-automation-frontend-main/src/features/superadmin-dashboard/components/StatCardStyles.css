@@ -1,0 +1,65 @@
+/* =================================
+   STAT CARD BREAKDOWN STYLES
+   ================================= */
+
+.stat-breakdown-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.stat-breakdown-mini span {
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* System Health Card Specific Styles */
+.system-health-details {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.health-status-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #10B981;
+}
+
+.health-services {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.health-services span {
+  font-size: 10px;
+  color: #6B7280;
+  font-weight: 500;
+  background: #F3F4F6;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* Status color variants for system health icons */
+.cm-stat-icon.success {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.cm-stat-icon.warning {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.cm-stat-icon.danger {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.cm-stat-icon.orange {
+  background-color: #fed7aa;
+  color: #ea580c;
+}

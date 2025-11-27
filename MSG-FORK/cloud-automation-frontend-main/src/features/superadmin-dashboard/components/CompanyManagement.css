@@ -160,6 +160,11 @@
   color: #16a34a;
 }
 
+.cm-stat-icon.orange {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
 .cm-stat-icon.purple {
   background: #faf5ff;
   color: #9333ea;
@@ -279,6 +284,17 @@
   font-weight: 500;
 }
 
+.cm-admin-role {
+  font-size: 12px;
+  color: #059669;
+  font-weight: 600;
+  background: #d1fae5;
+  padding: 2px 6px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+
 .cm-admin-email {
   font-size: 12px;
   color: #6b7280;
@@ -370,16 +386,30 @@
   background: #fef2f2;
 }
 
+.cm-btn-deactivate {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: #fef2f2;
+}
+
 .cm-btn-deactivate:hover {
-  border-color: #f59e0b;
-  color: #f59e0b;
-  background: #fffbeb;
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #fee2e2;
+  transform: translateY(-1px);
+}
+
+.cm-btn-activate {
+  border-color: #22c55e;
+  color: #22c55e;
+  background: #f0fdf4;
 }
 
 .cm-btn-activate:hover {
   border-color: #16a34a;
   color: #16a34a;
-  background: #f0fdf4;
+  background: #dcfce7;
+  transform: translateY(-1px);
 }
 
 /* Empty State */

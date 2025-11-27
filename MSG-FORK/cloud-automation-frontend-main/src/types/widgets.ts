@@ -32,7 +32,70 @@ export interface UserWidgetAccess {
 
 // Widget definitions with their required permissions
 export const WIDGET_PERMISSIONS: Record<string, WidgetPermission> = {
-  // Executive Widgets
+  // ==========================================
+  // BUSINESS EXECUTIVE WIDGETS (DRS)
+  // ==========================================
+  'revenue-impact': {
+    permission: 'executive.revenue.view',
+    name: 'Revenue Impact',
+    description: 'Cloud-enabled revenue and growth metrics ($8.4M, +32%)',
+    defaultRoles: ['CEO', 'CFO']
+  },
+  'time-to-market': {
+    permission: 'executive.delivery.view', 
+    name: 'Time to Market',
+    description: 'Product launch speed improvement vs legacy (45% faster)',
+    defaultRoles: ['CEO', 'CTO', 'Product Owner'],
+    optionalFor: ['CFO']
+  },
+  'operating-efficiency': {
+    permission: 'executive.efficiency.view',
+    name: 'Operating Efficiency', 
+    description: 'Cost reduction through cloud optimization (28% with +15% improvement)',
+    defaultRoles: ['CEO', 'CFO', 'CTO']
+  },
+  'market-agility': {
+    permission: 'executive.agility.view',
+    name: 'Market Agility',
+    description: 'Ability to respond to market changes as a score (9.1/10, +2.3)',
+    defaultRoles: ['CEO', 'CTO', 'Product Owner']
+  },
+  'strategic-initiatives': {
+    permission: 'executive.initiatives.view',
+    name: 'Strategic Cloud Initiatives',
+    description: 'Key initiatives progress, value, and timeline tracking',
+    defaultRoles: ['CEO', 'CTO', 'CFO'],
+    optionalFor: ['Product Owner']
+  },
+  'financial-impact': {
+    permission: 'executive.roi.view', 
+    name: 'Financial Impact Summary',
+    description: 'Total business value, 3-year ROI, payback period, annual savings',
+    defaultRoles: ['CEO', 'CFO'],
+    optionalFor: ['CTO']
+  },
+  'competitive-advantages': {
+    permission: 'executive.advantages.view',
+    name: 'Competitive Advantages',
+    description: 'Innovation speed, global scale, data-driven decisions, cost flexibility',
+    defaultRoles: ['CEO', 'CTO']
+  },
+  'risk-mitigation': {
+    permission: 'executive.risk.view',
+    name: 'Business Risk Mitigation', 
+    description: 'Risk mitigation through cloud: continuity, security, compliance, obsolescence',
+    defaultRoles: ['CEO', 'CTO', 'CFO']
+  },
+  'transformation-impact': {
+    permission: 'executive.transformation.view',
+    name: 'Business Transformation Impact',
+    description: 'Speed to market, global reach (15 regions), cost optimization (28% savings)',
+    defaultRoles: ['CEO', 'CTO', 'CFO']
+  },
+
+  // ==========================================
+  // EXISTING EXECUTIVE WIDGETS  
+  // ==========================================
   'executive-summary': {
     permission: 'dashboard.executive.view',
     name: 'Executive Summary Dashboard',
@@ -190,7 +253,7 @@ export const WIDGET_PERMISSIONS: Record<string, WidgetPermission> = {
   }
 }
 
-// Role-based widget configuration
+// Role-based widget configuration  
 export const ROLE_WIDGETS: Record<string, RoleWidgets> = {
   'Admin': {
     default: [
@@ -209,10 +272,19 @@ export const ROLE_WIDGETS: Record<string, RoleWidgets> = {
   
   'CEO': {
     default: [
+      // DRS Executive Dashboard
+      'revenue-impact',
+      'time-to-market', 
+      'operating-efficiency',
+      'market-agility',
+      'strategic-initiatives',
+      'financial-impact',
+      'competitive-advantages',
+      'risk-mitigation',
+      'transformation-impact',
+      // Existing
       'executive-summary',
-      'company-kpis',
-      'revenue-tracking',
-      'customer-health'
+      'company-kpis'
     ],
     optional: [
       'cost-analysis',
@@ -220,29 +292,45 @@ export const ROLE_WIDGETS: Record<string, RoleWidgets> = {
       'sales-pipeline',
       'roadmap-timeline',
       'deployment-success',
-      'budget-overview'
+      'budget-overview',
+      'revenue-tracking',
+      'customer-health'
     ]
   },
   
-  'PO': {
+  'CFO': {
     default: [
-      'deployment-metrics',
-      'epic-progress',
-      'story-velocity',
-      'release-pipeline',
-      'feature-requests'
+      // DRS Financial Focus
+      'revenue-impact',
+      'operating-efficiency', 
+      'financial-impact',
+      'risk-mitigation',
+      'transformation-impact',
+      // Existing Financial
+      'cost-analysis',
+      'budget-overview',
+      'revenue-tracking',
+      'expense-reports'
     ],
     optional: [
-      'story-flow',
-      'roadmap-timeline',
-      'budget-overview',
-      'team-velocity',
-      'customer-health'
+      'company-kpis',
+      'executive-summary',
+      'strategic-initiatives',
+      'time-to-market'
     ]
   },
   
   'CTO': {
     default: [
+      // DRS Technical & Strategic Focus
+      'time-to-market',
+      'operating-efficiency',
+      'market-agility', 
+      'strategic-initiatives',
+      'competitive-advantages',
+      'risk-mitigation',
+      'transformation-impact',
+      // Existing Technical
       'deployment-success',
       'code-quality',
       'team-velocity',
@@ -251,7 +339,31 @@ export const ROLE_WIDGETS: Record<string, RoleWidgets> = {
     optional: [
       'cost-analysis',
       'roadmap-timeline',
-      'company-kpis'
+      'company-kpis',
+      'revenue-impact',
+      'financial-impact'
+    ]
+  },
+  
+  'Product Owner': {
+    default: [
+      // DRS Product & Market Focus  
+      'time-to-market',
+      'market-agility',
+      // Existing Product
+      'deployment-metrics',
+      'epic-progress',
+      'story-velocity',
+      'release-pipeline',
+      'feature-requests'
+    ],
+    optional: [
+      'strategic-initiatives',
+      'story-flow',
+      'roadmap-timeline',
+      'budget-overview',
+      'team-velocity',
+      'customer-health'
     ]
   },
   
@@ -264,20 +376,8 @@ export const ROLE_WIDGETS: Record<string, RoleWidgets> = {
     ],
     optional: [
       'team-velocity',
-      'code-quality'
-    ]
-  },
-  
-  'CFO': {
-    default: [
-      'cost-analysis',
-      'budget-overview',
-      'revenue-tracking',
-      'expense-reports'
-    ],
-    optional: [
-      'company-kpis',
-      'executive-summary'
+      'code-quality',
+      'time-to-market' // Can see delivery metrics
     ]
   },
   
@@ -296,7 +396,7 @@ export const ROLE_WIDGETS: Record<string, RoleWidgets> = {
 
 // Widget categories for organization
 export const WIDGET_CATEGORIES = {
-  'executive': 'Executive',
+  'executive': 'Business Executive (DRS)',
   'product': 'Product Management',
   'engineering': 'Engineering',
   'finance': 'Finance',
@@ -306,6 +406,12 @@ export const WIDGET_CATEGORIES = {
 
 // Get widget category from widget ID
 export const getWidgetCategory = (widgetId: string): string => {
+  // DRS Executive widgets
+  if (['revenue-impact', 'time-to-market', 'operating-efficiency', 'market-agility', 
+       'strategic-initiatives', 'financial-impact', 'competitive-advantages', 
+       'risk-mitigation', 'transformation-impact'].includes(widgetId)) return 'executive'
+  
+  // Legacy executive widgets
   if (widgetId.startsWith('executive-') || widgetId.startsWith('company-')) return 'executive'
   if (widgetId.startsWith('deployment-metrics') || widgetId.startsWith('epic-') || widgetId.startsWith('story-') || widgetId.startsWith('roadmap-') || widgetId.startsWith('feature-') || widgetId.startsWith('release-')) return 'product'
   if (widgetId.startsWith('deployment-') || widgetId.startsWith('code-') || widgetId.startsWith('team-') || widgetId.startsWith('build-')) return 'engineering'

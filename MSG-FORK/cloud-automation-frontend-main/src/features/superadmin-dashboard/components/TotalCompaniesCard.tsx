@@ -2,6 +2,7 @@
 
 import React from 'react';
 import './StatCard.css';
+import './StatCardStyles.css';
 
 interface TotalCompaniesData {
   total_companies: number;
@@ -15,48 +16,29 @@ interface TotalCompaniesCardProps {
 }
 
 function TotalCompaniesCard({ data }: TotalCompaniesCardProps) {
-  if (!data) {
-    return (
-      <div className="stat-card total-companies loading">
-        <div className="card-header">
-          <h3>Total Companies</h3>
-          <span className="card-icon">🏢</span>
-        </div>
-        <div className="card-content">
-          <div className="loading-skeleton">Loading...</div>
-        </div>
-      </div>
-    );
-  }
+  // Mock data if no data provided
+  const mockData = {
+    total_companies: 0,
+    active_companies: 0,
+    inactive_companies: 0,
+    growth_this_month: 0
+  };
 
-  const { total_companies, active_companies, inactive_companies, growth_this_month } = data;
+  const companiesData = data || mockData;
+  const { total_companies, active_companies, inactive_companies, growth_this_month } = companiesData;
 
   return (
-    <div className="stat-card total-companies">
-      <div className="card-header">
-        <h3>Total Companies</h3>
-        <span className="card-icon">🏢</span>
+    <div className="cm-stat-card">
+      <div className="cm-stat-icon blue">
+        <span style={{fontSize: '20px'}}>🏢</span>
       </div>
-      <div className="card-content">
-        <div className="main-stat">
-          {total_companies?.toLocaleString() || '0'}
+      <div className="cm-stat-content">
+        <p className="cm-stat-label">Total Companies</p>
+        <p className="cm-stat-value">{total_companies?.toLocaleString() || '0'}</p>
+        <div className="stat-breakdown-mini">
+          <span style={{fontSize: '12px', color: '#10B981'}}>{active_companies || 0} active</span>
+          <span style={{fontSize: '12px', color: '#6B7280'}}>{inactive_companies || 0} inactive</span>
         </div>
-        <div className="stat-breakdown">
-          <div className="breakdown-item active">
-            <span className="indicator">●</span>
-            <span>{active_companies || 0} active</span>
-          </div>
-          <div className="breakdown-item inactive">
-            <span className="indicator">●</span>
-            <span>{inactive_companies || 0} inactive</span>
-          </div>
-        </div>
-        {growth_this_month && growth_this_month > 0 && (
-          <div className="growth-indicator">
-            <span className="trend-up">↑</span>
-            <span>+{growth_this_month} this month</span>
-          </div>
-        )}
       </div>
     </div>
   );

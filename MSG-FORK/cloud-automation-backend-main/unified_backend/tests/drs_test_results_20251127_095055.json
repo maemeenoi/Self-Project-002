@@ -1,0 +1,188 @@
+{
+  "total_tests": 10,
+  "successful": 7,
+  "failed": 3,
+  "success_rate": 70.0,
+  "results": [
+    {
+      "endpoint": "executive-summary",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "revenue_impact": 0.0,
+          "cost_savings_percent": 0,
+          "global_regions": 11,
+          "active_initiatives": 0,
+          "last_updated": "2025-11-26T20:50:44.885089"
+        }
+      },
+      "timestamp": "2025-11-27T09:50:44.887320"
+    },
+    {
+      "endpoint": "revenue-impact",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "cloud_enabled_revenue": 0.0,
+          "baseline_revenue": 1.0,
+          "growth_percent": -100.0,
+          "currency": "NZD",
+          "period": "Annual"
+        }
+      },
+      "timestamp": "2025-11-27T09:50:46.121984"
+    },
+    {
+      "endpoint": "time-to-market",
+      "success": false,
+      "data": {
+        "detail": "Failed to fetch time to market"
+      },
+      "timestamp": "2025-11-27T09:50:47.067366"
+    },
+    {
+      "endpoint": "operating-efficiency",
+      "success": false,
+      "data": {
+        "detail": "Failed to fetch operating efficiency"
+      },
+      "timestamp": "2025-11-27T09:50:48.118560"
+    },
+    {
+      "endpoint": "market-agility",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "agility_score": 4.2,
+          "score_delta": 2.3,
+          "max_score": 10,
+          "components": {
+            "delivery_responsiveness": 3.0,
+            "release_cadence": 0,
+            "cloud_flexibility": 10
+          },
+          "metrics": {
+            "avg_cycle_time_hours": 168.0,
+            "monthly_features": 0,
+            "regions": 11,
+            "services": 9
+          }
+        }
+      },
+      "timestamp": "2025-11-27T09:50:49.151569"
+    },
+    {
+      "endpoint": "strategic-initiatives",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "initiatives": [],
+          "total_count": 0,
+          "high_impact_count": 0
+        }
+      },
+      "timestamp": "2025-11-27T09:50:49.966713"
+    },
+    {
+      "endpoint": "financial-impact",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "total_business_value": 0.0,
+          "three_year_roi_percent": -100.0,
+          "payback_period_months": "N/A",
+          "annual_savings": 0.0,
+          "total_investment": 1.0,
+          "currency": "NZD"
+        }
+      },
+      "timestamp": "2025-11-27T09:50:51.379780"
+    },
+    {
+      "endpoint": "competitive-advantages",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "advantages": [
+            {
+              "name": "Innovation Speed",
+              "score": 3.0,
+              "strength": "Developing",
+              "description": "Avg cycle time: 7.0 days"
+            },
+            {
+              "name": "Global Scale Capability",
+              "score": 10,
+              "strength": "Strong",
+              "description": "11 regions, 2 providers"
+            },
+            {
+              "name": "Data-Driven Decisions",
+              "score": 10.0,
+              "strength": "Strong",
+              "description": "100.0% cost allocation coverage"
+            },
+            {
+              "name": "Cost Flexibility",
+              "score": 3.0,
+              "strength": "Developing",
+              "description": "9 service types in use"
+            }
+          ]
+        }
+      },
+      "timestamp": "2025-11-27T09:50:52.582529"
+    },
+    {
+      "endpoint": "risk-mitigation",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "risk_areas": [
+            {
+              "area": "Business Continuity",
+              "score": 10,
+              "mitigation_level": "Strong",
+              "description": "Deployed across 11 regions"
+            },
+            {
+              "area": "Cyber Security Threats",
+              "score": 0.0,
+              "mitigation_level": "Developing",
+              "description": "0.0% security spend, 0 issues resolved"
+            },
+            {
+              "area": "Regulatory Compliance",
+              "score": 8.0,
+              "mitigation_level": "Strong",
+              "description": "Multi-region compliance framework"
+            },
+            {
+              "area": "Technology Obsolescence",
+              "score": 0.0,
+              "mitigation_level": "Developing",
+              "description": "0.0% modern services adoption"
+            }
+          ]
+        }
+      },
+      "timestamp": "2025-11-27T09:50:54.100772"
+    },
+    {
+      "endpoint": "transformation-impact",
+      "success": false,
+      "data": {
+        "detail": "Failed to fetch transformation impact"
+      },
+      "timestamp": "2025-11-27T09:50:55.099919"
+    }
+  ],
+  "timestamp": "2025-11-27T09:50:55.605243"
+}

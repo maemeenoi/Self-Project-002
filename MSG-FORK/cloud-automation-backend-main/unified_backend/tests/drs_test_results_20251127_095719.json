@@ -1,0 +1,229 @@
+{
+  "total_tests": 10,
+  "successful": 9,
+  "failed": 1,
+  "success_rate": 90.0,
+  "results": [
+    {
+      "endpoint": "executive-summary",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "revenue_impact": 0.0,
+          "cost_savings_percent": 86.2,
+          "global_regions": 11,
+          "active_initiatives": 2,
+          "last_updated": "2025-11-26T20:57:08.088944"
+        }
+      },
+      "timestamp": "2025-11-27T09:57:08.095112"
+    },
+    {
+      "endpoint": "revenue-impact",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "cloud_enabled_revenue": 0.0,
+          "baseline_revenue": 289.502623,
+          "growth_percent": -100.0,
+          "currency": "NZD",
+          "period": "Annual"
+        }
+      },
+      "timestamp": "2025-11-27T09:57:09.019183"
+    },
+    {
+      "endpoint": "time-to-market",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "current_ttm_days": 0.0,
+          "baseline_ttm_days": 90.0,
+          "improvement_percent": 100.0,
+          "period": "Last 6 months"
+        }
+      },
+      "timestamp": "2025-11-27T09:57:09.944165"
+    },
+    {
+      "endpoint": "operating-efficiency",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "efficiency_percent": 86.2,
+          "improvement_delta": 0.0,
+          "annual_savings": 712.6,
+          "current_cost": 114.55,
+          "baseline_cost": 827.15,
+          "currency": "NZD"
+        }
+      },
+      "timestamp": "2025-11-27T09:57:11.437697"
+    },
+    {
+      "endpoint": "market-agility",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "agility_score": 4.2,
+          "score_delta": 2.3,
+          "max_score": 10,
+          "components": {
+            "delivery_responsiveness": 3.0,
+            "release_cadence": 0,
+            "cloud_flexibility": 10
+          },
+          "metrics": {
+            "avg_cycle_time_hours": 168.0,
+            "monthly_features": 0,
+            "regions": 11,
+            "services": 9
+          }
+        }
+      },
+      "timestamp": "2025-11-27T09:57:12.501900"
+    },
+    {
+      "endpoint": "strategic-initiatives",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "initiatives": [
+            {
+              "id": 1,
+              "name": "azure Cost Optimization Initiative",
+              "description": "Optimize and modernize azure infrastructure to reduce costs and improve performance",
+              "impact_level": "High",
+              "owner": "CTO",
+              "progress_percent": 60.0,
+              "target_value": 27.566144,
+              "value_unit": "NZD",
+              "planned_start": "2025-05-26",
+              "planned_end": "2026-05-26",
+              "status": "InProgress"
+            },
+            {
+              "id": 2,
+              "name": "aws Cost Optimization Initiative",
+              "description": "Optimize and modernize aws infrastructure to reduce costs and improve performance",
+              "impact_level": "High",
+              "owner": "CTO",
+              "progress_percent": 60.0,
+              "target_value": 1.070723,
+              "value_unit": "NZD",
+              "planned_start": "2025-05-26",
+              "planned_end": "2026-05-26",
+              "status": "InProgress"
+            }
+          ],
+          "total_count": 2,
+          "high_impact_count": 2
+        }
+      },
+      "timestamp": "2025-11-27T09:57:13.649683"
+    },
+    {
+      "endpoint": "financial-impact",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "total_business_value": 137.46,
+          "three_year_roi_percent": 2300.0,
+          "payback_period_months": 0.1,
+          "annual_savings": 712.6,
+          "total_investment": 5.73,
+          "currency": "NZD"
+        }
+      },
+      "timestamp": "2025-11-27T09:57:15.093432"
+    },
+    {
+      "endpoint": "competitive-advantages",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "advantages": [
+            {
+              "name": "Innovation Speed",
+              "score": 3.0,
+              "strength": "Developing",
+              "description": "Avg cycle time: 7.0 days"
+            },
+            {
+              "name": "Global Scale Capability",
+              "score": 10,
+              "strength": "Strong",
+              "description": "11 regions, 2 providers"
+            },
+            {
+              "name": "Data-Driven Decisions",
+              "score": 10.0,
+              "strength": "Strong",
+              "description": "100.0% cost allocation coverage"
+            },
+            {
+              "name": "Cost Flexibility",
+              "score": 3.0,
+              "strength": "Developing",
+              "description": "9 service types in use"
+            }
+          ]
+        }
+      },
+      "timestamp": "2025-11-27T09:57:16.300262"
+    },
+    {
+      "endpoint": "risk-mitigation",
+      "success": true,
+      "data": {
+        "success": true,
+        "data": {
+          "risk_areas": [
+            {
+              "area": "Business Continuity",
+              "score": 10,
+              "mitigation_level": "Strong",
+              "description": "Deployed across 11 regions"
+            },
+            {
+              "area": "Cyber Security Threats",
+              "score": 0.0,
+              "mitigation_level": "Developing",
+              "description": "0.0% security spend, 0 issues resolved"
+            },
+            {
+              "area": "Regulatory Compliance",
+              "score": 8.0,
+              "mitigation_level": "Strong",
+              "description": "Multi-region compliance framework"
+            },
+            {
+              "area": "Technology Obsolescence",
+              "score": 0.0,
+              "mitigation_level": "Developing",
+              "description": "0.0% modern services adoption"
+            }
+          ]
+        }
+      },
+      "timestamp": "2025-11-27T09:57:17.491024"
+    },
+    {
+      "endpoint": "transformation-impact",
+      "success": false,
+      "data": {
+        "detail": "Failed to fetch transformation impact"
+      },
+      "timestamp": "2025-11-27T09:57:18.842219"
+    }
+  ],
+  "timestamp": "2025-11-27T09:57:19.343178"
+}

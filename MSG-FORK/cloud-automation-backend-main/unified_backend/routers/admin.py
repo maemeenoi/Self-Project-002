@@ -19,11 +19,11 @@ from pydantic import BaseModel
 from utils.auth import get_current_company
 
 from lib.db import (
-    query_one, query_many, execute_sql, health_check,
+    query_one, query_many, execute_sql, insert_and_return, health_check,
     get_company_info, get_recent_sync_batches,
     get_workflow_summary, get_financial_summary
 )
-from services.azure_storage import UnifiedAzureBlobStorage
+from services.cloud.azure_storage import UnifiedAzureBlobStorage
 
 logger = logging.getLogger(__name__)
 
@@ -752,34 +752,40 @@ async def create_user(user: UserCreate):
         
         # Fetch the created user
         user_query = """
-            SELECT UserID, CompanyID, FirstName, MiddleName, LastName, Email, Phone,
-                   IsSuperAdmin, Department, Location, IsActive,
-                   CreatedAt, UpdatedAt, LastSignInAt
+            SELECT UserID as user_id, CompanyID as company_id, FirstName as first_name, 
+                   MiddleName as middle_name, LastName as last_name, Email as email, 
+                   Phone as phone, IsSuperAdmin as is_super_admin, Department as department, 
+                   Location as location, IsActive as is_active,
+                   CreatedAt as created_at, UpdatedAt as updated_at, LastSignInAt as last_sign_in_at
             FROM UserAccount
             WHERE UserID = {user_id}
         """
         created_user = await query_one(user_query, {"user_id": user_id})
         
+        logger.info(f"🔧 DEBUG - User ID created: {user_id}")
+        logger.info(f"🔧 DEBUG - Retrieved user data: {created_user}")
+        
         if not created_user:
+            logger.error(f"🔧 DEBUG - Failed to retrieve user with ID {user_id}")
             raise HTTPException(status_code=500, detail="Failed to retrieve created user")
         
         return UserResponse(
-            user_id=created_user["UserID"],
-            company_id=created_user["CompanyID"],
-            first_name=created_user.get("FirstName", ""),
-            middle_name=created_user.get("MiddleName"),
-            last_name=created_user.get("LastName", ""),
-            email=created_user["Email"],
-            phone=created_user.get("Phone"),
-            is_super_admin=created_user.get("IsSuperAdmin", False),
+            user_id=created_user["user_id"],
+            company_id=created_user["company_id"],
+            first_name=created_user.get("first_name", ""),
+            middle_name=created_user.get("middle_name"),
+            last_name=created_user.get("last_name", ""),
+            email=created_user["email"],
+            phone=created_user.get("phone"),
+            is_super_admin=created_user.get("is_super_admin", False),
             is_company_admin=False,  # Column doesn't exist in table
             role="user",  # Column doesn't exist in table, default to user
-            department=created_user.get("Department"),
-            location=created_user.get("Location"),
-            is_active=created_user.get("IsActive", True),
-            created_at=created_user["CreatedAt"],
-            updated_at=created_user.get("UpdatedAt"),
-            last_sign_in_at=created_user.get("LastSignInAt")
+            department=created_user.get("department"),
+            location=created_user.get("location"),
+            is_active=created_user.get("is_active", True),
+            created_at=created_user["created_at"],
+            updated_at=created_user.get("updated_at"),
+            last_sign_in_at=created_user.get("last_sign_in_at")
         )
         
     except HTTPException:
@@ -1233,3 +1239,304 @@ async def get_jira_overview(company_id: int = Depends(get_current_company)):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to get Jira overview: {str(e)}")
+
+
+# ============================================================================
+# USER MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@router.get("/company/{company_id}/users")
+async def get_company_users(
+    company_id: int,
+    current_user_id: Optional[int] = Query(None)
+):
+    """Get all users for a specific company"""
+    try:
+        logger.info(f"Fetching users for company {company_id}")
+        
+        # Get all users for the company
+        users_query = """
+            SELECT u.UserID as user_id, u.CompanyID as company_id, 
+                   u.FirstName as first_name, u.MiddleName as middle_name, 
+                   u.LastName as last_name, u.Email as email, u.Phone as phone,
+                   u.IsSuperAdmin as is_super_admin, u.IsActive as is_active,
+                   u.CreatedAt as created_at, u.LastSignInAt as last_sign_in_at,
+                   u.Department as department, u.Location as location
+            FROM UserAccount u
+            WHERE u.CompanyID = {company_id}
+            ORDER BY u.LastName, u.FirstName
+        """
+        
+        users = await query_many(users_query, {"company_id": company_id})
+        
+        if not users:
+            return []
+        
+        # Get roles for each user
+        result = []
+        for user in users:
+            # Get user role from UserRole table
+            role_query = """
+                SELECT r.Name as RoleName
+                FROM UserRole ur
+                JOIN Role r ON ur.RoleID = r.RoleID
+                WHERE ur.UserID = {user_id}
+            """
+            role_result = await query_one(role_query, {"user_id": user["user_id"]})
+            
+            result.append({
+                "user_id": user["user_id"],
+                "company_id": user.get("company_id"),
+                "first_name": user["first_name"],
+                "middle_name": user.get("middle_name"),
+                "last_name": user["last_name"],
+                "email": user["email"],
+                "phone": user.get("phone"),
+                "is_super_admin": user.get("is_super_admin", False),
+                "is_active": user.get("is_active", True),
+                "created_at": user["created_at"],
+                "last_sign_in_at": user.get("last_sign_in_at"),
+                "department": user.get("department"),
+                "location": user.get("location"),
+                "role": role_result.get("RoleName") if role_result else None
+            })
+        
+        logger.info(f"Found {len(result)} users for company {company_id}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to get users for company {company_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch users: {str(e)}")
+
+
+@router.post("/company/{company_id}/users")
+async def create_company_user(
+    company_id: int,
+    user_data: UserCreate,
+    current_user_id: Optional[int] = Query(None)
+):
+    """Create a new user for a specific company"""
+    try:
+        logger.info(f"Creating new user for company {company_id}: {user_data.email}")
+        
+        # Validate required fields
+        if not user_data.first_name or not user_data.last_name or not user_data.email:
+            raise HTTPException(status_code=400, detail="First name, last name, and email are required")
+        
+        if not user_data.password:
+            raise HTTPException(status_code=400, detail="Password is required")
+        
+        # Check if user with email already exists
+        existing_query = "SELECT UserID FROM UserAccount WHERE Email = {email}"
+        existing_user = await query_one(existing_query, {"email": user_data.email})
+        if existing_user:
+            raise HTTPException(status_code=400, detail=f"User with email '{user_data.email}' already exists")
+        
+        # Hash the password
+        password_hash = hash_password(user_data.password)
+        
+        # Use the same approach as SuperAdmin endpoint - separate committed operations
+        try:
+            # Create user using insert_and_return (which commits immediately)
+            create_user_query = """
+                INSERT INTO UserAccount (CompanyID, FirstName, MiddleName, LastName, Email, PasswordHash,
+                                       Phone, Department, Location, IsSuperAdmin, IsActive, CreatedAt, UpdatedAt)
+                OUTPUT INSERTED.UserID, INSERTED.FirstName, INSERTED.MiddleName, INSERTED.LastName, 
+                       INSERTED.Email, INSERTED.CompanyID, INSERTED.IsSuperAdmin, INSERTED.IsActive, 
+                       INSERTED.CreatedAt, INSERTED.Department, INSERTED.Location
+                VALUES ({company_id}, {first_name}, {middle_name}, {last_name}, {email}, {password_hash},
+                        {phone}, {department}, {location}, {is_super_admin}, {is_active}, 
+                        SYSUTCDATETIME(), SYSUTCDATETIME())
+            """
+            
+            user_result = await insert_and_return(create_user_query, {
+                "company_id": company_id,
+                "first_name": user_data.first_name,
+                "middle_name": user_data.middle_name if user_data.middle_name else None,
+                "last_name": user_data.last_name,
+                "email": user_data.email,
+                "password_hash": password_hash,
+                "phone": user_data.phone if user_data.phone else None,
+                "department": user_data.department if hasattr(user_data, 'department') else None,
+                "location": user_data.location if hasattr(user_data, 'location') else None,
+                "is_super_admin": 1 if user_data.is_super_admin else 0,
+                "is_active": 1
+            })
+            
+            if not user_result:
+                raise HTTPException(status_code=500, detail="Failed to create user")
+
+            created_user_id = user_result["UserID"]
+            logger.info(f"✅ Created user {created_user_id}")
+            
+            # Assign role if specified - using execute_sql (separate committed operation)
+            if user_data.role:
+                logger.info(f"Assigning role '{user_data.role}' to user ID: {created_user_id}")
+                
+                # Find role by name
+                role_query = "SELECT RoleID FROM Role WHERE Name = {role_name}"
+                role_result = await query_one(role_query, {"role_name": user_data.role})
+                
+                if role_result:
+                    # Assign role to user
+                    assign_role_query = """
+                        INSERT INTO UserRole (UserID, RoleID)
+                        VALUES ({user_id}, {role_id})
+                    """
+                    await execute_sql(assign_role_query, {
+                        "user_id": created_user_id,
+                        "role_id": role_result["RoleID"]
+                    })
+                    logger.info(f"✅ Role '{user_data.role}' assigned to user {created_user_id}")
+                else:
+                    logger.warning(f"Role '{user_data.role}' not found, skipping role assignment")
+            else:
+                logger.info("No role specified for user creation")
+                
+        except Exception as e:
+            logger.error(f"Error in user creation: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
+        
+        logger.info(f"Successfully created user {user_data.email} with ID {created_user_id}")
+        
+        return {
+            "user_id": created_user_id,
+            "first_name": user_result["FirstName"],
+            "last_name": user_result["LastName"],
+            "email": user_result["Email"],
+            "company_id": user_result["CompanyID"],
+            "is_active": user_result["IsActive"],
+            "created_at": user_result["CreatedAt"]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to create user for company {company_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
+
+
+@router.put("/users/{user_id}")
+async def update_user(
+    user_id: int,
+    user_data: UserUpdate
+):
+    """Update user details"""
+    try:
+        logger.info(f"Updating user {user_id}")
+        
+        # Build update query dynamically based on provided fields
+        update_fields = []
+        params = {"user_id": user_id}
+        
+        if user_data.first_name is not None:
+            update_fields.append("FirstName = {first_name}")
+            params["first_name"] = user_data.first_name
+            
+        if user_data.last_name is not None:
+            update_fields.append("LastName = {last_name}")
+            params["last_name"] = user_data.last_name
+            
+        if user_data.email is not None:
+            update_fields.append("Email = {email}")
+            params["email"] = user_data.email
+            
+        if user_data.phone is not None:
+            update_fields.append("Phone = {phone}")
+            params["phone"] = user_data.phone
+            
+        if user_data.department is not None:
+            update_fields.append("Department = {department}")
+            params["department"] = user_data.department
+            
+        if user_data.location is not None:
+            update_fields.append("Location = {location}")
+            params["location"] = user_data.location
+            
+        if user_data.is_active is not None:
+            update_fields.append("IsActive = {is_active}")
+            params["is_active"] = 1 if user_data.is_active else 0
+        
+        if not update_fields:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        
+        # Add UpdatedAt field
+        update_fields.append("UpdatedAt = SYSUTCDATETIME()")
+        
+        update_query = f"""
+            UPDATE UserAccount 
+            SET {', '.join(update_fields)}
+            OUTPUT INSERTED.UserID, INSERTED.FirstName, INSERTED.LastName, INSERTED.Email,
+                   INSERTED.Phone, INSERTED.Department, INSERTED.Location, INSERTED.IsActive
+            WHERE UserID = {{user_id}}
+        """
+        
+        result = await query_one(update_query, params)
+        
+        if not result:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        logger.info(f"Successfully updated user {user_id}")
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update user: {str(e)}")
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(user_id: int):
+    """Delete a user"""
+    try:
+        logger.info(f"Deleting user {user_id}")
+        
+        # First check if user exists
+        check_query = "SELECT UserID, Email FROM UserAccount WHERE UserID = {user_id}"
+        user = await query_one(check_query, {"user_id": user_id})
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Delete user roles first (foreign key constraint)
+        delete_roles_query = "DELETE FROM UserRole WHERE UserID = {user_id}"
+        await execute_sql(delete_roles_query, {"user_id": user_id})
+        
+        # Delete the user
+        delete_query = "DELETE FROM UserAccount WHERE UserID = {user_id}"
+        await execute_sql(delete_query, {"user_id": user_id})
+        
+        logger.info(f"Successfully deleted user {user_id} ({user['Email']})")
+        return {"message": f"User {user['Email']} deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete user: {str(e)}")
+
+
+@router.get("/roles")
+async def get_available_roles():
+    """Get all available roles in the system for admin users"""
+    try:
+        roles_query = "SELECT RoleID, Name FROM Role ORDER BY Name"
+        roles = await query_many(roles_query, {})
+        
+        if not roles:
+            # Return default roles if none exist
+            return [
+                {"role_id": 1, "name": "User"},
+                {"role_id": 2, "name": "Client Admin"}
+            ]
+        
+        return [{"role_id": role["RoleID"], "name": role["Name"]} for role in roles]
+        
+    except Exception as e:
+        logger.error(f"Failed to get roles: {e}")
+        # Return basic roles as fallback
+        return [
+            {"role_id": 1, "name": "User"},
+            {"role_id": 2, "name": "Client Admin"}
+        ]

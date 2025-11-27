@@ -84,19 +84,19 @@ export function testApiEndpoints(): { endpoint: string; hasAuth: boolean }[] {
     {
       name: "IntegrationManagement direct fetch",
       endpoint:
-        "https://app-makestuffgo-test-001-backend.azurewebsites.net/api/integrations/managed?trigger_sync=true",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/integrations/managed?trigger_sync=true`,
       description: "Direct fetch with manual auth headers",
     },
     {
       name: "Integrations page GitHub creation",
       endpoint:
-        "https://app-makestuffgo-test-001-backend.azurewebsites.net/api/integrations/managed?trigger_sync=false",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/integrations/managed?trigger_sync=false`,
       description: "Bulk creation with auth headers",
     },
     {
       name: "Integration status check",
       endpoint:
-        "https://app-makestuffgo-test-001-backend.azurewebsites.net/api/integrations/status",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/integrations/status`,
       description: "Status check with auth headers",
     },
   ]

@@ -23,7 +23,7 @@ from utils.auth import get_current_company
 from lib.db import query_many, execute_sql
 
 # Services
-from services.integration_service import IntegrationService
+from services.integrations.integration_service import IntegrationService
 from models.integration import IntegrationType
 
 logger = logging.getLogger(__name__)

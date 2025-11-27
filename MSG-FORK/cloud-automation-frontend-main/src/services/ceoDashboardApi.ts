@@ -16,7 +16,7 @@ class CEODashboardApiService {
   constructor() {
     this.baseURL =
       process.env.NEXT_PUBLIC_NEXT_PUBLIC_BACKEND_URL ||
-      "https://app-makestuffgo-test-001-backend.azurewebsites.net"
+      "http://localhost:8000"
   }
 
   /**

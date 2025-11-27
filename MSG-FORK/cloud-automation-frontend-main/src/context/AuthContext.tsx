@@ -23,6 +23,13 @@ const getRealRoleName = (backendRole: string): RoleName => {
     'CFO': 'CFO',
     'cto': 'CTO',
     'CTO': 'CTO',
+    'cio': 'CIO',
+    'CIO': 'CIO',
+    'ciso': 'CISO',
+    'CISO': 'CISO',
+    'delivery-executive': 'Delivery Executive',
+    'deliveryexecutive': 'Delivery Executive',
+    'Delivery Executive': 'Delivery Executive',
     'engineer': 'Engineer',
     'Engineer': 'Engineer',
     'productowner': 'Product Owner',
@@ -30,7 +37,9 @@ const getRealRoleName = (backendRole: string): RoleName => {
     'Product Owner': 'Product Owner'
   }
   
-  return roleMapping[backendRole] || 'Client Admin' // Default fallback
+  const mappedRole = roleMapping[backendRole] || 'UNKNOWN' // Safer fallback - redirect to role assignment page
+  console.log('Role mapped from', backendRole, 'to', mappedRole)
+  return mappedRole
 }
 
 interface AuthContextType extends AuthState {
@@ -71,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (userData) {
           // Determine primary role based on user data
-          let primaryRoleName: RoleName = 'Client Admin' // default
+          let primaryRoleName: RoleName = 'Engineer' // safer default - limited access
           
           // Check is_super_admin flag first (highest priority)
           if (userData.user?.isSuperAdmin) {
@@ -108,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const organization: Organization = {
             id: userData.user?.companyId?.toString() || '0',
             name: userData.user?.companyName || 'makeStuffGo',
-            enabledRoles: ['SuperAdmin', 'Client Admin', 'CEO', 'CTO', 'CFO', 'Engineer', 'Product Owner'],
+            enabledRoles: ['SuperAdmin', 'Client Admin', 'CEO', 'CTO', 'CFO', 'CIO', 'CISO', 'Delivery Executive', 'Engineer', 'Product Owner'],
             config: {
               features: ['dashboard', 'analytics', 'reports'],
               branding: {
@@ -150,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('JWT payload:', payload)
         
         // Determine primary role based on JWT payload
-        let primaryRoleName: RoleName = 'Client Admin' // default
+        let primaryRoleName: RoleName = 'Engineer' // safer default - limited access
         
         // Check is_super_admin flag first (highest priority)
         if (payload.is_super_admin) {
@@ -189,7 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const organization: Organization = {
           id: backendResponse.company.id || '0',
           name: backendResponse.company.name || 'makeStuffGo',
-          enabledRoles: ['SuperAdmin', 'Client Admin', 'CEO', 'CTO', 'CFO', 'Engineer', 'Product Owner'],
+          enabledRoles: ['SuperAdmin', 'Client Admin', 'CEO', 'CTO', 'CFO', 'CIO', 'CISO', 'Delivery Executive', 'Engineer', 'Product Owner'],
           config: {
             features: ['dashboard', 'analytics', 'reports'],
             branding: {

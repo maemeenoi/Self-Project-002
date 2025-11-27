@@ -19,7 +19,7 @@ export interface Role {
   permissions: Permission[]
 }
 
-export type RoleName = 'SuperAdmin' | 'Client Admin' | 'CEO' | 'CFO' | 'CTO' | 'Engineer' | 'Product Owner'
+export type RoleName = 'SuperAdmin' | 'Client Admin' | 'CEO' | 'CFO' | 'CTO' | 'CIO' | 'CISO' | 'Delivery Executive' | 'Engineer' | 'Product Owner' | 'UNKNOWN'
 
 export interface Permission {
   resource: string

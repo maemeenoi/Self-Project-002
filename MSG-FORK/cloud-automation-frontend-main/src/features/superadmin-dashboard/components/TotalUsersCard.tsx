@@ -2,6 +2,7 @@
 
 import React from 'react';
 import './StatCard.css';
+import './StatCardStyles.css';
 
 interface TotalUsersData {
   total_users: number;
@@ -15,48 +16,29 @@ interface TotalUsersCardProps {
 }
 
 function TotalUsersCard({ data }: TotalUsersCardProps) {
-  if (!data) {
-    return (
-      <div className="stat-card total-users loading">
-        <div className="card-header">
-          <h3>Total Users</h3>
-          <span className="card-icon">👥</span>
-        </div>
-        <div className="card-content">
-          <div className="loading-skeleton">Loading...</div>
-        </div>
-      </div>
-    );
-  }
+  // Mock data if no data provided
+  const mockData = {
+    total_users: 0,
+    admin_users: 0,
+    regular_users: 0,
+    growth_this_month: 0
+  };
 
-  const { total_users, admin_users, regular_users, growth_this_month } = data;
+  const usersData = data || mockData;
+  const { total_users, admin_users, regular_users, growth_this_month } = usersData;
 
   return (
-    <div className="stat-card total-users">
-      <div className="card-header">
-        <h3>Total Users</h3>
-        <span className="card-icon">👥</span>
+    <div className="cm-stat-card">
+      <div className="cm-stat-icon purple">
+        <span style={{fontSize: '20px'}}>👥</span>
       </div>
-      <div className="card-content">
-        <div className="main-stat">
-          {total_users?.toLocaleString() || '0'}
+      <div className="cm-stat-content">
+        <p className="cm-stat-label">Total Users</p>
+        <p className="cm-stat-value">{total_users?.toLocaleString() || '0'}</p>
+        <div className="stat-breakdown-mini">
+          <span style={{fontSize: '12px', color: '#7C3AED'}}>{admin_users || 0} admins</span>
+          <span style={{fontSize: '12px', color: '#6B7280'}}>{regular_users || 0} users</span>
         </div>
-        <div className="stat-breakdown">
-          <div className="breakdown-item admin">
-            <span className="indicator">●</span>
-            <span>{admin_users || 0} admins</span>
-          </div>
-          <div className="breakdown-item regular">
-            <span className="indicator">●</span>
-            <span>{regular_users || 0} regular users</span>
-          </div>
-        </div>
-        {growth_this_month && growth_this_month > 0 && (
-          <div className="growth-indicator">
-            <span className="trend-up">↑</span>
-            <span>+{growth_this_month} this month</span>
-          </div>
-        )}
       </div>
     </div>
   );

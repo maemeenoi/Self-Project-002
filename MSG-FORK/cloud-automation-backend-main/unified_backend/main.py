@@ -123,7 +123,7 @@ async def detailed_health():
             
         # Try to test Azure storage
         try:
-            from services.azure_storage import UnifiedAzureBlobStorage
+            from services.cloud.azure_storage import UnifiedAzureBlobStorage
             storage = UnifiedAzureBlobStorage()
             storage_health = await storage.health_check()
             health_data["components"]["azure_storage"] = storage_health
@@ -217,11 +217,39 @@ def load_routers():
         logger.warning(f"⚠️ Could not load cloud cost router: {e}")
     
     try:
+        from routers import drs_widgets
+        app.include_router(drs_widgets.router)
+        logger.info("✅ DRS widgets router loaded")
+    except Exception as e:
+        logger.warning(f"⚠️ Could not load DRS widgets router: {e}")
+    
+    try:
+        from routers import baseline_generator
+        app.include_router(baseline_generator.router)
+        logger.info("✅ Baseline generator router loaded")
+    except Exception as e:
+        logger.warning(f"⚠️ Could not load baseline generator router: {e}")
+    
+    try:
+        from routers import auto_baseline_api
+        app.include_router(auto_baseline_api.router)
+        logger.info("✅ Auto baseline API router loaded")
+    except Exception as e:
+        logger.warning(f"⚠️ Could not load auto baseline API router: {e}")
+    
+    try:
         from routers import cto
         app.include_router(cto.router)
         logger.info("✅ CTO router loaded")
     except Exception as e:
         logger.warning(f"⚠️ Could not load CTO router: {e}")
+    
+    try:
+        from routers import tech_executive
+        app.include_router(tech_executive.router)
+        logger.info("✅ Technology Executive router loaded")
+    except Exception as e:
+        logger.warning(f"⚠️ Could not load Technology Executive router: {e}")
 
 # Load routers immediately
 load_routers()

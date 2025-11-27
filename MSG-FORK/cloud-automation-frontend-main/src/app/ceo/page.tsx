@@ -1,19 +1,19 @@
 'use client';
 
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { ExecutiveRoute } from '@/components/ExecutiveRoute';
 import SimpleLayout from '@/components/layout/SimpleLayout';
-import CEODashboard from '@/components/ceo/CEODashboard';
+import { BusinessExecutiveDashboard } from '@/components/BusinessExecutiveDashboard';
 import '@/styles/ceo-dashboard.css';
 
 export default function CEOPage() {
   return (
-    <ProtectedRoute requiredRoles={['CEO', 'Client Admin']}>
+    <ExecutiveRoute requiredRoles={['CEO']}>
       <SimpleLayout 
         title="CEO Dashboard" 
-        subtitle="Executive overview and strategic insights"
+        subtitle="Strategic Business Intelligence & Executive Overview"
       >
-        <CEODashboard />
+        <BusinessExecutiveDashboard />
       </SimpleLayout>
-    </ProtectedRoute>
+    </ExecutiveRoute>
   );
 }

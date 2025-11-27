@@ -147,8 +147,8 @@ class EngineerDashboardApiService {
 
   constructor() {
     this.baseURL =
-      process.env.NEXT_PUBLIC_BACKEND_URL ||
-      "https://app-makestuffgo-test-001-backend.azurewebsites.net"
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+      // "https://app-makestuffgo-test-001-backend.azurewebsites.net"
     this.workProcessorURL =
       process.env.NEXT_PUBLIC_WORK_PROCESSOR_URL || "http://localhost:8001"
   }

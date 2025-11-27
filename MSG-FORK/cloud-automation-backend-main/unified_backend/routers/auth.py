@@ -230,6 +230,19 @@ async def login(credentials: UserLogin):
         # Get user roles from database
         user_roles = await get_user_roles(user_data['user_id'])
         
+        # Update LastLogin timestamp
+        try:
+            update_login_query = """
+            UPDATE UserAccount 
+            SET LastSignInAt = GETUTCDATE()
+            WHERE UserID = {user_id}
+            """
+            await execute_sql(update_login_query, {"user_id": user_data['user_id']})
+            logger.info(f"Updated LastSignIn timestamp for user: {credentials.email}")
+        except Exception as e:
+            logger.warning(f"Failed to update LastSignIn for user {credentials.email}: {e}")
+            # Don't fail the login if LastSignIn update fails
+        
         # Get user permissions based on roles and flags
         permissions_data = get_user_permissions(user_data)
         

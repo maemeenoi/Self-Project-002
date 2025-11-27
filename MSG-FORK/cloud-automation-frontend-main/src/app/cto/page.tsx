@@ -1,19 +1,19 @@
 'use client';
 
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { ExecutiveRoute } from '@/components/ExecutiveRoute';
 import SimpleLayout from '@/components/layout/SimpleLayout';
-import CTODashboard from '@/components/cto/CTODashboard';
+import { TechnologyExecutiveDashboard } from '@/components/TechnologyExecutiveDashboard';
 import '@/styles/cto-dashboard.css';
 
 export default function CTOPage() {
   return (
-    <ProtectedRoute requiredRoles={['CTO', 'Client Admin']}>
+    <ExecutiveRoute requiredRoles={['CTO']}>
       <SimpleLayout 
         title="CTO Dashboard" 
-        subtitle="Engineering metrics and technical oversight"
+        subtitle="Strategic Technology Intelligence & Executive Overview"
       >
-        <CTODashboard />
+        <TechnologyExecutiveDashboard />
       </SimpleLayout>
-    </ProtectedRoute>
+    </ExecutiveRoute>
   );
 }

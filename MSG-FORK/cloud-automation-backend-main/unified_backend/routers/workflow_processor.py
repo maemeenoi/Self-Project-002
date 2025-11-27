@@ -23,7 +23,7 @@ from pydantic import BaseModel
 sys.path.append(str(Path(__file__).parent.parent.parent / "work_processor" / "backend"))
 
 from lib.db import create_sync_batch, complete_sync_batch, query_many, execute_sql, query_one
-from services.azure_storage import UnifiedAzureBlobStorage
+from services.cloud.azure_storage import UnifiedAzureBlobStorage
 
 logger = logging.getLogger(__name__)
 

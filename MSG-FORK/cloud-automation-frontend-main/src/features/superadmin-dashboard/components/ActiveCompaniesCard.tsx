@@ -2,6 +2,7 @@
 
 import React from 'react';
 import './StatCard.css';
+import './StatCardStyles.css';
 
 interface ActiveCompaniesData {
   active_companies: number;
@@ -14,42 +15,30 @@ interface ActiveCompaniesCardProps {
 }
 
 function ActiveCompaniesCard({ data }: ActiveCompaniesCardProps) {
-  if (!data) {
-    return (
-      <div className="stat-card active-companies loading">
-        <div className="card-header">
-          <h3>Active Companies</h3>
-          <span className="card-icon">✅</span>
-        </div>
-        <div className="card-content">
-          <div className="loading-skeleton">Loading...</div>
-        </div>
-      </div>
-    );
-  }
+  // Mock data if no data provided
+  const mockData = {
+    active_companies: 0,
+    growth_this_month: 0,
+    growth_percent: 0
+  };
 
-  const { active_companies, growth_this_month, growth_percent } = data;
+  const activeData = data || mockData;
+  const { active_companies, growth_this_month, growth_percent } = activeData;
 
   return (
-    <div className="stat-card active-companies">
-      <div className="card-header">
-        <h3>Active Companies</h3>
-        <span className="card-icon">✅</span>
+    <div className="cm-stat-card">
+      <div className="cm-stat-icon green">
+        <span style={{fontSize: '20px'}}>✅</span>
       </div>
-      <div className="card-content">
-        <div className="main-stat">
-          {active_companies?.toLocaleString() || '0'}
+      <div className="cm-stat-content">
+        <p className="cm-stat-label">Active Companies</p>
+        <p className="cm-stat-value">{active_companies?.toLocaleString() || '0'}</p>
+        <div className="stat-breakdown-mini">
+          <span style={{fontSize: '12px', color: '#10B981'}}>Currently operational</span>
+          {growth_this_month && growth_this_month > 0 && (
+            <span style={{fontSize: '12px', color: '#059669'}}>+{growth_this_month} this month</span>
+          )}
         </div>
-        <div className="status-text">
-          Currently active
-        </div>
-        {growth_this_month && growth_this_month > 0 && (
-          <div className="growth-indicator">
-            <span className="trend-up">↑</span>
-            <span>+{growth_this_month} ({growth_percent?.toFixed(1)}%)</span>
-            <div className="growth-period">this month</div>
-          </div>
-        )}
       </div>
     </div>
   );

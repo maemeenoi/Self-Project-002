@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   try {
-    const backendUrl = process.env.API_URL || "http://localhost:8000";  
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";  
       // "https://app-makestuffgo-test-001-backend.azurewebsites.net"
 
     // Get JWT token from request headers (forwarded from client)

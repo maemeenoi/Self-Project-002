@@ -1,6 +1,5 @@
 // Super Admin API Service
 // Handles all API calls for the Super Admin Dashboard
-import API_URL from '@/config/environment'
 
 // const API_BASE_URL =
 //   process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -10,7 +9,7 @@ class SuperAdminApiService {
   private baseUrl: string
 
   constructor() {
-    this.baseUrl = "localhost:8000"; //API_URL;
+    this.baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   }
 
   // Generic fetch wrapper with error handling
@@ -58,7 +57,7 @@ class SuperAdminApiService {
 
   // 4. System Health
   async getSystemHealth() {
-    return this.fetchWithErrorHandling("/api/superadmin/system/health")
+    return this.fetchWithErrorHandling("/health/detailed")
   }
 
   // 5. Company Management
@@ -156,9 +155,9 @@ class SuperAdminApiService {
   }
 
   // 6. Recent Company Additions
-  async getRecentCompanies(limit: number = 10) {
+  async getRecentCompanies(limit: number = 6) {
     return this.fetchWithErrorHandling(
-      `/api/superadmin/companies/recent?limit=${limit}`
+      `/api/superadmin/recent-additions?limit=${limit}`
     )
   }
 
@@ -191,7 +190,7 @@ class SuperAdminApiService {
 
   // 9. Integration Status
   async getIntegrationStatus() {
-    return this.fetchWithErrorHandling("/api/superadmin/integrations/status")
+    return this.fetchWithErrorHandling("/api/superadmin/integrations/company-status")
   }
 
   // Bulk operations
@@ -335,6 +334,92 @@ class SuperAdminApiService {
         body: JSON.stringify(passwordData),
       }
     )
+  }
+
+  // ========================================
+  // USER MANAGEMENT ENDPOINTS
+  // ========================================
+
+  // Get all users in the system
+  async getAllUsers(
+    params: {
+      limit?: number
+      offset?: number
+      search?: string
+      role?: string
+      company_id?: number
+      is_active?: boolean
+    } = {}
+  ) {
+    const searchParams = new URLSearchParams()
+
+    if (params.limit) searchParams.append("limit", params.limit.toString())
+    if (params.offset) searchParams.append("offset", params.offset.toString())
+    if (params.search) searchParams.append("search", params.search)
+    if (params.role) searchParams.append("role", params.role)
+    if (params.company_id) searchParams.append("company_id", params.company_id.toString())
+    if (params.is_active !== undefined) searchParams.append("is_active", params.is_active.toString())
+
+    const queryString = searchParams.toString()
+    const endpoint = `/api/superadmin/users${queryString ? `?${queryString}` : ""}`
+
+    return this.fetchWithErrorHandling(endpoint)
+  }
+
+  // Update user
+  async updateUser(
+    userId: number,
+    userData: {
+      first_name?: string
+      middle_name?: string
+      last_name?: string
+      email?: string
+      company_id?: number
+      is_super_admin?: boolean
+      is_active?: boolean
+    }
+  ) {
+    return this.fetchWithErrorHandling(`/api/superadmin/users/${userId}`, {
+      method: "PUT",
+      body: JSON.stringify(userData),
+    })
+  }
+
+  // Delete user
+  async deleteUser(userId: number) {
+    return this.fetchWithErrorHandling(`/api/superadmin/users/${userId}`, {
+      method: "DELETE",
+    })
+  }
+
+  // Toggle user status
+  async toggleUserStatus(userId: number, isActive: boolean) {
+    return this.fetchWithErrorHandling(`/api/superadmin/users/${userId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_active: isActive }),
+    })
+  }
+
+  // Create new user
+  async createUser(userData: {
+    first_name: string
+    middle_name?: string
+    last_name: string
+    email: string
+    company_id?: number
+    role?: string
+    is_super_admin?: boolean
+    is_active?: boolean
+  }) {
+    return this.fetchWithErrorHandling("/api/superadmin/users", {
+      method: "POST",
+      body: JSON.stringify(userData),
+    })
+  }
+
+  // Get all available roles
+  async getRoles() {
+    return this.fetchWithErrorHandling("/api/superadmin/roles")
   }
 }
 

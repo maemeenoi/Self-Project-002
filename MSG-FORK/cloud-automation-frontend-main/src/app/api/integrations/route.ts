@@ -4,8 +4,7 @@ export async function GET(request: NextRequest) {
   try {
     // Redirect to backend integration status instead of calling local APIs
     const backendUrl =
-      "https://app-makestuffgo-test-001-backend.azurewebsites.net"
-
+        process.env.NEXT_PUBLIC_BACKEND_URL
     // Forward authentication headers from the original request
     const authHeader = request.headers.get("authorization")
     const headers: HeadersInit = {

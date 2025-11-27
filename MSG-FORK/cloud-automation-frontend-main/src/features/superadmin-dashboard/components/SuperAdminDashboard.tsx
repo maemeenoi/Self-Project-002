@@ -1,26 +1,34 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { Plus, RefreshCw, LogOut, Clock } from 'lucide-react';
+
+// Import all the components
+import SuperAdminLayout from './SuperAdminLayout';
 import CompanyUsageBilling from './CompanyUsageBilling';
-import CreateCompanyModal from './CreateCompanyModal';
-import './SuperAdminDashboard.css';
+import TotalCompaniesCard from './TotalCompaniesCard';
+import TotalUsersCard from './TotalUsersCard';
+import ActiveCompaniesCard from './ActiveCompaniesCard';
+import SystemHealthCard from './SystemHealthCard';
+import IntegrationStatus from './IntegrationStatus';
+import RecentCompanies from './RecentCompanies';
+
 import superAdminApi from '../services/superAdminApi';
 
 interface DashboardData {
   usage?: any;
+  totalCompanies?: any;
+  totalUsers?: any;
+  activeCompanies?: any;
+  systemHealth?: any;
+  recentCompanies?: any;
+  integrationStatus?: any;
 }
 
 function SuperAdminDashboard() {
-  const { logout, getUserDisplayName, getRoleDisplayNames } = useAuth();
-  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     async function fetchAllData() {
@@ -28,9 +36,29 @@ function SuperAdminDashboard() {
       setError(null);
       
       try {
-        const realCompaniesData = await superAdminApi.getCompanies({ limit: 50 });
+        console.log('🚀 Fetching SuperAdmin Dashboard data...');
         
-        const transformedUsageData = (realCompaniesData as any[])?.map((company: any) => ({
+        // Fetch all data in parallel for better performance
+        const [
+          companiesData,
+          totalCompaniesData,
+          totalUsersData,
+          activeCompaniesData,
+          systemHealthData,
+          recentCompaniesData,
+          integrationStatusData
+        ] = await Promise.allSettled([
+          superAdminApi.getCompanies({ limit: 50 }),
+          superAdminApi.getTotalCompanies(),
+          superAdminApi.getTotalUsers(),
+          superAdminApi.getActiveCompanies(),
+          superAdminApi.getSystemHealth(),
+          superAdminApi.getRecentCompanies(5),
+          superAdminApi.getIntegrationStatus()
+        ]);
+
+        // Transform and set data
+        const usage = companiesData.status === 'fulfilled' ? (companiesData.value as any[])?.map((company: any) => ({
           company_id: company.company_id,
           company_name: company.name,
           size_label: company.size_label,
@@ -39,13 +67,21 @@ function SuperAdminDashboard() {
           total_users: company.total_users,
           admin_name: company.admin_name,
           admin_email: company.admin_email
-        })) || [];
-        
+        })) : [];
+
         setDashboardData({
-          usage: transformedUsageData
+          usage,
+          totalCompanies: totalCompaniesData.status === 'fulfilled' ? totalCompaniesData.value : null,
+          totalUsers: totalUsersData.status === 'fulfilled' ? totalUsersData.value : null,
+          activeCompanies: activeCompaniesData.status === 'fulfilled' ? activeCompaniesData.value : null,
+          systemHealth: systemHealthData.status === 'fulfilled' ? systemHealthData.value : null,
+          recentCompanies: recentCompaniesData.status === 'fulfilled' ? recentCompaniesData.value : [],
+          integrationStatus: integrationStatusData.status === 'fulfilled' ? integrationStatusData.value : null
         });
+
+        console.log('✅ Dashboard data loaded successfully');
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
+        console.error('❌ Error fetching dashboard data:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
@@ -59,142 +95,71 @@ function SuperAdminDashboard() {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  const handleCreateCompany = () => {
-    setShowCreateModal(true);
-  };
-
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
-  if (loading) {
-    return (
-      <div className="superadmin-dashboard">
-        <header className="dashboard-header">
-          <div className="header-content">
-            <div className="header-title">
-              <h1>Super Admin Dashboard</h1>
-              <p>Multi-tenant company management portal</p>
-            </div>
-            <div className="header-actions">
-              <button className="refresh-btn" disabled>
-                🔄 Refresh All
-              </button>
-              <div className="last-updated">
-                Loading...
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '400px',
+  return (
+    <SuperAdminLayout 
+      loading={loading}
+      error={error}
+      onRefresh={handleRefresh}
+    >
+      {/* Metrics Section */}
+      <section className="metrics-section" style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '12px',
+        padding: '24px',
+        marginBottom: '30px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <div className="section-header" style={{
+          marginBottom: '20px',
+          paddingBottom: '12px',
+          borderBottom: '1px solid #f3f4f6'
+        }}>
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#111827',
+            margin: 0
+          }}>Key Metrics</h2>
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            margin: '4px 0 0 0'
+          }}>Overview of system performance and activity</p>
+        </div>
+        
+        <div className="metrics-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '20px'
         }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            border: '5px solid #f3f4f6',
-            borderTop: '5px solid #667eea',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <p style={{
-            fontSize: '16px',
-            color: '#6b7280',
-            fontWeight: 500
-          }}>Loading dashboard data...</p>
+          <TotalCompaniesCard data={dashboardData.totalCompanies} />
+          <TotalUsersCard data={dashboardData.totalUsers} />
+          <ActiveCompaniesCard data={dashboardData.activeCompanies} />
+          <SystemHealthCard data={dashboardData.systemHealth} />
         </div>
-      </div>
-    );
-  }
+      </section>
 
-  if (error) {
-    return (
-      <div className="superadmin-error">
-        <div className="error-icon">🚨</div>
-        <h2>Dashboard Error</h2>
-        <p>{error}</p>
-        <button className="retry-btn" onClick={handleRefresh}>
-          🔄 Retry
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="superadmin-dashboard">
-      {/* Professional SaaS Top Bar */}
-      <header className="dashboard-header-pro">
-        <div className="header-content-pro">
-          {/* Left: User Info */}
-          <div className="user-section-pro">
-            <div className="user-name-pro">{getUserDisplayName()}</div>
-            <div className="user-role-pro">{getRoleDisplayNames().join(', ')}</div>
-          </div>
-          
-          {/* Right: Actions */}
-          <div className="actions-section-pro">
-            <button 
-              className="btn-pro btn-primary-pro"
-              onClick={handleCreateCompany}
-            >
-              <Plus size={16} />
-              Create Company
-            </button>
-            
-            <button 
-              className="btn-pro btn-secondary-pro"
-              onClick={handleRefresh}
-            >
-              <RefreshCw size={16} />
-              Refresh All
-            </button>
-            
-            <button 
-              className="btn-pro btn-secondary-pro"
-              onClick={handleLogout}
-            >
-              <LogOut size={16} />
-              Logout
-            </button>
-            
-            <div className="timestamp-pro">
-              <Clock size={14} />
-              {new Date().toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit',
-                hour12: true 
-              })}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Row 1: Company Usage & Billing - THE HERO SECTION (Full Width) */}
-      <div style={{ width: '100%', maxWidth: '1800px', margin: '0 auto 24px auto', padding: '0 20px' }}>
+      {/* Row 2: Main Content - Full Width */}
+      <div className="main-content-grid" style={{
+        marginBottom: '30px'
+      }}>
         <CompanyUsageBilling 
           data={dashboardData.usage} 
           onRefresh={handleRefresh}
         />
       </div>
 
-      {/* Create Company Modal */}
-      {showCreateModal && (
-        <CreateCompanyModal
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
-            setShowCreateModal(false);
-            handleRefresh();
-          }}
-        />
-      )}
-    </div>
+      {/* Row 3: Bottom Section - Two Column Layout */}
+      <div className="bottom-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        gap: '20px'
+      }}>
+        <RecentCompanies data={dashboardData.recentCompanies} />
+        <IntegrationStatus data={dashboardData.integrationStatus} />
+      </div>
+    </SuperAdminLayout>
   );
 }
 

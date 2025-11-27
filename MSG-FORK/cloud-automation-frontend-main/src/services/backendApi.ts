@@ -87,8 +87,8 @@ class BackendApiService {
 
   constructor() {
     this.baseURL =
-      process.env.NEXT_PUBLIC_NEXT_PUBLIC_BACKEND_URL ||
-      "https://app-makestuffgo-test-001-backend.azurewebsites.net"
+      process.env.NEXT_PUBLIC_NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+      // "https://app-makestuffgo-test-001-backend.azurewebsites.net"
   }
 
   /**

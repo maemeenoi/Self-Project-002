@@ -10,7 +10,7 @@ interface ActivityLogEntry {
   details?: any
 }
 
-const API_BASE_URL = process.env.API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   // process.env.NEXT_PUBLIC_BACKEND_URL ||
   // "https://app-makestuffgo-test-001-backend.azurewebsites.net"
 

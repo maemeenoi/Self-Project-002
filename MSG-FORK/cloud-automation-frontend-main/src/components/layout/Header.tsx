@@ -136,19 +136,16 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
                   </div>
                 )}
                 
-                <button 
-                  onClick={() => {
-                    // Placeholder for profile functionality
-                    alert('Profile page is coming soon!')
-                    setShowUserMenu(false)
-                  }}
+                <a 
+                  href="/profile"
+                  onClick={() => setShowUserMenu(false)}
                   className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md w-full text-left"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <span>Profile</span>
-                </button>
+                </a>
                 {/* Super Admin Dashboard Link */}
                 {user && user.roles.some(role => role.name === 'SuperAdmin') && (
                   <a href="/superadmin" className="flex items-center space-x-2 px-3 py-2 text-sm text-purple-700 hover:bg-purple-50 rounded-md">
@@ -159,12 +156,9 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
                   </a>
                 )}
                 
-                <button 
-                  onClick={() => {
-                    // Placeholder for settings functionality
-                    alert('Settings page is coming soon!')
-                    setShowUserMenu(false)
-                  }}
+                <a 
+                  href="/user-settings"
+                  onClick={() => setShowUserMenu(false)}
                   className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md w-full text-left"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,7 +166,7 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <span>Settings</span>
-                </button>
+                </a>
                 <hr className="my-2 border-gray-200" />
                 <button 
                   onClick={handleLogout}

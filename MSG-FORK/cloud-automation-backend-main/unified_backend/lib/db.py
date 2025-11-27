@@ -115,14 +115,19 @@ async def execute_sql(query: str, params: Optional[Dict[str, Any]] = None) -> bo
         
         if params:
             # Replace named parameters with positional parameters for pyodbc
+            # Find placeholders in order they appear in the query
+            import re
+            placeholders = re.findall(r'\{(\w+)\}', query)
+            
             formatted_query = query
             param_values = []
             
-            for key, value in params.items():
-                placeholder = f"{{{key}}}"
-                if placeholder in formatted_query:
-                    formatted_query = formatted_query.replace(placeholder, "?")
-                    param_values.append(value)
+            # Replace placeholders in the order they appear in the query
+            for placeholder_name in placeholders:
+                if placeholder_name in params:
+                    placeholder = f"{{{placeholder_name}}}"
+                    formatted_query = formatted_query.replace(placeholder, "?", 1)  # Replace only first occurrence
+                    param_values.append(params[placeholder_name])
             
             cursor.execute(formatted_query, param_values)
         else:
@@ -160,14 +165,19 @@ async def query_one(query: str, params: Optional[Dict[str, Any]] = None) -> Opti
         
         if params:
             # Replace named parameters with positional parameters for pyodbc
+            # Find placeholders in order they appear in the query
+            import re
+            placeholders = re.findall(r'\{(\w+)\}', query)
+            
             formatted_query = query
             param_values = []
             
-            for key, value in params.items():
-                placeholder = f"{{{key}}}"
-                if placeholder in formatted_query:
-                    formatted_query = formatted_query.replace(placeholder, "?")
-                    param_values.append(value)
+            # Replace placeholders in the order they appear in the query
+            for placeholder_name in placeholders:
+                if placeholder_name in params:
+                    placeholder = f"{{{placeholder_name}}}"
+                    formatted_query = formatted_query.replace(placeholder, "?", 1)  # Replace only first occurrence
+                    param_values.append(params[placeholder_name])
             
             cursor.execute(formatted_query, param_values)
         else:
@@ -212,14 +222,19 @@ async def insert_and_return(query: str, params: Optional[Dict[str, Any]] = None)
         
         if params:
             # Replace named parameters with positional parameters for pyodbc
+            # Find placeholders in order they appear in the query
+            import re
+            placeholders = re.findall(r'\{(\w+)\}', query)
+            
             formatted_query = query
             param_values = []
             
-            for key, value in params.items():
-                placeholder = f"{{{key}}}"
-                if placeholder in formatted_query:
-                    formatted_query = formatted_query.replace(placeholder, "?")
-                    param_values.append(value)
+            # Replace placeholders in the order they appear in the query
+            for placeholder_name in placeholders:
+                if placeholder_name in params:
+                    placeholder = f"{{{placeholder_name}}}"
+                    formatted_query = formatted_query.replace(placeholder, "?", 1)  # Replace only first occurrence
+                    param_values.append(params[placeholder_name])
             
             cursor.execute(formatted_query, param_values)
         else:
@@ -268,14 +283,19 @@ async def query_many(query: str, params: Optional[Dict[str, Any]] = None) -> Lis
         
         if params:
             # Replace named parameters with positional parameters for pyodbc
+            # Find placeholders in order they appear in the query
+            import re
+            placeholders = re.findall(r'\{(\w+)\}', query)
+            
             formatted_query = query
             param_values = []
             
-            for key, value in params.items():
-                placeholder = f"{{{key}}}"
-                if placeholder in formatted_query:
-                    formatted_query = formatted_query.replace(placeholder, "?")
-                    param_values.append(value)
+            # Replace placeholders in the order they appear in the query
+            for placeholder_name in placeholders:
+                if placeholder_name in params:
+                    placeholder = f"{{{placeholder_name}}}"
+                    formatted_query = formatted_query.replace(placeholder, "?", 1)  # Replace only first occurrence
+                    param_values.append(params[placeholder_name])
             
             cursor.execute(formatted_query, param_values)
         else:
@@ -304,6 +324,14 @@ async def query_many(query: str, params: Optional[Dict[str, Any]] = None) -> Lis
             cursor.close()
         if connection:
             connection.close()
+
+
+# Alias for consistency with other parts of the codebase
+async def query_all(query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """
+    Alias for query_many - Execute SELECT query and return multiple rows as list of dictionaries
+    """
+    return await query_many(query, params)
 
 
 # Specialized functions for unified backend operations

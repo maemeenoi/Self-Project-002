@@ -95,7 +95,7 @@ const EngineerAIRecommendation: React.FC = () => {
       
       // Fetch real data from the Engineer AI endpoint
       // const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://app-makestuffgo-test-001-backend.azurewebsites.net';
-      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       console.log('🔍 Fetching Engineer AI forecast data from:', `${baseUrl}/api/engineer/ai/forecast`);
       
       const response = await fetch(`${baseUrl}/api/engineer/ai/forecast`, {
@@ -245,7 +245,7 @@ const EngineerAIRecommendation: React.FC = () => {
       }
 
       // const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://app-makestuffgo-test-001-backend.azurewebsites.net';
-      const baseUrl = API_URL;
+      const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       // Calculate cost summary from current data
       const totalCost = dailyCosts?.costs?.reduce((sum, cost) => sum + cost, 0) || 0;
       const avgCost = dailyCosts?.costs?.length ? totalCost / dailyCosts.costs.length : 0;

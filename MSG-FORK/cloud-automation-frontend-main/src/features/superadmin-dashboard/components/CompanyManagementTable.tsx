@@ -52,8 +52,8 @@ function CompanyManagementTable({ data, onRefresh }: CompanyManagementTableProps
   }
 
   // Filter companies
-  const filteredCompanies = data.companies.filter(company => {
-    const matchesSearch = company.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredCompanies = (Array.isArray(data?.companies) ? data.companies : []).filter(company => {
+    const matchesSearch = company.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || 
       (statusFilter === 'active' && company.is_active) ||
       (statusFilter === 'inactive' && !company.is_active);
@@ -289,7 +289,7 @@ function CompanyManagementTable({ data, onRefresh }: CompanyManagementTableProps
       )}      {/* Pagination */}
       {filteredCompanies.length > 0 && (
         <div className="table-pagination">
-          <span>Showing {filteredCompanies.length} of {data.total}</span>
+          <span>Showing {filteredCompanies.length} of {data?.total || 0}</span>
           <div className="pagination-buttons">
             <button disabled>← Previous</button>
             <button disabled>Next →</button>
