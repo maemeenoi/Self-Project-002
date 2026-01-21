@@ -21,3 +21,5 @@ build/
 *.swo
 *.iml
 .next/
+finops_portal_local/
+MSG-FORK/
