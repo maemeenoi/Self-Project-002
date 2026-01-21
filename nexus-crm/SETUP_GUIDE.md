@@ -1,6 +1,6 @@
 # NexusCRM Setup Guide
 
-This guide will walk you through the commands to initialize the **Frontend** and **Backend** projects according to the architectural design.
+This guide will walk you through the commands to initialize the **Frontend (Vue 3)** and **Backend (FastAPI)** projects.
 
 ---
 
@@ -13,50 +13,79 @@ Ensure you have the following installed:
 
 ---
 
-## 2. Frontend Initialization (Next.js)
+## 2. Frontend Initialization (Vue 3 + Vite)
 
-We will use `create-next-app` to set up the frontend with React, TypeScript, and Tailwind CSS.
+We will use `create-vue` (the official Vue scaffolding tool) to set up the frontend with Vue 3, TypeScript, and Pinia.
 
 1.  **Navigate to the project root:**
     ```bash
     cd nexus-crm
     ```
 
-2.  **Initialize the Next.js app:**
+2.  **Initialize the Vue app:**
     *   **Note:** We run this *inside* the `frontend` folder. Since the folder already exists, we use `.` (current directory) after entering it.
 
     ```bash
     # Go into the frontend folder
     cd frontend
 
-    # Run the creator (it might ask to install create-next-app first, say yes)
-    npx create-next-app@latest .
+    # Run the creator
+    npm create vue@latest .
     ```
 
 3.  **Select the following options when prompted:**
     *   **TypeScript:** `Yes`
+    *   **JSX Support:** `No` (Vue uses Templates usually, but Yes is fine if you like JSX)
+    *   **Vue Router:** `Yes` (For navigation)
+    *   **Pinia:** `Yes` (For state management)
+    *   **Vitest:** `Yes` (For unit testing)
+    *   **End-to-End Testing:** `No` (For now)
     *   **ESLint:** `Yes`
-    *   **Tailwind CSS:** `Yes`
-    *   **`src/` directory:** `Yes` (Keeps things clean)
-    *   **App Router:** `Yes` (This is the modern Next.js standard)
-    *   **Customize the default import alias (@/*)?** `No` (or Yes if you prefer)
+    *   **Prettier:** `Yes`
 
-4.  **Install additional dependencies:**
-    We need `shadcn/ui` (for professional components) and `tanstack-query` (for data fetching).
+4.  **Install dependencies:**
     ```bash
-    # Install Shadcn UI CLI
-    npx shadcn-ui@latest init
-    # (Follow the prompts: Style=Default, Base Color=Slate, CSS variables=Yes)
-
-    # Install React Query and Axios
-    npm install @tanstack/react-query axios lucide-react
+    npm install
     ```
 
-5.  **Test it:**
+5.  **Install Tailwind CSS (Standard for Vue):**
+    ```bash
+    npm install -D tailwindcss postcss autoprefixer
+    npx tailwindcss init -p
+    ```
+
+    *Update `tailwind.config.js`:*
+    ```js
+    export default {
+      content: [
+        "./index.html",
+        "./src/**/*.{vue,js,ts,jsx,tsx}",
+      ],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    }
+    ```
+
+    *Update `src/assets/main.css` (or Create `src/style.css` and import it):*
+    ```css
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+    ```
+
+6.  **Install additional libraries:**
+    We need `axios` for API calls and icons.
+    ```bash
+    npm install axios lucide-vue-next
+    ```
+
+7.  **Test it:**
     ```bash
     npm run dev
     ```
-    Open [http://localhost:3000](http://localhost:3000) to see your app.
+    Open [http://localhost:5173](http://localhost:5173) to see your app.
 
 ---
 
@@ -115,4 +144,4 @@ We will set up a virtual environment and install the core dependencies.
 
 Once you have both servers running:
 1.  Read `PROJECT_DESIGN.md` to review the database schema.
-2.  Start with **Phase 1**: Create a `Lead` model in the backend and fetch it from the frontend.
+2.  Start with **Phase 1**: Create a `Lead` model in the backend and fetch it from the Vue frontend.

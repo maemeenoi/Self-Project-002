@@ -19,11 +19,11 @@ Sales representatives, account managers, and business owners who need to track i
 
 This project is carefully scoped to hit every major keyword in a Senior Engineer's skillset:
 
-### Frontend (Next.js & React)
-*   **State Management:** Handling complex form state and "Kanban" board drag-and-drop.
-*   **Data Fetching:** Using React Query (TanStack Query) for caching and optimistic updates.
-*   **UI/UX:** Building responsive dashboards with Tailwind CSS and charting libraries (Recharts).
-*   **Next.js Features:** Server Components vs. Client Components, API Routes (BFF pattern).
+### Frontend (Vue 3 & Vite)
+*   **State Management:** Handling complex form state and "Kanban" board drag-and-drop using **Pinia**.
+*   **Data Fetching:** Using **TanStack Query (Vue)** or composables for caching and optimistic updates.
+*   **UI/UX:** Building responsive dashboards with Tailwind CSS and charting libraries (Chart.js/Vue-Chartjs).
+*   **Vue Features:** Composition API (`script setup`), Composables (reusable logic), and Custom Directives.
 
 ### Backend (Python & FastAPI)
 *   **API Design:** RESTful standards, dependency injection, and Pydantic models for strict data validation.
@@ -37,7 +37,7 @@ This project is carefully scoped to hit every major keyword in a Senior Engineer
 *   **Migrations:** Using generic tools (like Alembic) to manage schema changes over time.
 
 ### DevOps & Cloud (Azure)
-*   **Containerization:** Dockerizing the Frontend and Backend services.
+*   **Containerization:** Dockerizing the Frontend (NGINX/Vite build) and Backend services.
 *   **Infrastructure as Code:** Using Terraform to provision Azure App Services and Azure SQL.
 *   **CI/CD:** GitHub Actions to build and deploy automatically.
 
@@ -50,12 +50,12 @@ This project is carefully scoped to hit every major keyword in a Senior Engineer
 
 ## 3. System Architecture
 
-We will follow a **Modern Monolithic** approach initially, evolving into a Cloud-Native architecture.
+We will follow a **SPA (Single Page Application)** approach initially, evolving into a Cloud-Native architecture.
 
 ### High-Level Diagram
 ```mermaid
 graph TD
-    Client[Next.js Frontend] -->|REST API| API[FastAPI Backend]
+    Client[Vue 3 SPA (Vite)] -->|REST API| API[FastAPI Backend]
     API -->|SQL| DB[(PostgreSQL Database)]
     API -->|API Call| OpenAI[Azure OpenAI Service]
 
@@ -66,7 +66,7 @@ graph TD
 ```
 
 ### Components
-1.  **Frontend (Next.js):** The user interface. It talks *only* to the FastAPI backend.
+1.  **Frontend (Vue 3 + Vite):** The user interface. It talks *only* to the FastAPI backend.
 2.  **Backend API (FastAPI):** The brain. It handles business logic, auth, and data validation.
 3.  **Database (PostgreSQL):** The source of truth. Stores structured data (Contacts, Deals).
 4.  **AI Service (Module within FastAPI):** A specialized service layer that constructs prompts and calls the OpenAI API.
@@ -86,9 +86,9 @@ We will build this in layers to avoid overwhelming you.
 *   **Features:**
     *   Setup FastAPI with a simple SQLite database (easier for local start).
     *   Create `Lead` and `Contact` CRUD endpoints.
-    *   Next.js Dashboard displaying a list of Leads.
+    *   Vue.js Dashboard displaying a list of Leads.
     *   Simple "Lead Detail" page showing basic info.
-*   **Learning:** Basic FastAPI structure, Pydantic, React Hooks, Tailwind layouts.
+*   **Learning:** Basic FastAPI structure, Pydantic, Vue Composition API, Tailwind layouts.
 
 ### Phase 2: Professional Features (The "SaaS Ready")
 *   **Goal:** Make it robust and realistic.
@@ -97,13 +97,13 @@ We will build this in layers to avoid overwhelming you.
     *   **Kanban Board:** A Drag-and-drop UI for moving Deals between stages (New -> Negotiation -> Closed).
     *   **Dashboard:** Charts showing "Total Pipeline Value" and "Leads by Source."
     *   **Interaction Logging:** A timeline view to add notes ("Called customer, they are interested").
-*   **Learning:** Complex SQL queries, React DnD (Drag and Drop), Recharts, State Management.
+*   **Learning:** Complex SQL queries, Vue DnD (Drag and Drop), Chart.js, Pinia State Management.
 
 ### Phase 3: The AI & Cloud Layer (The "Portfolio Piece")
 *   **Goal:** Deploy to Azure and add Intelligence.
 *   **Features:**
     *   **AI Chat:** A floating chat widget. User asks: *"Summarize the last 3 notes for this lead."* -> Backend fetches notes -> Sends to LLM -> Returns summary.
-    *   **Containerization:** Create `Dockerfile` for FE and BE.
+    *   **Containerization:** Create `Dockerfile` for FE (Nginx build) and BE.
     *   **Azure Deployment:** Use Terraform to spin up an Azure Web App for Containers and an Azure Database for PostgreSQL.
 *   **Learning:** Docker, Terraform, Azure, RAG patterns, OpenAI API.
 
@@ -190,7 +190,7 @@ We will use RESTful conventions.
 ## 9. How This Helps Your Career
 
 **The Interview Pitch:**
-> "I built NexusCRM to bridge the gap between basic CRUD apps and real-world SaaS platforms. I chose a **FastAPI/Next.js** stack to focus on performance and type safety.
+> "I built NexusCRM to bridge the gap between basic CRUD apps and real-world SaaS platforms. I chose a **FastAPI/Vue 3** stack to focus on performance and component-based architecture.
 >
 > I architected the database to handle complex relationships between Leads and Deals, mimicking enterprise systems like HubSpot.
 >
