@@ -23,3 +23,4 @@ build/
 .next/
 finops_portal_local/
 MSG-FORK/
+.DS_Store
